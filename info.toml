@@ -1,0 +1,9 @@
+[meta]
+name = "Local Leaderboard"
+author = "Kaloix27"
+category = "Race"
+version = "0.1.0"
+
+[script]
+dependencies = ["MLFeedRaceData"]
+optional_dependencies =  [ "ChampionMedals", "WarriorMedals"]
