@@ -11,8 +11,14 @@ bool settingDisplayLeaderboardMapAuthor = true;
 [Setting name="Display Leaderboard" description="Show the leaderboard UI" category="UI"]
 bool settingDisplayLeaderboard = true;
 
+[Setting name="Display Leaderboard Header" description="Show the header row in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardHeader = true;
+
 [Setting name="Display Rank Column" description="Show the rank column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardRankColumn = true;
+
+[Setting name="Display Medal Column" description="Show the medal column in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardMedalColumn = true;
 
 [Setting name="Display Time Column" description="Show the time column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardTimeColumn = true;
@@ -56,8 +62,11 @@ vec3 settingColorDeltaWorse = vec3(1.0f, 0.47f, 0.47f);
 [Setting name="Color Delta Equal" description="Color for deltas that are equal to the comparison time" category="UI"]
 vec3 settingColorDeltaEqual = vec3(0.66f, 0.66f, 0.66f);
 
+[Setting name="Color Time Best" description="Color for the player's best time in the leaderboard" category="UI"]
+vec3 settingColorTimeBest = vec3(0.75f, 0.25f, 0.75f);
+
 [Setting name="Color Time Last" description="Color for the player's last time in the leaderboard" category="UI"]
-vec3 settingColorTimeLast = vec3(0.5, 1.0f, 0);
+vec3 settingColorTimeLast = vec3(0.5f, 1.0f, 0.0f);
 
 // Category Debug
 [Setting name="Show Debug Info" description="Show debug information in the console" category="Debug"]

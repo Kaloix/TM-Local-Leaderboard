@@ -10,24 +10,29 @@ void Render()
 
 namespace LocalLeaderboard
 {
-	int numberOfColumns = 0;
 	int windowFlags = 0;
+
+	array<TableColumn @> g_TableColumns;
 
 	void InitRender()
 	{
-		numberOfColumns = 0;
+		// Clear existing columns
+		g_TableColumns.RemoveRange(0, g_TableColumns.Length);
+
+		if (settingDisplayLeaderboardMedalColumn)
+			g_TableColumns.InsertLast(MedalColumn());
 		if (settingDisplayLeaderboardRankColumn)
-			numberOfColumns++;
+			g_TableColumns.InsertLast(RankColumn());
 		if (settingDisplayLeaderboardPlayerColumn)
-			numberOfColumns++;
+			g_TableColumns.InsertLast(PlayerColumn());
 		if (settingDisplayLeaderboardTimeColumn)
-			numberOfColumns++;
-		if (settingDisplayLeaderboardTimestampColumn)
-			numberOfColumns++;
+			g_TableColumns.InsertLast(TimeColumn());
 		if (settingDisplayLeaderboardDeltaPBColumn)
-			numberOfColumns++;
+			g_TableColumns.InsertLast(BestTimeDeltaColumn());
 		if (settingDisplayLeaderboardDeltaLastColumn)
-			numberOfColumns++;
+			g_TableColumns.InsertLast(LastTimeDeltaColumn());
+		if (settingDisplayLeaderboardTimestampColumn)
+			g_TableColumns.InsertLast(TimestampColumn());
 
 		windowFlags = UI::GetDefaultWindowFlags();
 		if (!settingDisplayLeaderboardTitleBar)
@@ -45,13 +50,6 @@ namespace LocalLeaderboard
 		bool open = true;
 		UI::Begin("Local Leaderboard", open, windowFlags);
 
-		if (g_State.m_CurrentMap == "")
-		{
-			UI::Text("No map loaded.");
-			UI::End();
-			return;
-		}
-
 		if (settingDisplayLeaderboardMapName)
 		{
 			const auto mapName = Text::OpenplanetFormatCodes(g_State.m_CurrentMapName);
@@ -64,205 +62,298 @@ namespace LocalLeaderboard
 			UI::TextDisabled("By " + mapAuthor);
 		}
 
-		UI::BeginTable("LeaderboardTable", numberOfColumns);
+		if (g_State.m_Leaderboard.m_Entries.Length == 0)
+		{
+			UI::End();
+			return;
+		}
+
+		UI::BeginTable("LeaderboardTable", g_TableColumns.Length);
 
 		// Setup columns
-		if (settingDisplayLeaderboardRankColumn)
+		for (uint i = 0; i < g_TableColumns.Length; i++)
 		{
-			UI::TableSetupColumn("Rank", UI::TableColumnFlags::WidthFixed, 30);
-		}
-		if (settingDisplayLeaderboardPlayerColumn)
-		{
-			UI::TableSetupColumn("Player", UI::TableColumnFlags::WidthStretch);
-		}
-		if (settingDisplayLeaderboardTimeColumn)
-		{
-			UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 60);
-		}
-		if (settingDisplayLeaderboardDeltaPBColumn)
-		{
-			UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed, 60);
-		}
-		if (settingDisplayLeaderboardDeltaLastColumn)
-		{
-			UI::TableSetupColumn("Delta Last", UI::TableColumnFlags::WidthFixed, 60);
-		}
-		if (settingDisplayLeaderboardTimestampColumn)
-		{
-			UI::TableSetupColumn("Timestamp", UI::TableColumnFlags::WidthFixed, 150);
+			g_TableColumns[i].setup();
 		}
 
 		// Table header
-		UI::TableNextRow();
-
-		if (settingDisplayLeaderboardRankColumn)
+		if (settingDisplayLeaderboardHeader)
 		{
-			UI::TableNextColumn();
-			UI::Text("No.");
-		}
-		if (settingDisplayLeaderboardPlayerColumn)
-		{
-			UI::TableNextColumn();
-			UI::Text("Player");
-		}
-		if (settingDisplayLeaderboardTimeColumn)
-		{
-			UI::TableNextColumn();
-			UI::Text("Time");
-		}
-		if (settingDisplayLeaderboardDeltaPBColumn)
-		{
-			UI::TableNextColumn();
-			UI::Text("Delta PB");
-		}
-		if (settingDisplayLeaderboardDeltaLastColumn)
-		{
-			UI::TableNextColumn();
-			UI::Text("Delta Last");
-		}
-		if (settingDisplayLeaderboardTimestampColumn)
-		{
-			UI::TableNextColumn();
-			UI::Text("Timestamp");
+			UI::TableNextRow(UI::TableRowFlags::Headers);
+			for (uint i = 0; i < g_TableColumns.Length; i++)
+			{
+				UI::TableNextColumn();
+				g_TableColumns[i].renderHeader();
+			}
 		}
 
-		int position = 1;
+		// Table body
+		auto context = TableRenderContext();
 		for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
 		{
-			const auto @entry = g_State.m_Leaderboard.m_Entries[i];
-			const bool isPlayerBest = entry.m_Id == g_State.m_Leaderboard.m_PlayerBestId;
-			const bool isPlayerLast = entry.m_Id == g_State.m_Leaderboard.m_PlayerLastId;
+			@context.m_CurrentEntry = @g_State.m_Leaderboard.m_Entries[i];
+			context.m_IsPlayerBest = context.m_CurrentEntry.m_Id == g_State.m_Leaderboard.m_PlayerBestId;
+			context.m_IsPlayerLast = context.m_CurrentEntry.m_Id == g_State.m_Leaderboard.m_PlayerLastId;
 
-			UI::TableNextRow();
-
-			string positionStr = "" + position;
-
-			if (entry.m_Type == LeaderboardEntryType::Medal)
+			if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal)
 			{
-				positionStr = "";
-
-				if (entry.m_Medal == "Author" && !settingDisplayLeaderboardMedalAuthor)
+				if (context.m_CurrentEntry.m_Medal == "Author" && !settingDisplayLeaderboardMedalAuthor)
 				{
 					continue; // Skip author medal if the setting is disabled
 				}
-				else if (entry.m_Medal == "Gold" && !settingDisplayLeaderboardMedalGold)
+				else if (context.m_CurrentEntry.m_Medal == "Gold" && !settingDisplayLeaderboardMedalGold)
 				{
 					continue; // Skip gold medal if the setting is disabled
 				}
-				else if (entry.m_Medal == "Silver" && !settingDisplayLeaderboardMedalSilver)
+				else if (context.m_CurrentEntry.m_Medal == "Silver" && !settingDisplayLeaderboardMedalSilver)
 				{
 					continue; // Skip silver medal if the setting is disabled
 				}
-				else if (entry.m_Medal == "Bronze" && !settingDisplayLeaderboardMedalBronze)
+				else if (context.m_CurrentEntry.m_Medal == "Bronze" && !settingDisplayLeaderboardMedalBronze)
 				{
 					continue; // Skip bronze medal if the setting is disabled
 				}
-				else if (entry.m_Medal == "Champion" && !settingDisplayLeaderboardMedalChampion)
+				else if (context.m_CurrentEntry.m_Medal == "Champion" && !settingDisplayLeaderboardMedalChampion)
 				{
 					continue; // Skip champion medal if the setting is disabled
 				}
-				else if (entry.m_Medal == "Warrior" && !settingDisplayLeaderboardMedalWarrior)
+				else if (context.m_CurrentEntry.m_Medal == "Warrior" && !settingDisplayLeaderboardMedalWarrior)
 				{
 					continue; // Skip warrior medal if the setting is disabled
 				}
 			}
-			else
-			{
-				position++; // Increment position for non-medal entries
-			}
 
-			if (settingDisplayLeaderboardRankColumn)
+			UI::TableNextRow();
+
+			for (uint col = 0; col < g_TableColumns.Length; col++)
 			{
 				UI::TableNextColumn();
-				UI::PushStyleColor(UI::Col::Text, vec4(entry.m_IconColor, 1));
-
-				if (entry.m_Type == LeaderboardEntryType::Medal)
-				{
-					UI::Text(Icons::Circle);
-				}
-				else
-				{
-					UI::Text(positionStr);
-				}
-				UI::PopStyleColor();
-			}
-
-			if (settingDisplayLeaderboardPlayerColumn)
-			{
-				UI::TableNextColumn();
-				UI::Text(entry.m_PlayerName);
-			}
-
-			if (settingDisplayLeaderboardTimeColumn)
-			{
-				UI::TableNextColumn();
-
-				if (isPlayerLast)
-				{
-					UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeLast, 1));
-				}
-				UI::Text(Time::Format(entry.m_Time));
-				if (isPlayerLast)
-				{
-					UI::PopStyleColor();
-				}
-			}
-
-			if (settingDisplayLeaderboardDeltaPBColumn)
-			{
-				UI::TableNextColumn();
-				if (!isPlayerBest && g_State.m_Leaderboard.m_PlayerBestTime > 0 && entry.m_Time > 0)
-				{
-					int deltaPB = entry.m_Time - g_State.m_Leaderboard.m_PlayerBestTime;
-					auto deltaPBColor = deltaPB < 0 ? vec4(settingColorDeltaBetter, 1) : (deltaPB > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
-					string deltaPBStr = (deltaPB > 0 ? "+" : "") + Time::Format(deltaPB);
-
-					UI::PushStyleColor(UI::Col::Text, deltaPBColor);
-					UI::Text(deltaPBStr);
-					UI::PopStyleColor();
-				}
-				else
-				{
-					UI::Text("");
-				}
-			}
-
-			if (settingDisplayLeaderboardDeltaLastColumn)
-			{
-				UI::TableNextColumn();
-				if (!isPlayerLast && g_State.m_Leaderboard.m_PlayerLastTime > 0 && entry.m_Time > 0)
-				{
-					int deltaLast = entry.m_Time - g_State.m_Leaderboard.m_PlayerLastTime;
-					auto deltaLastColor = deltaLast < 0 ? vec4(settingColorDeltaBetter, 1) : (deltaLast > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
-					string deltaLastStr = (deltaLast > 0 ? "+" : "") + Time::Format(deltaLast);
-
-					UI::PushStyleColor(UI::Col::Text, deltaLastColor);
-					UI::Text(deltaLastStr);
-					UI::PopStyleColor();
-				}
-				else
-				{
-					UI::Text("");
-				}
-			}
-
-			if (settingDisplayLeaderboardTimestampColumn)
-			{
-				UI::TableNextColumn();
-				if (entry.m_TimeStamp == 0)
-				{
-					UI::Text("");
-				}
-				else
-				{
-					auto time = Time::Parse(entry.m_TimeStamp);
-					UI::Text(time.Year + "-" + Text::Format("%02d", time.Month) + "-" + Text::Format("%02d", time.Day) + " " + Text::Format("%02d", time.Hour) + ":" + Text::Format("%02d", time.Minute) + ":" + Text::Format("%02d", time.Second));
-				}
+				g_TableColumns[col].renderBody(context);
 			}
 		}
 
 		UI::EndTable();
 
 		UI::End();
+	}
+
+	class TableRenderContext
+	{
+		uint m_CurrentRow = 0;
+		uint m_CurrentPosition = 1;
+		LeaderboardEntry @m_CurrentEntry = null;
+
+		bool m_IsPlayerBest = false;
+		bool m_IsPlayerLast = false;
+	}
+
+	interface TableColumn
+	{
+		void setup();
+		void renderHeader();
+		void renderBody(TableRenderContext &inout context);
+	}
+
+	class RankColumn : TableColumn
+	{
+		void setup()
+		{
+			UI::TableSetupColumn("Rank", UI::TableColumnFlags::WidthFixed, 30);
+		}
+
+		void renderHeader()
+		{
+			UI::Text("No.");
+		}
+
+		void renderBody(TableRenderContext&inout context)
+		{
+			if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal)
+			{
+				return;
+			}
+			renderText(context, "" + context.m_CurrentPosition);
+			context.m_CurrentPosition++;
+		}
+	}
+
+	class MedalColumn : TableColumn
+	{
+		void setup()
+		{
+			UI::TableSetupColumn("Medal", UI::TableColumnFlags::WidthFixed, 20);
+		}
+
+		void renderHeader()
+		{
+		}
+
+		void renderBody(TableRenderContext&inout context)
+		{
+
+			if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal)
+			{
+				UI::PushStyleColor(UI::Col::Text, vec4(context.m_CurrentEntry.m_IconColor, 1));
+				UI::Text(Icons::Circle);
+				UI::PopStyleColor();
+			}
+			else if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Score)
+			{
+				renderText(context, Icons::UserO);
+			}
+		}
+	}
+
+	class TimeColumn : TableColumn
+	{
+		void setup()
+		{
+			UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 60);
+		}
+
+		void renderHeader()
+		{
+			UI::Text("Time");
+		}
+
+		void renderBody(TableRenderContext&inout context)
+		{
+			renderText(context, Time::Format(context.m_CurrentEntry.m_Time));
+		}
+	}
+
+	class PlayerColumn : TableColumn
+	{
+		void setup()
+		{
+			UI::TableSetupColumn("Player", UI::TableColumnFlags::WidthStretch);
+		}
+
+		void renderHeader()
+		{
+			UI::Text("Player");
+		}
+
+		void renderBody(TableRenderContext&inout context)
+		{
+			const auto name = context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal ? context.m_CurrentEntry.m_Medal : context.m_CurrentEntry.m_PlayerName;
+			renderText(context, name);
+		}
+	}
+
+	class TimeDeltaColumn : TableColumn
+	{
+		string getHeaderName()
+		{
+			return "";
+		}
+		bool isShowDelta(const TableRenderContext&in context)
+		{
+			return true;
+		}
+		int getDelta(const TableRenderContext&in context)
+		{
+			return 0;
+		}
+
+		void setup()
+		{
+			UI::TableSetupColumn(getHeaderName(), UI::TableColumnFlags::WidthFixed, 60);
+		}
+
+		void renderHeader()
+		{
+			UI::Text(getHeaderName());
+		}
+
+		void renderBody(TableRenderContext&inout context)
+		{
+			if (context.m_CurrentEntry.m_Time <= 0 || !isShowDelta(context))
+			{
+				return;
+			}
+
+			const int delta = getDelta(context);
+			auto deltaColor = delta < 0 ? vec4(settingColorDeltaBetter, 1) : (delta > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
+			string deltaStr = (delta > 0 ? "+" : "") + Time::Format(delta);
+
+			UI::PushStyleColor(UI::Col::Text, deltaColor);
+			UI::Text(deltaStr);
+			UI::PopStyleColor();
+		}
+	}
+
+	class BestTimeDeltaColumn : TimeDeltaColumn
+	{
+		string getHeaderName() override
+		{
+			return "Delta PB";
+		}
+		bool isShowDelta(const TableRenderContext&in context) override
+		{
+			return !context.m_IsPlayerBest && g_State.m_Leaderboard.m_PlayerBestTime > 0;
+		}
+		int getDelta(const TableRenderContext&in context) override
+		{
+			return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_PlayerBestTime;
+		}
+	}
+
+	class LastTimeDeltaColumn : TimeDeltaColumn
+	{
+		string getHeaderName() override
+		{
+			return "Delta Last";
+		}
+		bool isShowDelta(const TableRenderContext&in context) override
+		{
+			return !context.m_IsPlayerLast && g_State.m_Leaderboard.m_PlayerLastTime > 0;
+		}
+		int getDelta(const TableRenderContext&in context) override
+		{
+			return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_PlayerLastTime;
+		}
+	}
+
+	class TimestampColumn : TableColumn
+	{
+		void setup()
+		{
+			UI::TableSetupColumn("Timestamp", UI::TableColumnFlags::WidthFixed, 150);
+		}
+
+		void renderHeader()
+		{
+			UI::Text("Timestamp");
+		}
+
+		void renderBody(TableRenderContext&inout context)
+		{
+			if (context.m_CurrentEntry.m_TimeStamp == 0)
+			{
+				return;
+			}
+
+			auto time = Time::Parse(context.m_CurrentEntry.m_TimeStamp);
+			string timeStr = time.Year + "-" + Text::Format("%02d", time.Month) + "-" + Text::Format("%02d", time.Day) + " " + Text::Format("%02d", time.Hour) + ":" + Text::Format("%02d", time.Minute) + ":" + Text::Format("%02d", time.Second);
+			renderText(context, timeStr);
+		}
+	}
+
+	void renderText(const TableRenderContext&in context, const string&in text)
+	{
+		if (context.m_IsPlayerLast)
+		{
+			UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeLast, 1));
+		}
+		else if (context.m_IsPlayerBest)
+		{
+			UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeBest, 1));
+		}
+		UI::Text(text);
+		if (context.m_IsPlayerLast || context.m_IsPlayerBest)
+		{
+			UI::PopStyleColor();
+		}
 	}
 }
