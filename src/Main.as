@@ -102,6 +102,7 @@ namespace LocalLeaderboard
 
 		// Add medals
 		auto medalAt = LeaderboardEntry();
+		medalAt.m_Type = LeaderboardEntryType::Medal;
 		medalAt.m_Medal = "Author";
 		medalAt.m_PlayerName = "AT";
 		medalAt.m_IconColor = vec3(0, 0x77/255.0f, 0x11/255.0f);
@@ -109,6 +110,7 @@ namespace LocalLeaderboard
 		g_State.m_Leaderboard.AddEntry(medalAt);
 
 		auto medalGold = LeaderboardEntry();
+		medalGold.m_Type = LeaderboardEntryType::Medal;
 		medalGold.m_Medal = "Gold";
 		medalGold.m_PlayerName = "Gold";
 		medalGold.m_IconColor = vec3(0xDD/255.0f, 0xBB/255.0f, 0x44/255.0f);
@@ -116,6 +118,7 @@ namespace LocalLeaderboard
 		g_State.m_Leaderboard.AddEntry(medalGold);
 
 		auto medalSilver = LeaderboardEntry();
+		medalSilver.m_Type = LeaderboardEntryType::Medal;
 		medalSilver.m_Medal = "Silver";
 		medalSilver.m_PlayerName = "Silver";
 		medalSilver.m_IconColor = vec3(0x88/255.0f, 0x99/255.0f, 0x99/255.0f);
@@ -123,6 +126,7 @@ namespace LocalLeaderboard
 		g_State.m_Leaderboard.AddEntry(medalSilver);
 
 		auto medalBronze = LeaderboardEntry();
+		medalBronze.m_Type = LeaderboardEntryType::Medal;
 		medalBronze.m_Medal = "Bronze";
 		medalBronze.m_PlayerName = "Bronze";
 		medalBronze.m_IconColor = vec3(0x99/255.0f, 0x66/255.0f, 0x44/255.0f);
@@ -134,6 +138,7 @@ namespace LocalLeaderboard
 		if (championTime > 0)
 		{
 			auto medalChampion = LeaderboardEntry();
+			medalChampion.m_Type = LeaderboardEntryType::Medal;
 			medalChampion.m_Medal = "Champion";
 			medalChampion.m_PlayerName = "Champion";
 			medalChampion.m_IconColor = vec3(0xf8/255.0f, 0x4a/255.0f, 0x6e/255.0f);
@@ -146,6 +151,7 @@ namespace LocalLeaderboard
 		if (warriorTime > 0)
 		{
 			auto medalWarrior = LeaderboardEntry();
+			medalWarrior.m_Type = LeaderboardEntryType::Medal;
 			medalWarrior.m_Medal = "Warrior";
 			medalWarrior.m_PlayerName = "Warrior";
 			medalWarrior.m_IconColor = WarriorMedals::GetColorWarriorVec();
@@ -237,6 +243,8 @@ namespace LocalLeaderboard
 	{
 		string m_Id = Crypto::RandomBase64(12);
 
+		LeaderboardEntryType m_Type = LeaderboardEntryType::Score;
+
 		string m_PlayerName = "";
 		string m_Medal = "";
 
@@ -259,5 +267,11 @@ namespace LocalLeaderboard
 		bool m_IsPlayerFinishHandled = true;
 
 		Leaderboard m_Leaderboard = Leaderboard();
+	}
+
+	enum LeaderboardEntryType
+	{
+		Medal,
+		Score,
 	}
 }

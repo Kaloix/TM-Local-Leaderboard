@@ -28,10 +28,10 @@ namespace LocalLeaderboard
 		{
 			auto entry = state.m_Leaderboard.m_Entries[i];
 
-			if (entry.m_Medal != "")
-            {
-                continue; // Skip medal entries
-            }
+			if (entry.m_Type == LeaderboardEntryType::Medal)
+			{
+				continue; // Skip medal entries
+			}
 
 			auto entryObj = Json::Object();
 			entryObj["id"] = entry.m_Id;

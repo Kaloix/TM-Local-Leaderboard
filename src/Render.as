@@ -137,7 +137,7 @@ namespace LocalLeaderboard
 
 			string positionStr = "" + position;
 
-			if (entry.m_Medal != "")
+			if (entry.m_Type == LeaderboardEntryType::Medal)
 			{
 				positionStr = "";
 
@@ -176,7 +176,7 @@ namespace LocalLeaderboard
 				UI::TableNextColumn();
 				UI::PushStyleColor(UI::Col::Text, vec4(entry.m_IconColor, 1));
 
-				if (entry.m_Medal != "")
+				if (entry.m_Type == LeaderboardEntryType::Medal)
 				{
 					UI::Text(Icons::Circle);
 				}
