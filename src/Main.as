@@ -98,8 +98,6 @@ namespace LocalLeaderboard
 		g_State.m_CurrentMapName = map.MapName;
 		g_State.m_CurrentMapAuthor = map.AuthorNickName;
 
-		LogInfo("Author Time: " + map.MapInfo.TMObjective_AuthorTime);
-
 		LoadLeaderboard(g_State);
 
 		// Add medals
@@ -154,7 +152,6 @@ namespace LocalLeaderboard
 			medalWarrior.m_Time = WarriorMedals::GetWMTime();
 			g_State.m_Leaderboard.AddEntry(medalWarrior);
 		}
-		// return PositionData(0, WarriorMedals::GetColorStr(), Icons::Circle, greyColor3);
 #endif
 	}
 
@@ -179,7 +176,7 @@ namespace LocalLeaderboard
 		entry.m_Time = player.FinishTime;
 		entry.m_TimeStamp = Time::get_Stamp();
 
-		g_State.m_Leaderboard.AddEntry(entry);
+		g_State.m_Leaderboard.AddNewEntry(entry);
 
 		SaveLeaderboard(g_State);
 	}
@@ -202,9 +199,27 @@ namespace LocalLeaderboard
 	{
 		array<LeaderboardEntry @> m_Entries;
 
+		string m_PlayerBestId = '';
+		int m_PlayerBestTime = -1;
+
+		string m_PlayerLastId = '';
+		int m_PlayerLastTime = -1;
+
+		void AddNewEntry(LeaderboardEntry entry)
+		{
+			AddEntry(entry);
+			m_PlayerLastId = entry.m_Id;
+			m_PlayerLastTime = entry.m_Time;
+
+			if (entry.m_Time < m_PlayerBestTime || m_PlayerBestTime == -1)
+			{
+				m_PlayerBestId = entry.m_Id;
+				m_PlayerBestTime = entry.m_Time;
+			}
+		}
+
 		void AddEntry(LeaderboardEntry entry)
 		{
-
 			for (uint i = 0; i < m_Entries.Length; i++)
 			{
 				if (entry.m_Time < m_Entries[i].m_Time)
@@ -220,6 +235,8 @@ namespace LocalLeaderboard
 
 	class LeaderboardEntry
 	{
+		string m_Id = Crypto::RandomBase64(12);
+
 		string m_PlayerName = "";
 		string m_Medal = "";
 

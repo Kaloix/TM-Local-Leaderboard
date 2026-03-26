@@ -24,6 +24,10 @@ namespace LocalLeaderboard
 			numberOfColumns++;
 		if (settingDisplayLeaderboardTimestampColumn)
 			numberOfColumns++;
+		if (settingDisplayLeaderboardDeltaPBColumn)
+			numberOfColumns++;
+		if (settingDisplayLeaderboardDeltaLastColumn)
+			numberOfColumns++;
 
 		windowFlags = UI::GetDefaultWindowFlags();
 		if (!settingDisplayLeaderboardTitleBar)
@@ -75,6 +79,14 @@ namespace LocalLeaderboard
 		{
 			UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 60);
 		}
+		if (settingDisplayLeaderboardDeltaPBColumn)
+		{
+			UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed, 60);
+		}
+		if (settingDisplayLeaderboardDeltaLastColumn)
+		{
+			UI::TableSetupColumn("Delta Last", UI::TableColumnFlags::WidthFixed, 60);
+		}
 		if (settingDisplayLeaderboardTimestampColumn)
 		{
 			UI::TableSetupColumn("Timestamp", UI::TableColumnFlags::WidthFixed, 150);
@@ -98,6 +110,16 @@ namespace LocalLeaderboard
 			UI::TableNextColumn();
 			UI::Text("Time");
 		}
+		if (settingDisplayLeaderboardDeltaPBColumn)
+		{
+			UI::TableNextColumn();
+			UI::Text("Delta PB");
+		}
+		if (settingDisplayLeaderboardDeltaLastColumn)
+		{
+			UI::TableNextColumn();
+			UI::Text("Delta Last");
+		}
 		if (settingDisplayLeaderboardTimestampColumn)
 		{
 			UI::TableNextColumn();
@@ -108,6 +130,8 @@ namespace LocalLeaderboard
 		for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
 		{
 			const auto @entry = g_State.m_Leaderboard.m_Entries[i];
+			const bool isPlayerBest = entry.m_Id == g_State.m_Leaderboard.m_PlayerBestId;
+			const bool isPlayerLast = entry.m_Id == g_State.m_Leaderboard.m_PlayerLastId;
 
 			UI::TableNextRow();
 
@@ -172,7 +196,54 @@ namespace LocalLeaderboard
 			if (settingDisplayLeaderboardTimeColumn)
 			{
 				UI::TableNextColumn();
+
+				if (isPlayerLast)
+				{
+					UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeLast, 1));
+				}
 				UI::Text(Time::Format(entry.m_Time));
+				if (isPlayerLast)
+				{
+					UI::PopStyleColor();
+				}
+			}
+
+			if (settingDisplayLeaderboardDeltaPBColumn)
+			{
+				UI::TableNextColumn();
+				if (!isPlayerBest && g_State.m_Leaderboard.m_PlayerBestTime > 0 && entry.m_Time > 0)
+				{
+					int deltaPB = entry.m_Time - g_State.m_Leaderboard.m_PlayerBestTime;
+					auto deltaPBColor = deltaPB < 0 ? vec4(settingColorDeltaBetter, 1) : (deltaPB > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
+					string deltaPBStr = (deltaPB > 0 ? "+" : "") + Time::Format(deltaPB);
+
+					UI::PushStyleColor(UI::Col::Text, deltaPBColor);
+					UI::Text(deltaPBStr);
+					UI::PopStyleColor();
+				}
+				else
+				{
+					UI::Text("");
+				}
+			}
+
+			if (settingDisplayLeaderboardDeltaLastColumn)
+			{
+				UI::TableNextColumn();
+				if (!isPlayerLast && g_State.m_Leaderboard.m_PlayerLastTime > 0 && entry.m_Time > 0)
+				{
+					int deltaLast = entry.m_Time - g_State.m_Leaderboard.m_PlayerLastTime;
+					auto deltaLastColor = deltaLast < 0 ? vec4(settingColorDeltaBetter, 1) : (deltaLast > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
+					string deltaLastStr = (deltaLast > 0 ? "+" : "") + Time::Format(deltaLast);
+
+					UI::PushStyleColor(UI::Col::Text, deltaLastColor);
+					UI::Text(deltaLastStr);
+					UI::PopStyleColor();
+				}
+				else
+				{
+					UI::Text("");
+				}
 			}
 
 			if (settingDisplayLeaderboardTimestampColumn)

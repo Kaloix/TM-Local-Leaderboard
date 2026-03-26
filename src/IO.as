@@ -34,6 +34,7 @@ namespace LocalLeaderboard
             }
 
 			auto entryObj = Json::Object();
+			entryObj["id"] = entry.m_Id;
 			entryObj["player"] = entry.m_PlayerName;
 			entryObj["time"] = entry.m_Time;
 			entryObj["timestamp"] = entry.m_TimeStamp;
@@ -41,6 +42,11 @@ namespace LocalLeaderboard
 		}
 
 		leaderboard["entries"] = entries;
+		leaderboard["playerBestId"] = state.m_Leaderboard.m_PlayerBestId;
+		leaderboard["playerBestTime"] = state.m_Leaderboard.m_PlayerBestTime;
+		leaderboard["playerLastId"] = state.m_Leaderboard.m_PlayerLastId;
+		leaderboard["playerLastTime"] = state.m_Leaderboard.m_PlayerLastTime;
+
 		root["leaderboard"] = leaderboard;
 
 		Json::ToFile(filePath, root);
@@ -75,12 +81,18 @@ namespace LocalLeaderboard
 			auto entryObj = entries[i];
 
 			auto entry = LeaderboardEntry();
+			entry.m_Id = entryObj["id"];
 			entry.m_PlayerName = entryObj["player"];
 			entry.m_Time = entryObj["time"];
 			entry.m_TimeStamp = entryObj["timestamp"];
 
-			g_State.m_Leaderboard.AddEntry(entry);
+			state.m_Leaderboard.AddEntry(entry);
 		}
+
+		state.m_Leaderboard.m_PlayerBestId = leaderboard["playerBestId"];
+		state.m_Leaderboard.m_PlayerBestTime = leaderboard["playerBestTime"];
+		state.m_Leaderboard.m_PlayerLastId = leaderboard["playerLastId"];
+		state.m_Leaderboard.m_PlayerLastTime = leaderboard["playerLastTime"];
 	}
 
 	string buildFileDir()
