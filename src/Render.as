@@ -31,6 +31,10 @@ void InitRender()
         g_TableColumns.InsertLast(BestTimeDeltaColumn());
     if (settingDisplayLeaderboardDeltaLastColumn)
         g_TableColumns.InsertLast(LastTimeDeltaColumn());
+    if (settingDisplayLeaderboardCopiumColumn)
+        g_TableColumns.InsertLast(TimeNoRespawnColumn());
+    if (settingDisplayLeaderboardRespawnsColumn)
+        g_TableColumns.InsertLast(NumberRespawnsColumn());
     if (settingDisplayLeaderboardScoreNumberColumn)
         g_TableColumns.InsertLast(ScoreNumberColumn());
     if (settingDisplayLeaderboardTimestampColumn)
@@ -314,6 +318,46 @@ class LastTimeDeltaColumn : TimeDeltaColumn
     int getDelta(const TableRenderContext&in context) override
     {
         return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_PlayerNewestTime;
+    }
+}
+
+class TimeNoRespawnColumn : TableColumn
+{
+    void setup()
+    {
+        UI::TableSetupColumn("Copium", UI::TableColumnFlags::WidthFixed, 50);
+    }
+
+    void renderHeader()
+    {
+        UI::Text("Copium");
+    }
+
+    void renderBody(TableRenderContext&inout context)
+    {
+        if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Score && context.m_CurrentEntry.m_NumberRespawns != 0)
+            renderText(context, Time::Format(context.m_CurrentEntry.m_TimeNoRespawn));
+    }
+}
+
+class NumberRespawnsColumn : TableColumn
+{
+    void setup()
+    {
+        UI::TableSetupColumn("Respawns", UI::TableColumnFlags::WidthFixed, 20);
+    }
+
+    void renderHeader()
+    {
+        UI::Text(Icons::Refresh);
+    }
+
+    void renderBody(TableRenderContext&inout context)
+    {
+        if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Score && context.m_CurrentEntry.m_NumberRespawns != 0)
+        {
+            renderText(context, "" + context.m_CurrentEntry.m_NumberRespawns);
+        }
     }
 }
 

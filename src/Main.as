@@ -147,6 +147,8 @@ void addNewRecord(const MLFeed::PlayerCpInfo_V4 @player, bool temporary)
     auto entry = LeaderboardEntry();
     entry.m_PlayerName = player.Name;
     entry.m_Time = player.FinishTime;
+    entry.m_TimeNoRespawn = (player.FinishTime - player.TimeLostToRespawns);
+    entry.m_NumberRespawns = player.RespawnTimes.Length;
     entry.m_TimeStamp = Time::get_Stamp();
 
     g_State.m_Leaderboard.AddNewEntry(entry, temporary);
@@ -406,6 +408,8 @@ class LeaderboardEntry
 
     int64 m_TimeStamp = 0;
     int m_Time = 0;
+    int m_TimeNoRespawn = 0;
+    uint m_NumberRespawns = 0;
 }
 
 class State

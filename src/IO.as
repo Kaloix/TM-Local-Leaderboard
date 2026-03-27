@@ -37,6 +37,8 @@ void SaveLeaderboard(const State&in state)
         entryObj["scoreNumber"] = entry.m_ScoreNumber;
         entryObj["player"] = entry.m_PlayerName;
         entryObj["time"] = entry.m_Time;
+        entryObj["timeNoRespawn"] = entry.m_TimeNoRespawn;
+        entryObj["numberRespawns"] = entry.m_NumberRespawns;
         entryObj["timestamp"] = entry.m_TimeStamp;
         entries.Add(entryObj);
     }
@@ -53,7 +55,7 @@ void SaveLeaderboard(const State&in state)
     root["leaderboard"] = leaderboard;
 
     Json::ToFile(filePath, root);
-    LogInfo("Leaderboard saved to " + filePath);
+    LogDebug("Leaderboard saved to " + filePath);
 }
 
 void LoadLeaderboard(State&inout state)
@@ -87,6 +89,8 @@ void LoadLeaderboard(State&inout state)
         entry.m_ScoreNumber = entryObj["scoreNumber"];
         entry.m_PlayerName = entryObj["player"];
         entry.m_Time = entryObj["time"];
+        entry.m_TimeNoRespawn = entryObj["timeNoRespawn"];
+        entry.m_NumberRespawns = entryObj["numberRespawns"];
         entry.m_TimeStamp = entryObj["timestamp"];
 
         state.m_Leaderboard.AddEntry(entry);

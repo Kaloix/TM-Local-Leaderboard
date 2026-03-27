@@ -37,6 +37,12 @@ bool settingDisplayLeaderboardDeltaPBColumn = true;
 [Setting name="Display Last Time Delta Column" description="Show the last time delta column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardDeltaLastColumn = true;
 
+[Setting name="Display Copium Column" description="Show the Copium column in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardCopiumColumn = true;
+
+[Setting name="Display Respawns Column" description="Show the Respawns column in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardRespawnsColumn = true;
+
 [Setting name="Display Score Number Column" description="Show the score number column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardScoreNumberColumn = true;
 
