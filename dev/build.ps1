@@ -1,3 +1,8 @@
+param(
+    [bool]
+    $Install = 1
+)
+
 # Define the path to the info.toml file
 $infoFilePath = "info.toml"
 
@@ -56,10 +61,17 @@ if (Test-Path $zipFilePath) {
 }
 Compress-Archive -Path "$targetDir\*" -DestinationPath $zipFilePath
 
+# Install the plugin in the local TM installation
+if ($Install) {
+    $destinationDir = "$HOME\OpenplanetNext\Plugins"
+    Write-Host "Copying directory $($targetDir.Name) to $destinationDir..."
+    Copy-Item -Path $targetDir -Destination $destinationDir -Recurse -Force
+}
+
 # Delete the target directory after creating the zip file
-# if (Test-Path $targetDir) {
-#     Remove-Item -Path $targetDir -Recurse -Force
-# }
+if (Test-Path $targetDir) {
+    Remove-Item -Path $targetDir -Recurse -Force
+}
 
 # Rename the .zip file to .op
 $opFilePath = "$fileName.op"
