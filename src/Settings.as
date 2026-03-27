@@ -64,19 +64,19 @@ bool settingDisplayLeaderboardMedalChampion = true;
 [Setting name="Display Medal Warrior" description="Show the warrior medal time in the leaderboard if the WarriorMedal Plugin is installed" category="UI"]
 bool settingDisplayLeaderboardMedalWarrior = true;
 
-[Setting name="Color Delta Better" description="Color for deltas that are better than the comparison time" category="UI"]
+[Setting name="Color Delta Better" description="Color for deltas that are better than the comparison time" color category="UI"]
 vec3 settingColorDeltaBetter = vec3(0.47f, 0.47f, 1.0f);
 
-[Setting name="Color Delta Worse" description="Color for deltas that are worse than the comparison time" category="UI"]
+[Setting name="Color Delta Worse" description="Color for deltas that are worse than the comparison time" color category="UI"]
 vec3 settingColorDeltaWorse = vec3(1.0f, 0.47f, 0.47f);
 
-[Setting name="Color Delta Equal" description="Color for deltas that are equal to the comparison time" category="UI"]
+[Setting name="Color Delta Equal" description="Color for deltas that are equal to the comparison time" color category="UI"]
 vec3 settingColorDeltaEqual = vec3(0.66f, 0.66f, 0.66f);
 
-[Setting name="Color Time Best" description="Color for the player's best time in the leaderboard" category="UI"]
+[Setting name="Color Time Best" description="Color for the player's best time in the leaderboard" color category="UI"]
 vec3 settingColorTimeBest = vec3(0.75f, 0.25f, 0.75f);
 
-[Setting name="Color Time Last" description="Color for the player's last time in the leaderboard" category="UI"]
+[Setting name="Color Time Last" description="Color for the player's last time in the leaderboard" color category="UI"]
 vec3 settingColorTimeLast = vec3(0.5f, 1.0f, 0.0f);
 
 // Category Debug
