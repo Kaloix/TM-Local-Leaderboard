@@ -43,10 +43,12 @@ namespace LocalLeaderboard
 
 		leaderboard["entries"] = entries;
 		leaderboard["numberScores"] = state.m_Leaderboard.m_NumberScores;
+		leaderboard["numberPlayerScores"] = state.m_Leaderboard.m_NumberPlayerScores;
 		leaderboard["playerBestId"] = state.m_Leaderboard.m_PlayerBestId;
 		leaderboard["playerBestTime"] = state.m_Leaderboard.m_PlayerBestTime;
 		leaderboard["playerLastId"] = state.m_Leaderboard.m_PlayerLastId;
 		leaderboard["playerLastTime"] = state.m_Leaderboard.m_PlayerLastTime;
+		leaderboard["isPlayerLastTemporary"] = state.m_Leaderboard.m_IsPlayerLastTemporary;
 
 		root["leaderboard"] = leaderboard;
 
@@ -91,10 +93,12 @@ namespace LocalLeaderboard
 		}
 
 		state.m_Leaderboard.m_NumberScores = leaderboard["numberScores"];
+		state.m_Leaderboard.m_NumberPlayerScores = leaderboard["numberPlayerScores"];
 		state.m_Leaderboard.m_PlayerBestId = leaderboard["playerBestId"];
 		state.m_Leaderboard.m_PlayerBestTime = leaderboard["playerBestTime"];
 		state.m_Leaderboard.m_PlayerLastId = leaderboard["playerLastId"];
 		state.m_Leaderboard.m_PlayerLastTime = leaderboard["playerLastTime"];
+		state.m_Leaderboard.m_IsPlayerLastTemporary = leaderboard["isPlayerLastTemporary"];
 	}
 
 	string buildFileDir()

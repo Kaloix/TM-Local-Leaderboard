@@ -177,11 +177,12 @@ namespace LocalLeaderboard
 			return;
 		}
 
+		g_State.m_Leaderboard.RemoveTemporaryLast();
 		g_State.m_Leaderboard.m_NumberScores++;
 
-		if (g_State.m_Leaderboard.m_Entries.Length < settingDataRecordLimit)
+		if (g_State.m_Leaderboard.m_NumberPlayerScores < settingDataRecordLimit)
 		{
-			addNewRecord(player);
+			addNewRecord(player, false);
 		}
 		else
 		{
@@ -189,12 +190,16 @@ namespace LocalLeaderboard
 			if (lastEntry != null && player.FinishTime < lastEntry.m_Time)
 			{
 				g_State.m_Leaderboard.RemoveLastPlayerEntry();
-				addNewRecord(player);
+				addNewRecord(player, false);
+			}
+			else
+			{
+				addNewRecord(player, true);
 			}
 		}
 	}
 
-	void addNewRecord(const MLFeed::PlayerCpInfo_V4 @player)
+	void addNewRecord(const MLFeed::PlayerCpInfo_V4 @player, bool temporary)
 	{
 		auto entry = LeaderboardEntry();
 		entry.m_PlayerName = player.Name;
@@ -202,7 +207,7 @@ namespace LocalLeaderboard
 		entry.m_TimeStamp = Time::get_Stamp();
 		entry.m_ScoreNumber = g_State.m_Leaderboard.m_NumberScores;
 
-		g_State.m_Leaderboard.AddNewEntry(entry);
+		g_State.m_Leaderboard.AddNewEntry(entry, temporary);
 
 		SaveLeaderboard(g_State);
 	}
@@ -226,12 +231,14 @@ namespace LocalLeaderboard
 		array<LeaderboardEntry @> m_Entries;
 
 		uint m_NumberScores = 0;
+		uint m_NumberPlayerScores = 0;
 
 		uint m_PlayerBestId = 0;
 		int m_PlayerBestTime = -1;
 
 		uint m_PlayerLastId = 0;
 		int m_PlayerLastTime = -1;
+		bool m_IsPlayerLastTemporary = false;
 
 		LeaderboardEntry @getLastPlayerEntry()
 		{
@@ -243,12 +250,14 @@ namespace LocalLeaderboard
 			return @m_Entries[lastPlayerEntry];
 		}
 
-		void AddNewEntry(LeaderboardEntry entry)
+		void AddNewEntry(LeaderboardEntry entry, bool temporary)
 		{
 			AddEntry(entry);
+			m_NumberPlayerScores++;
 
 			m_PlayerLastId = entry.m_ScoreNumber;
 			m_PlayerLastTime = entry.m_Time;
+			m_IsPlayerLastTemporary = temporary;
 
 			if (entry.m_Time < m_PlayerBestTime || m_PlayerBestTime == -1)
 			{
@@ -280,9 +289,41 @@ namespace LocalLeaderboard
 			}
 		}
 
+		void RemovePlayerEntry(uint scoreNumber)
+		{
+			const auto index = GetPlayerEntryIndex(scoreNumber);
+			if (index >= 0)
+			{
+				m_Entries.RemoveAt(index);
+			}
+		}
+
+		void RemoveTemporaryLast()
+		{
+			if (!m_IsPlayerLastTemporary || m_PlayerLastId <= 0)
+			{
+				return;
+			}
+			RemovePlayerEntry(m_PlayerLastId);
+			m_PlayerLastId = 0;
+			m_PlayerLastTime = -1;
+		}
+
+		int GetPlayerEntryIndex(uint scoreNumber)
+		{
+			for (int i = m_Entries.Length - 1; i >= 0; i--)
+			{
+				if (m_Entries[i].m_ScoreNumber == scoreNumber)
+				{
+					return i;
+				}
+			}
+			return -1;
+		}
+
 		int GetLastPlayerEntryIndex()
 		{
-			for (uint i = m_Entries.Length - 1; i >= 0; i--)
+			for (int i = m_Entries.Length - 1; i >= 0; i--)
 			{
 				if (m_Entries[i].m_Type == LeaderboardEntryType::Score)
 				{
