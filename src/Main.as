@@ -129,8 +129,8 @@ namespace LocalLeaderboard
 		}
 		else
 		{
-			const auto @lastEntry = g_State.m_Leaderboard.getLastPlayerEntry();
-			if (lastEntry != null && player.FinishTime < lastEntry.m_Time)
+			const LeaderboardEntry @lastEntry = @g_State.m_Leaderboard.getLastPlayerEntry();
+			if (lastEntry !is null && player.FinishTime < lastEntry.m_Time)
 			{
 				g_State.m_Leaderboard.RemoveLastPlayerEntry();
 				addNewRecord(player, false);
@@ -237,6 +237,18 @@ namespace LocalLeaderboard
 			g_State.m_Leaderboard.AddEntry(medalWarrior);
 		}
 #endif
+
+		// Set medals of already existing entries
+		for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
+		{
+			auto @entry = @g_State.m_Leaderboard.m_Entries[i];
+			if (entry.m_Type == LeaderboardEntryType::Medal)
+			{
+				continue;
+			}
+
+			setMedal(g_State.m_Leaderboard, entry);
+		}
 	}
 
 	/**
@@ -251,6 +263,23 @@ namespace LocalLeaderboard
 		}
 
 		return app.RootMap.IdName;
+	}
+
+	void setMedal(const Leaderboard&in leaderboard, LeaderboardEntry&inout entry)
+	{
+		for (uint i = 0; i < leaderboard.m_Entries.Length; i++)
+		{
+			const auto @medalEntry = @leaderboard.m_Entries[i];
+			if (medalEntry.m_Type != LeaderboardEntryType::Medal)
+				continue;
+
+			if (entry.m_Time <= medalEntry.m_Time)
+			{
+				entry.m_Medal = medalEntry.m_Medal;
+				entry.m_IconColor = medalEntry.m_IconColor;
+				return;
+			}
+		}
 	}
 
 	class Leaderboard
@@ -280,6 +309,7 @@ namespace LocalLeaderboard
 		void AddNewEntry(LeaderboardEntry entry, bool temporary)
 		{
 			entry.m_ScoreNumber = m_TotalNumberFinishes;
+			setMedal(this, entry);
 
 			AddEntry(entry);
 			m_NumberPlayerScores++;

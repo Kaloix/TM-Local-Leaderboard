@@ -193,16 +193,16 @@ namespace LocalLeaderboard
 		void renderBody(TableRenderContext&inout context)
 		{
 
+			UI::PushStyleColor(UI::Col::Text, vec4(context.m_CurrentEntry.m_IconColor, 1));
 			if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal)
 			{
-				UI::PushStyleColor(UI::Col::Text, vec4(context.m_CurrentEntry.m_IconColor, 1));
 				UI::Text(Icons::Circle);
-				UI::PopStyleColor();
 			}
 			else if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Score)
 			{
-				renderText(context, Icons::UserO);
+				UI::Text(Icons::CircleO);
 			}
+			UI::PopStyleColor();
 		}
 	}
 
