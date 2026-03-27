@@ -95,7 +95,7 @@ namespace LocalLeaderboard
 		{
 			@context.m_CurrentEntry = @g_State.m_Leaderboard.m_Entries[i];
 			context.m_IsPlayerBest = context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_PlayerBestId;
-			context.m_IsPlayerLast = context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_PlayerLastId;
+			context.m_IsPlayerNewest = context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_PlayerNewestId;
 
 			if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal)
 			{
@@ -146,7 +146,7 @@ namespace LocalLeaderboard
 		LeaderboardEntry @m_CurrentEntry = null;
 
 		bool m_IsPlayerBest = false;
-		bool m_IsPlayerLast = false;
+		bool m_IsPlayerNewest = false;
 	}
 
 	interface TableColumn
@@ -309,11 +309,11 @@ namespace LocalLeaderboard
 		}
 		bool isShowDelta(const TableRenderContext&in context) override
 		{
-			return !context.m_IsPlayerLast && g_State.m_Leaderboard.m_PlayerLastTime > 0;
+			return !context.m_IsPlayerNewest && g_State.m_Leaderboard.m_PlayerNewestTime > 0;
 		}
 		int getDelta(const TableRenderContext&in context) override
 		{
-			return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_PlayerLastTime;
+			return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_PlayerNewestTime;
 		}
 	}
 
@@ -363,7 +363,7 @@ namespace LocalLeaderboard
 
 	void renderText(const TableRenderContext&in context, const string&in text)
 	{
-		if (context.m_IsPlayerLast)
+		if (context.m_IsPlayerNewest)
 		{
 			UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeLast, 1));
 		}
@@ -372,7 +372,7 @@ namespace LocalLeaderboard
 			UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeBest, 1));
 		}
 		UI::Text(text);
-		if (context.m_IsPlayerLast || context.m_IsPlayerBest)
+		if (context.m_IsPlayerNewest || context.m_IsPlayerBest)
 		{
 			UI::PopStyleColor();
 		}

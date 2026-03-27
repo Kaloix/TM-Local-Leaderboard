@@ -92,7 +92,7 @@ namespace LocalLeaderboard
 	void OnMapLoad()
 	{
 		CGameCtnApp @app = GetApp();
-		auto map = app.RootMap;
+		auto @map = @app.RootMap;
 
 		g_State.m_CurrentMap = map.IdName;
 		g_State.m_CurrentMapName = map.MapName;
@@ -100,7 +100,85 @@ namespace LocalLeaderboard
 
 		LoadLeaderboard(g_State);
 
-		// Add medals
+		addPreviousPb();
+		addMedals(map);
+	}
+
+	void OnMapUnload()
+	{
+		SaveLeaderboard(g_State);
+		g_State = State();
+	}
+
+	void OnPlayerFinish()
+	{
+		const auto @raceData = @MLFeed::GetRaceData_V4();
+		const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
+
+		if (player is null)
+		{
+			return;
+		}
+
+		g_State.m_Leaderboard.RemoveTemporaryLast();
+		g_State.m_Leaderboard.m_TotalNumberFinishes++;
+
+		if (g_State.m_Leaderboard.m_NumberPlayerScores < settingDataRecordLimit)
+		{
+			addNewRecord(player, false);
+		}
+		else
+		{
+			const auto @lastEntry = g_State.m_Leaderboard.getLastPlayerEntry();
+			if (lastEntry != null && player.FinishTime < lastEntry.m_Time)
+			{
+				g_State.m_Leaderboard.RemoveLastPlayerEntry();
+				addNewRecord(player, false);
+			}
+			else
+			{
+				addNewRecord(player, true);
+			}
+		}
+	}
+
+	void addNewRecord(const MLFeed::PlayerCpInfo_V4 @player, bool temporary)
+	{
+		auto entry = LeaderboardEntry();
+		entry.m_PlayerName = player.Name;
+		entry.m_Time = player.FinishTime;
+		entry.m_TimeStamp = Time::get_Stamp();
+
+		g_State.m_Leaderboard.AddNewEntry(entry, temporary);
+
+		SaveLeaderboard(g_State);
+	}
+
+	void addPreviousPb()
+	{
+		if (!settingDataAddPb || g_State.m_Leaderboard.m_NumberPlayerScores > 0)
+		{
+			return;
+		}
+
+		const auto @raceData = @MLFeed::GetRaceData_V4();
+		const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
+
+		if (player.BestTime == 0)
+		{
+			return;
+		}
+
+		g_State.m_Leaderboard.m_TotalNumberFinishes = 1;
+
+		auto entry = LeaderboardEntry();
+		entry.m_PlayerName = player.Name;
+		entry.m_Time = player.BestTime;
+		g_State.m_Leaderboard.AddNewEntry(entry, false);
+	}
+
+	void addMedals(CGameCtnChallenge&inout map)
+	{
 		auto medalAt = LeaderboardEntry();
 		medalAt.m_Type = LeaderboardEntryType::Medal;
 		medalAt.m_Medal = "Author";
@@ -161,57 +239,6 @@ namespace LocalLeaderboard
 #endif
 	}
 
-	void OnMapUnload()
-	{
-		SaveLeaderboard(g_State);
-		g_State = State();
-	}
-
-	void OnPlayerFinish()
-	{
-		const auto @raceData = @MLFeed::GetRaceData_V4();
-		const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
-
-		if (player is null)
-		{
-			return;
-		}
-
-		g_State.m_Leaderboard.RemoveTemporaryLast();
-		g_State.m_Leaderboard.m_NumberScores++;
-
-		if (g_State.m_Leaderboard.m_NumberPlayerScores < settingDataRecordLimit)
-		{
-			addNewRecord(player, false);
-		}
-		else
-		{
-			const auto @lastEntry = g_State.m_Leaderboard.getLastPlayerEntry();
-			if (lastEntry != null && player.FinishTime < lastEntry.m_Time)
-			{
-				g_State.m_Leaderboard.RemoveLastPlayerEntry();
-				addNewRecord(player, false);
-			}
-			else
-			{
-				addNewRecord(player, true);
-			}
-		}
-	}
-
-	void addNewRecord(const MLFeed::PlayerCpInfo_V4 @player, bool temporary)
-	{
-		auto entry = LeaderboardEntry();
-		entry.m_PlayerName = player.Name;
-		entry.m_Time = player.FinishTime;
-		entry.m_TimeStamp = Time::get_Stamp();
-		entry.m_ScoreNumber = g_State.m_Leaderboard.m_NumberScores;
-
-		g_State.m_Leaderboard.AddNewEntry(entry, temporary);
-
-		SaveLeaderboard(g_State);
-	}
-
 	/**
 	 * Gets the current map's unique identifier. Returns an empty string if no map is loaded.
 	 */
@@ -230,15 +257,15 @@ namespace LocalLeaderboard
 	{
 		array<LeaderboardEntry @> m_Entries;
 
-		uint m_NumberScores = 0;
+		uint m_TotalNumberFinishes = 0;
 		uint m_NumberPlayerScores = 0;
 
 		uint m_PlayerBestId = 0;
 		int m_PlayerBestTime = -1;
 
-		uint m_PlayerLastId = 0;
-		int m_PlayerLastTime = -1;
-		bool m_IsPlayerLastTemporary = false;
+		uint m_PlayerNewestId = 0;
+		int m_PlayerNewestTime = -1;
+		bool m_IsPlayerNewestTemporary = false;
 
 		LeaderboardEntry @getLastPlayerEntry()
 		{
@@ -252,12 +279,14 @@ namespace LocalLeaderboard
 
 		void AddNewEntry(LeaderboardEntry entry, bool temporary)
 		{
+			entry.m_ScoreNumber = m_TotalNumberFinishes;
+
 			AddEntry(entry);
 			m_NumberPlayerScores++;
 
-			m_PlayerLastId = entry.m_ScoreNumber;
-			m_PlayerLastTime = entry.m_Time;
-			m_IsPlayerLastTemporary = temporary;
+			m_PlayerNewestId = entry.m_ScoreNumber;
+			m_PlayerNewestTime = entry.m_Time;
+			m_IsPlayerNewestTemporary = temporary;
 
 			if (entry.m_Time < m_PlayerBestTime || m_PlayerBestTime == -1)
 			{
@@ -286,6 +315,7 @@ namespace LocalLeaderboard
 			if (lastPlayerEntry >= 0)
 			{
 				m_Entries.RemoveAt(lastPlayerEntry);
+				m_NumberPlayerScores--;
 			}
 		}
 
@@ -300,13 +330,13 @@ namespace LocalLeaderboard
 
 		void RemoveTemporaryLast()
 		{
-			if (!m_IsPlayerLastTemporary || m_PlayerLastId <= 0)
+			if (!m_IsPlayerNewestTemporary || m_PlayerNewestId <= 0)
 			{
 				return;
 			}
-			RemovePlayerEntry(m_PlayerLastId);
-			m_PlayerLastId = 0;
-			m_PlayerLastTime = -1;
+			RemovePlayerEntry(m_PlayerNewestId);
+			m_PlayerNewestId = 0;
+			m_PlayerNewestTime = -1;
 		}
 
 		int GetPlayerEntryIndex(uint scoreNumber)

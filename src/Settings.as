@@ -3,6 +3,9 @@
 [Setting name="Record Limit" description="Maximum number of records in the leaderboard" category="Data"]
 uint settingDataRecordLimit = 4;
 
+[Setting name="Add PB" description="If the PB should be added if no entries are available" category="Data"]
+bool settingDataAddPb = true;
+
 // Category UI
 [Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="UI"]
 bool settingDisplayLeaderboardTitleBar = false;

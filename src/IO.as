@@ -42,13 +42,13 @@ namespace LocalLeaderboard
 		}
 
 		leaderboard["entries"] = entries;
-		leaderboard["numberScores"] = state.m_Leaderboard.m_NumberScores;
+		leaderboard["totalNumberFinishes"] = state.m_Leaderboard.m_TotalNumberFinishes;
 		leaderboard["numberPlayerScores"] = state.m_Leaderboard.m_NumberPlayerScores;
 		leaderboard["playerBestId"] = state.m_Leaderboard.m_PlayerBestId;
 		leaderboard["playerBestTime"] = state.m_Leaderboard.m_PlayerBestTime;
-		leaderboard["playerLastId"] = state.m_Leaderboard.m_PlayerLastId;
-		leaderboard["playerLastTime"] = state.m_Leaderboard.m_PlayerLastTime;
-		leaderboard["isPlayerLastTemporary"] = state.m_Leaderboard.m_IsPlayerLastTemporary;
+		leaderboard["playerNewestId"] = state.m_Leaderboard.m_PlayerNewestId;
+		leaderboard["playerNewestTime"] = state.m_Leaderboard.m_PlayerNewestTime;
+		leaderboard["isPlayerNewestTemporary"] = state.m_Leaderboard.m_IsPlayerNewestTemporary;
 
 		root["leaderboard"] = leaderboard;
 
@@ -92,13 +92,13 @@ namespace LocalLeaderboard
 			state.m_Leaderboard.AddEntry(entry);
 		}
 
-		state.m_Leaderboard.m_NumberScores = leaderboard["numberScores"];
+		state.m_Leaderboard.m_TotalNumberFinishes = leaderboard["totalNumberFinishes"];
 		state.m_Leaderboard.m_NumberPlayerScores = leaderboard["numberPlayerScores"];
 		state.m_Leaderboard.m_PlayerBestId = leaderboard["playerBestId"];
 		state.m_Leaderboard.m_PlayerBestTime = leaderboard["playerBestTime"];
-		state.m_Leaderboard.m_PlayerLastId = leaderboard["playerLastId"];
-		state.m_Leaderboard.m_PlayerLastTime = leaderboard["playerLastTime"];
-		state.m_Leaderboard.m_IsPlayerLastTemporary = leaderboard["isPlayerLastTemporary"];
+		state.m_Leaderboard.m_PlayerNewestId = leaderboard["playerNewestId"];
+		state.m_Leaderboard.m_PlayerNewestTime = leaderboard["playerNewestTime"];
+		state.m_Leaderboard.m_IsPlayerNewestTemporary = leaderboard["isPlayerNewestTemporary"];
 	}
 
 	string buildFileDir()
