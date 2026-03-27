@@ -1,3 +1,8 @@
+// Category Data
+
+[Setting name="Record Limit" description="Maximum number of records in the leaderboard" category="Data"]
+uint settingDataRecordLimit = 4;
+
 // Category UI
 [Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="UI"]
 bool settingDisplayLeaderboardTitleBar = false;

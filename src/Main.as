@@ -105,7 +105,7 @@ namespace LocalLeaderboard
 		medalAt.m_Type = LeaderboardEntryType::Medal;
 		medalAt.m_Medal = "Author";
 		medalAt.m_PlayerName = "AT";
-		medalAt.m_IconColor = vec3(0, 0x77/255.0f, 0x11/255.0f);
+		medalAt.m_IconColor = vec3(0, 0x77 / 255.0f, 0x11 / 255.0f);
 		medalAt.m_Time = map.MapInfo.TMObjective_AuthorTime;
 		g_State.m_Leaderboard.AddEntry(medalAt);
 
@@ -113,7 +113,7 @@ namespace LocalLeaderboard
 		medalGold.m_Type = LeaderboardEntryType::Medal;
 		medalGold.m_Medal = "Gold";
 		medalGold.m_PlayerName = "Gold";
-		medalGold.m_IconColor = vec3(0xDD/255.0f, 0xBB/255.0f, 0x44/255.0f);
+		medalGold.m_IconColor = vec3(0xDD / 255.0f, 0xBB / 255.0f, 0x44 / 255.0f);
 		medalGold.m_Time = map.MapInfo.TMObjective_GoldTime;
 		g_State.m_Leaderboard.AddEntry(medalGold);
 
@@ -121,7 +121,7 @@ namespace LocalLeaderboard
 		medalSilver.m_Type = LeaderboardEntryType::Medal;
 		medalSilver.m_Medal = "Silver";
 		medalSilver.m_PlayerName = "Silver";
-		medalSilver.m_IconColor = vec3(0x88/255.0f, 0x99/255.0f, 0x99/255.0f);
+		medalSilver.m_IconColor = vec3(0x88 / 255.0f, 0x99 / 255.0f, 0x99 / 255.0f);
 		medalSilver.m_Time = map.MapInfo.TMObjective_SilverTime;
 		g_State.m_Leaderboard.AddEntry(medalSilver);
 
@@ -129,7 +129,7 @@ namespace LocalLeaderboard
 		medalBronze.m_Type = LeaderboardEntryType::Medal;
 		medalBronze.m_Medal = "Bronze";
 		medalBronze.m_PlayerName = "Bronze";
-		medalBronze.m_IconColor = vec3(0x99/255.0f, 0x66/255.0f, 0x44/255.0f);
+		medalBronze.m_IconColor = vec3(0x99 / 255.0f, 0x66 / 255.0f, 0x44 / 255.0f);
 		medalBronze.m_Time = map.MapInfo.TMObjective_BronzeTime;
 		g_State.m_Leaderboard.AddEntry(medalBronze);
 
@@ -141,7 +141,7 @@ namespace LocalLeaderboard
 			medalChampion.m_Type = LeaderboardEntryType::Medal;
 			medalChampion.m_Medal = "Champion";
 			medalChampion.m_PlayerName = "Champion";
-			medalChampion.m_IconColor = vec3(0xf8/255.0f, 0x4a/255.0f, 0x6e/255.0f);
+			medalChampion.m_IconColor = vec3(0xf8 / 255.0f, 0x4a / 255.0f, 0x6e / 255.0f);
 			medalChampion.m_Time = ChampionMedals::GetCMTime();
 			g_State.m_Leaderboard.AddEntry(medalChampion);
 		}
@@ -169,18 +169,38 @@ namespace LocalLeaderboard
 
 	void OnPlayerFinish()
 	{
-		auto raceData = MLFeed::GetRaceData_V4();
-		auto player = raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
+		const auto @raceData = @MLFeed::GetRaceData_V4();
+		const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
 
 		if (player is null)
 		{
 			return;
 		}
 
+		g_State.m_Leaderboard.m_NumberScores++;
+
+		if (g_State.m_Leaderboard.m_Entries.Length < settingDataRecordLimit)
+		{
+			addNewRecord(player);
+		}
+		else
+		{
+			const auto @lastEntry = g_State.m_Leaderboard.getLastPlayerEntry();
+			if (lastEntry != null && player.FinishTime < lastEntry.m_Time)
+			{
+				g_State.m_Leaderboard.RemoveLastPlayerEntry();
+				addNewRecord(player);
+			}
+		}
+	}
+
+	void addNewRecord(const MLFeed::PlayerCpInfo_V4 @player)
+	{
 		auto entry = LeaderboardEntry();
 		entry.m_PlayerName = player.Name;
 		entry.m_Time = player.FinishTime;
 		entry.m_TimeStamp = Time::get_Stamp();
+		entry.m_ScoreNumber = g_State.m_Leaderboard.m_NumberScores;
 
 		g_State.m_Leaderboard.AddNewEntry(entry);
 
@@ -213,9 +233,18 @@ namespace LocalLeaderboard
 		uint m_PlayerLastId = 0;
 		int m_PlayerLastTime = -1;
 
+		LeaderboardEntry @getLastPlayerEntry()
+		{
+			const auto lastPlayerEntry = GetLastPlayerEntryIndex();
+			if (lastPlayerEntry < 0)
+			{
+				return null;
+			}
+			return @m_Entries[lastPlayerEntry];
+		}
+
 		void AddNewEntry(LeaderboardEntry entry)
 		{
-			entry.m_ScoreNumber = ++m_NumberScores;
 			AddEntry(entry);
 
 			m_PlayerLastId = entry.m_ScoreNumber;
@@ -240,6 +269,27 @@ namespace LocalLeaderboard
 			}
 
 			m_Entries.InsertLast(entry);
+		}
+
+		void RemoveLastPlayerEntry()
+		{
+			const auto lastPlayerEntry = GetLastPlayerEntryIndex();
+			if (lastPlayerEntry >= 0)
+			{
+				m_Entries.RemoveAt(lastPlayerEntry);
+			}
+		}
+
+		int GetLastPlayerEntryIndex()
+		{
+			for (uint i = m_Entries.Length - 1; i >= 0; i--)
+			{
+				if (m_Entries[i].m_Type == LeaderboardEntryType::Score)
+				{
+					return i;
+				}
+			}
+			return -1;
 		}
 	}
 
