@@ -29,6 +29,9 @@ bool settingDisplayLeaderboardDeltaPBColumn = true;
 [Setting name="Display Last Time Delta Column" description="Show the last time delta column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardDeltaLastColumn = true;
 
+[Setting name="Display Score Number Column" description="Show the score number column in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardScoreNumberColumn = true;
+
 [Setting name="Display Timestamp Column" description="Show the timestamp column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardTimestampColumn = true;
 

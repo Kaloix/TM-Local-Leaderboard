@@ -31,6 +31,8 @@ namespace LocalLeaderboard
 			g_TableColumns.InsertLast(BestTimeDeltaColumn());
 		if (settingDisplayLeaderboardDeltaLastColumn)
 			g_TableColumns.InsertLast(LastTimeDeltaColumn());
+		if (settingDisplayLeaderboardScoreNumberColumn)
+			g_TableColumns.InsertLast(ScoreNumberColumn());
 		if (settingDisplayLeaderboardTimestampColumn)
 			g_TableColumns.InsertLast(TimestampColumn());
 
@@ -92,8 +94,8 @@ namespace LocalLeaderboard
 		for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
 		{
 			@context.m_CurrentEntry = @g_State.m_Leaderboard.m_Entries[i];
-			context.m_IsPlayerBest = context.m_CurrentEntry.m_Id == g_State.m_Leaderboard.m_PlayerBestId;
-			context.m_IsPlayerLast = context.m_CurrentEntry.m_Id == g_State.m_Leaderboard.m_PlayerLastId;
+			context.m_IsPlayerBest = context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_PlayerBestId;
+			context.m_IsPlayerLast = context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_PlayerLastId;
 
 			if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal)
 			{
@@ -163,7 +165,7 @@ namespace LocalLeaderboard
 
 		void renderHeader()
 		{
-			UI::Text("No.");
+			UI::Text("Rank");
 		}
 
 		void renderBody(TableRenderContext&inout context)
@@ -312,6 +314,25 @@ namespace LocalLeaderboard
 		int getDelta(const TableRenderContext&in context) override
 		{
 			return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_PlayerLastTime;
+		}
+	}
+
+	class ScoreNumberColumn : TableColumn
+	{
+		void setup()
+		{
+			UI::TableSetupColumn("ScoreNumber", UI::TableColumnFlags::WidthFixed, 30);
+		}
+		void renderHeader()
+		{
+			UI::Text("No.");
+		}
+		void renderBody(TableRenderContext&inout context)
+		{
+			if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Score)
+			{
+				renderText(context, "" + context.m_CurrentEntry.m_ScoreNumber);
+			}
 		}
 	}
 

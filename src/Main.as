@@ -205,21 +205,25 @@ namespace LocalLeaderboard
 	{
 		array<LeaderboardEntry @> m_Entries;
 
-		string m_PlayerBestId = '';
+		uint m_NumberScores = 0;
+
+		uint m_PlayerBestId = 0;
 		int m_PlayerBestTime = -1;
 
-		string m_PlayerLastId = '';
+		uint m_PlayerLastId = 0;
 		int m_PlayerLastTime = -1;
 
 		void AddNewEntry(LeaderboardEntry entry)
 		{
+			entry.m_ScoreNumber = ++m_NumberScores;
 			AddEntry(entry);
-			m_PlayerLastId = entry.m_Id;
+
+			m_PlayerLastId = entry.m_ScoreNumber;
 			m_PlayerLastTime = entry.m_Time;
 
 			if (entry.m_Time < m_PlayerBestTime || m_PlayerBestTime == -1)
 			{
-				m_PlayerBestId = entry.m_Id;
+				m_PlayerBestId = entry.m_ScoreNumber;
 				m_PlayerBestTime = entry.m_Time;
 			}
 		}
@@ -241,8 +245,7 @@ namespace LocalLeaderboard
 
 	class LeaderboardEntry
 	{
-		string m_Id = Crypto::RandomBase64(12);
-
+		uint m_ScoreNumber = 0;
 		LeaderboardEntryType m_Type = LeaderboardEntryType::Score;
 
 		string m_PlayerName = "";

@@ -34,7 +34,7 @@ namespace LocalLeaderboard
 			}
 
 			auto entryObj = Json::Object();
-			entryObj["id"] = entry.m_Id;
+			entryObj["scoreNumber"] = entry.m_ScoreNumber;
 			entryObj["player"] = entry.m_PlayerName;
 			entryObj["time"] = entry.m_Time;
 			entryObj["timestamp"] = entry.m_TimeStamp;
@@ -42,6 +42,7 @@ namespace LocalLeaderboard
 		}
 
 		leaderboard["entries"] = entries;
+		leaderboard["numberScores"] = state.m_Leaderboard.m_NumberScores;
 		leaderboard["playerBestId"] = state.m_Leaderboard.m_PlayerBestId;
 		leaderboard["playerBestTime"] = state.m_Leaderboard.m_PlayerBestTime;
 		leaderboard["playerLastId"] = state.m_Leaderboard.m_PlayerLastId;
@@ -81,7 +82,7 @@ namespace LocalLeaderboard
 			auto entryObj = entries[i];
 
 			auto entry = LeaderboardEntry();
-			entry.m_Id = entryObj["id"];
+			entry.m_ScoreNumber = entryObj["scoreNumber"];
 			entry.m_PlayerName = entryObj["player"];
 			entry.m_Time = entryObj["time"];
 			entry.m_TimeStamp = entryObj["timestamp"];
@@ -89,6 +90,7 @@ namespace LocalLeaderboard
 			state.m_Leaderboard.AddEntry(entry);
 		}
 
+		state.m_Leaderboard.m_NumberScores = leaderboard["numberScores"];
 		state.m_Leaderboard.m_PlayerBestId = leaderboard["playerBestId"];
 		state.m_Leaderboard.m_PlayerBestTime = leaderboard["playerBestTime"];
 		state.m_Leaderboard.m_PlayerLastId = leaderboard["playerLastId"];
