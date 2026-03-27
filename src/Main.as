@@ -27,6 +27,7 @@ void Update(float dt)
 void OnSettingsChanged()
 {
     LocalLeaderboard::InitRender();
+    LocalLeaderboard::InitRows();
 }
 
 namespace LocalLeaderboard
@@ -47,6 +48,15 @@ void Shutdown()
 
 void Update(float dt)
 {
+    const auto @raceData = @MLFeed::GetRaceData_V4();
+    const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
+
+    if (player is null)
+    {
+        // Wait for player being loaded
+        return;
+    }
+
     auto currentMap = GetMapId();
 
     // Events for map loading and unloading
@@ -73,19 +83,14 @@ void Update(float dt)
         }
     }
 
-    auto raceData = MLFeed::GetRaceData_V4();
-    auto player = raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
-    if (player !is null)
+    if (g_State.m_IsPlayerFinishHandled && !player.IsFinished)
     {
-        if (g_State.m_IsPlayerFinishHandled && !player.IsFinished)
-        {
-            g_State.m_IsPlayerFinishHandled = false;
-        }
-        else if (!g_State.m_IsPlayerFinishHandled && player.IsFinished)
-        {
-            OnPlayerFinish();
-            g_State.m_IsPlayerFinishHandled = true;
-        }
+        g_State.m_IsPlayerFinishHandled = false;
+    }
+    else if (!g_State.m_IsPlayerFinishHandled && player.IsFinished)
+    {
+        OnPlayerFinish();
+        g_State.m_IsPlayerFinishHandled = true;
     }
 }
 
@@ -102,6 +107,18 @@ void OnMapLoad()
 
     addPreviousPb();
     addMedals(map);
+
+    // Set medals of already existing entries
+    for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
+    {
+        setMedal(g_State.m_Leaderboard.m_Entries[i]);
+    }
+    if (g_State.m_Leaderboard.m_TempNewestRun !is null)
+    {
+        setMedal(g_State.m_Leaderboard.m_TempNewestRun);
+    }
+
+    InitRows();
 }
 
 void OnMapUnload()
@@ -122,43 +139,19 @@ void OnPlayerFinish()
 
     g_State.m_Leaderboard.RemoveTemporaryLast();
     g_State.m_Leaderboard.m_TotalNumberFinishes++;
-
-    if (g_State.m_Leaderboard.m_NumberPlayerScores < settingDataRecordLimit)
-    {
-        addNewRecord(player, false);
-    }
-    else
-    {
-        const LeaderboardEntry @lastEntry = @g_State.m_Leaderboard.getLastPlayerEntry();
-        if (lastEntry !is null && player.FinishTime < lastEntry.m_Time)
-        {
-            g_State.m_Leaderboard.RemoveLastPlayerEntry();
-            addNewRecord(player, false);
-        }
-        else
-        {
-            addNewRecord(player, true);
-        }
-    }
+    addNewRecord(player);
 }
 
-void addNewRecord(const MLFeed::PlayerCpInfo_V4 @player, bool temporary)
+void addNewRecord(const MLFeed::PlayerCpInfo_V4 @player)
 {
-    auto entry = LeaderboardEntry();
-    entry.m_PlayerName = player.Name;
-    entry.m_Time = player.FinishTime;
-    entry.m_TimeNoRespawn = (player.FinishTime - player.TimeLostToRespawns);
-    entry.m_NumberRespawns = player.RespawnTimes.Length;
-    entry.m_TimeStamp = Time::get_Stamp();
-
-    g_State.m_Leaderboard.AddNewEntry(entry, temporary);
-
+    g_State.m_Leaderboard.addNewestRun(player);
+    InitRows();
     SaveLeaderboard(g_State);
 }
 
 void addPreviousPb()
 {
-    if (!settingDataAddPb || g_State.m_Leaderboard.m_NumberPlayerScores > 0)
+    if (!settingDataAddPb || g_State.m_Leaderboard.m_Entries.Length > 0)
     {
         return;
     }
@@ -176,43 +169,12 @@ void addPreviousPb()
     auto entry = LeaderboardEntry();
     entry.m_PlayerName = player.Name;
     entry.m_Time = player.BestTime;
-    g_State.m_Leaderboard.AddNewEntry(entry, false);
+    entry.m_ScoreNumber = 1;
+    g_State.m_Leaderboard.AddNewEntry(entry);
 }
 
 void addMedals(CGameCtnChallenge&inout map)
 {
-    auto medalAt = LeaderboardEntry();
-    medalAt.m_Type = LeaderboardEntryType::Medal;
-    medalAt.m_Medal = "Author";
-    medalAt.m_PlayerName = "AT";
-    medalAt.m_IconColor = vec3(0, 0x77 / 255.0f, 0x11 / 255.0f);
-    medalAt.m_Time = map.MapInfo.TMObjective_AuthorTime;
-    g_State.m_Leaderboard.AddEntry(medalAt);
-
-    auto medalGold = LeaderboardEntry();
-    medalGold.m_Type = LeaderboardEntryType::Medal;
-    medalGold.m_Medal = "Gold";
-    medalGold.m_PlayerName = "Gold";
-    medalGold.m_IconColor = vec3(0xDD / 255.0f, 0xBB / 255.0f, 0x44 / 255.0f);
-    medalGold.m_Time = map.MapInfo.TMObjective_GoldTime;
-    g_State.m_Leaderboard.AddEntry(medalGold);
-
-    auto medalSilver = LeaderboardEntry();
-    medalSilver.m_Type = LeaderboardEntryType::Medal;
-    medalSilver.m_Medal = "Silver";
-    medalSilver.m_PlayerName = "Silver";
-    medalSilver.m_IconColor = vec3(0x88 / 255.0f, 0x99 / 255.0f, 0x99 / 255.0f);
-    medalSilver.m_Time = map.MapInfo.TMObjective_SilverTime;
-    g_State.m_Leaderboard.AddEntry(medalSilver);
-
-    auto medalBronze = LeaderboardEntry();
-    medalBronze.m_Type = LeaderboardEntryType::Medal;
-    medalBronze.m_Medal = "Bronze";
-    medalBronze.m_PlayerName = "Bronze";
-    medalBronze.m_IconColor = vec3(0x99 / 255.0f, 0x66 / 255.0f, 0x44 / 255.0f);
-    medalBronze.m_Time = map.MapInfo.TMObjective_BronzeTime;
-    g_State.m_Leaderboard.AddEntry(medalBronze);
-
 #if DEPENDENCY_CHAMPIONMEDALS
     auto championTime = ChampionMedals::GetCMTime();
     if (championTime > 0)
@@ -223,7 +185,8 @@ void addMedals(CGameCtnChallenge&inout map)
         medalChampion.m_PlayerName = "Champion";
         medalChampion.m_IconColor = vec3(0xf8 / 255.0f, 0x4a / 255.0f, 0x6e / 255.0f);
         medalChampion.m_Time = ChampionMedals::GetCMTime();
-        g_State.m_Leaderboard.AddEntry(medalChampion);
+        g_State.m_MedalEntries.InsertLast(medalChampion);
+        // g_State.m_Leaderboard.AddEntry(medalChampion);
     }
 #endif
 #if DEPENDENCY_WARRIORMEDALS
@@ -236,21 +199,41 @@ void addMedals(CGameCtnChallenge&inout map)
         medalWarrior.m_PlayerName = "Warrior";
         medalWarrior.m_IconColor = WarriorMedals::GetColorWarriorVec();
         medalWarrior.m_Time = WarriorMedals::GetWMTime();
-        g_State.m_Leaderboard.AddEntry(medalWarrior);
+        g_State.m_MedalEntries.InsertLast(medalWarrior);
     }
 #endif
 
-    // Set medals of already existing entries
-    for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
-    {
-        auto @entry = @g_State.m_Leaderboard.m_Entries[i];
-        if (entry.m_Type == LeaderboardEntryType::Medal)
-        {
-            continue;
-        }
+    auto medalAt = LeaderboardEntry();
+    medalAt.m_Type = LeaderboardEntryType::Medal;
+    medalAt.m_Medal = "Author";
+    medalAt.m_PlayerName = "AT";
+    medalAt.m_IconColor = vec3(0, 0x77 / 255.0f, 0x11 / 255.0f);
+    medalAt.m_Time = map.MapInfo.TMObjective_AuthorTime;
+    g_State.m_MedalEntries.InsertLast(medalAt);
 
-        setMedal(g_State.m_Leaderboard, entry);
-    }
+    auto medalGold = LeaderboardEntry();
+    medalGold.m_Type = LeaderboardEntryType::Medal;
+    medalGold.m_Medal = "Gold";
+    medalGold.m_PlayerName = "Gold";
+    medalGold.m_IconColor = vec3(0xDD / 255.0f, 0xBB / 255.0f, 0x44 / 255.0f);
+    medalGold.m_Time = map.MapInfo.TMObjective_GoldTime;
+    g_State.m_MedalEntries.InsertLast(medalGold);
+
+    auto medalSilver = LeaderboardEntry();
+    medalSilver.m_Type = LeaderboardEntryType::Medal;
+    medalSilver.m_Medal = "Silver";
+    medalSilver.m_PlayerName = "Silver";
+    medalSilver.m_IconColor = vec3(0x88 / 255.0f, 0x99 / 255.0f, 0x99 / 255.0f);
+    medalSilver.m_Time = map.MapInfo.TMObjective_SilverTime;
+    g_State.m_MedalEntries.InsertLast(medalSilver);
+
+    auto medalBronze = LeaderboardEntry();
+    medalBronze.m_Type = LeaderboardEntryType::Medal;
+    medalBronze.m_Medal = "Bronze";
+    medalBronze.m_PlayerName = "Bronze";
+    medalBronze.m_IconColor = vec3(0x99 / 255.0f, 0x66 / 255.0f, 0x44 / 255.0f);
+    medalBronze.m_Time = map.MapInfo.TMObjective_BronzeTime;
+    g_State.m_MedalEntries.InsertLast(medalBronze);
 }
 
 /**
@@ -267,14 +250,11 @@ string GetMapId()
     return app.RootMap.IdName;
 }
 
-void setMedal(const Leaderboard&in leaderboard, LeaderboardEntry&inout entry)
+void setMedal(LeaderboardEntry&inout entry)
 {
-    for (uint i = 0; i < leaderboard.m_Entries.Length; i++)
+    for (uint i = 0; i < g_State.m_MedalEntries.Length; i++)
     {
-        const auto @medalEntry = @leaderboard.m_Entries[i];
-        if (medalEntry.m_Type != LeaderboardEntryType::Medal)
-            continue;
-
+        const auto @medalEntry = @g_State.m_MedalEntries[i];
         if (entry.m_Time <= medalEntry.m_Time)
         {
             entry.m_Medal = medalEntry.m_Medal;
@@ -287,38 +267,69 @@ void setMedal(const Leaderboard&in leaderboard, LeaderboardEntry&inout entry)
 class Leaderboard
 {
     array<LeaderboardEntry @> m_Entries;
+    LeaderboardEntry @m_TempNewestRun = null;
 
     uint m_TotalNumberFinishes = 0;
-    uint m_NumberPlayerScores = 0;
 
     uint m_PlayerBestId = 0;
     int m_PlayerBestTime = -1;
 
     uint m_PlayerNewestId = 0;
     int m_PlayerNewestTime = -1;
-    bool m_IsPlayerNewestTemporary = false;
 
     LeaderboardEntry @getLastPlayerEntry()
     {
-        const auto lastPlayerEntry = GetLastPlayerEntryIndex();
-        if (lastPlayerEntry < 0)
-        {
-            return null;
-        }
-        return @m_Entries[lastPlayerEntry];
+        return @m_Entries[m_Entries.Length];
     }
 
-    void AddNewEntry(LeaderboardEntry entry, bool temporary)
+    LeaderboardEntry createNewEntry(const MLFeed::PlayerCpInfo_V4 @player)
     {
+        auto entry = LeaderboardEntry();
+        entry.m_PlayerName = player.Name;
+        entry.m_Time = player.FinishTime;
+        entry.m_TimeNoRespawn = (player.FinishTime - player.TimeLostToRespawns);
+        entry.m_NumberRespawns = player.RespawnTimes.Length;
+        entry.m_TimeStamp = Time::get_Stamp();
+
         entry.m_ScoreNumber = m_TotalNumberFinishes;
-        setMedal(this, entry);
+        setMedal(entry);
 
+        return entry;
+    }
+
+    void addNewestRun(const MLFeed::PlayerCpInfo_V4 @player)
+    {
+        auto newEntry = createNewEntry(player);
+        m_PlayerNewestId = newEntry.m_ScoreNumber;
+        m_PlayerNewestTime = newEntry.m_Time;
+
+        if (g_State.m_Leaderboard.m_Entries.Length < settingDataRecordLimit)
+        {
+            AddNewEntry(newEntry);
+        }
+        else
+        {
+            if (player.FinishTime < m_Entries[m_Entries.Length - 1].m_Time)
+            {
+                RemoveLastPlayerEntry();
+                AddNewEntry(newEntry);
+            }
+            else
+            {
+                addTemporaryNewestRun(newEntry);
+            }
+        }
+    }
+
+    void addTemporaryNewestRun(LeaderboardEntry entry)
+    {
+        entry.m_Rank = m_Entries.Length + 1;
+        @m_TempNewestRun = @entry;
+    }
+
+    void AddNewEntry(LeaderboardEntry entry)
+    {
         AddEntry(entry);
-        m_NumberPlayerScores++;
-
-        m_PlayerNewestId = entry.m_ScoreNumber;
-        m_PlayerNewestTime = entry.m_Time;
-        m_IsPlayerNewestTemporary = temporary;
 
         if (entry.m_Time < m_PlayerBestTime || m_PlayerBestTime == -1)
         {
@@ -329,70 +340,51 @@ class Leaderboard
 
     void AddEntry(LeaderboardEntry entry)
     {
-        for (uint i = 0; i < m_Entries.Length; i++)
+        uint rank = 1;
+        uint i = 0;
+        bool inserted = false;
+        for (; i < m_Entries.Length; i++)
         {
             if (entry.m_Time < m_Entries[i].m_Time)
             {
+                entry.m_Rank = rank;
                 m_Entries.InsertAt(i, entry);
-                return;
+                inserted = true;
+                break;
             }
+            rank++;
         }
 
-        m_Entries.InsertLast(entry);
+        if (!inserted)
+        {
+            entry.m_Rank = rank;
+            m_Entries.InsertLast(entry);
+        }
+        else
+        {
+            i++;
+            for (; i < m_Entries.Length; i++)
+            {
+                LogInfo("" + m_Entries[i].m_Rank);
+                m_Entries[i].m_Rank++;
+            }
+        }
     }
 
     void RemoveLastPlayerEntry()
     {
-        const auto lastPlayerEntry = GetLastPlayerEntryIndex();
-        if (lastPlayerEntry >= 0)
-        {
-            m_Entries.RemoveAt(lastPlayerEntry);
-            m_NumberPlayerScores--;
-        }
-    }
-
-    void RemovePlayerEntry(uint scoreNumber)
-    {
-        const auto index = GetPlayerEntryIndex(scoreNumber);
-        if (index >= 0)
-        {
-            m_Entries.RemoveAt(index);
-        }
+        m_Entries.RemoveLast();
     }
 
     void RemoveTemporaryLast()
     {
-        if (!m_IsPlayerNewestTemporary || m_PlayerNewestId <= 0)
+        if (@m_TempNewestRun is null)
         {
             return;
         }
-        RemovePlayerEntry(m_PlayerNewestId);
+        @m_TempNewestRun = null;
         m_PlayerNewestId = 0;
         m_PlayerNewestTime = -1;
-    }
-
-    int GetPlayerEntryIndex(uint scoreNumber)
-    {
-        for (int i = m_Entries.Length - 1; i >= 0; i--)
-        {
-            if (m_Entries[i].m_ScoreNumber == scoreNumber)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    int GetLastPlayerEntryIndex()
-    {
-        for (int i = m_Entries.Length - 1; i >= 0; i--)
-        {
-            if (m_Entries[i].m_Type == LeaderboardEntryType::Score)
-            {
-                return i;
-            }
-        }
-        return -1;
     }
 }
 
@@ -403,6 +395,8 @@ class LeaderboardEntry
 
     string m_PlayerName = "";
     string m_Medal = "";
+
+    uint m_Rank = 0;
 
     vec3 m_IconColor = vec3(1, 1, 1);
 
@@ -425,6 +419,7 @@ class State
     bool m_IsPlayerFinishHandled = true;
 
     Leaderboard m_Leaderboard = Leaderboard();
+    array<LeaderboardEntry @> m_MedalEntries;
 }
 
 enum LeaderboardEntryType

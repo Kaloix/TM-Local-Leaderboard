@@ -12,6 +12,7 @@ namespace LocalLeaderboard
 {
 int windowFlags = 0;
 
+array<LeaderboardEntry @> g_TableRows;
 array<TableColumn @> g_TableColumns;
 
 void InitRender()
@@ -43,6 +44,60 @@ void InitRender()
     windowFlags = UI::GetDefaultWindowFlags();
     if (!settingDisplayLeaderboardTitleBar)
         windowFlags |= UI::WindowFlags::NoTitleBar;
+}
+
+void InitRows()
+{
+    g_TableRows.RemoveRange(0, g_TableRows.Length);
+
+    for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
+    {
+        g_TableRows.InsertLast(@g_State.m_Leaderboard.m_Entries[i]);
+    }
+
+	if (g_State.m_Leaderboard.m_TempNewestRun !is null)
+	{
+		g_TableRows.InsertLast(@g_State.m_Leaderboard.m_TempNewestRun);
+	}
+
+    for (uint i = 0; i < g_State.m_MedalEntries.Length; i++)
+    {
+        auto @entry = @g_State.m_MedalEntries[i];
+
+        if (entry.m_Medal == "Author" && !settingDisplayLeaderboardMedalAuthor)
+        {
+            continue; // Skip author medal if the setting is disabled
+        }
+        else if (entry.m_Medal == "Gold" && !settingDisplayLeaderboardMedalGold)
+        {
+            continue; // Skip gold medal if the setting is disabled
+        }
+        else if (entry.m_Medal == "Silver" && !settingDisplayLeaderboardMedalSilver)
+        {
+            continue; // Skip silver medal if the setting is disabled
+        }
+        else if (entry.m_Medal == "Bronze" && !settingDisplayLeaderboardMedalBronze)
+        {
+            continue; // Skip bronze medal if the setting is disabled
+        }
+        else if (entry.m_Medal == "Champion" && !settingDisplayLeaderboardMedalChampion)
+        {
+            continue; // Skip champion medal if the setting is disabled
+        }
+        else if (entry.m_Medal == "Warrior" && !settingDisplayLeaderboardMedalWarrior)
+        {
+            continue; // Skip warrior medal if the setting is disabled
+        }
+
+        g_TableRows.InsertLast(entry);
+    }
+
+    g_TableRows.Sort(timeSort);
+}
+
+bool timeSort(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ const&in b)
+{
+    return a.m_Time < b.m_Time;
 }
 
 void Render()
@@ -95,39 +150,12 @@ void Render()
 
     // Table body
     auto context = TableRenderContext();
-    for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
+    for (uint i = 0; i < g_TableRows.Length; i++)
     {
-        @context.m_CurrentEntry = @g_State.m_Leaderboard.m_Entries[i];
+        context.m_CurrentRow = i;
+        @context.m_CurrentEntry = @g_TableRows[i];
         context.m_IsPlayerBest = context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_PlayerBestId;
         context.m_IsPlayerNewest = context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_PlayerNewestId;
-
-        if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal)
-        {
-            if (context.m_CurrentEntry.m_Medal == "Author" && !settingDisplayLeaderboardMedalAuthor)
-            {
-                continue; // Skip author medal if the setting is disabled
-            }
-            else if (context.m_CurrentEntry.m_Medal == "Gold" && !settingDisplayLeaderboardMedalGold)
-            {
-                continue; // Skip gold medal if the setting is disabled
-            }
-            else if (context.m_CurrentEntry.m_Medal == "Silver" && !settingDisplayLeaderboardMedalSilver)
-            {
-                continue; // Skip silver medal if the setting is disabled
-            }
-            else if (context.m_CurrentEntry.m_Medal == "Bronze" && !settingDisplayLeaderboardMedalBronze)
-            {
-                continue; // Skip bronze medal if the setting is disabled
-            }
-            else if (context.m_CurrentEntry.m_Medal == "Champion" && !settingDisplayLeaderboardMedalChampion)
-            {
-                continue; // Skip champion medal if the setting is disabled
-            }
-            else if (context.m_CurrentEntry.m_Medal == "Warrior" && !settingDisplayLeaderboardMedalWarrior)
-            {
-                continue; // Skip warrior medal if the setting is disabled
-            }
-        }
 
         UI::TableNextRow();
 
@@ -146,7 +174,6 @@ void Render()
 class TableRenderContext
 {
     uint m_CurrentRow = 0;
-    uint m_CurrentPosition = 1;
     LeaderboardEntry @m_CurrentEntry = null;
 
     bool m_IsPlayerBest = false;
@@ -178,8 +205,7 @@ class RankColumn : TableColumn
         {
             return;
         }
-        renderText(context, "" + context.m_CurrentPosition);
-        context.m_CurrentPosition++;
+        renderText(context, "" + context.m_CurrentEntry.m_Rank);
     }
 }
 

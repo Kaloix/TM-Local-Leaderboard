@@ -26,31 +26,23 @@ void SaveLeaderboard(const State&in state)
 
     for (uint i = 0; i < state.m_Leaderboard.m_Entries.Length; i++)
     {
-        auto entry = state.m_Leaderboard.m_Entries[i];
-
-        if (entry.m_Type == LeaderboardEntryType::Medal)
-        {
-            continue; // Skip medal entries
-        }
-
-        auto entryObj = Json::Object();
-        entryObj["scoreNumber"] = entry.m_ScoreNumber;
-        entryObj["player"] = entry.m_PlayerName;
-        entryObj["time"] = entry.m_Time;
-        entryObj["timeNoRespawn"] = entry.m_TimeNoRespawn;
-        entryObj["numberRespawns"] = entry.m_NumberRespawns;
-        entryObj["timestamp"] = entry.m_TimeStamp;
+        const auto @entry = @state.m_Leaderboard.m_Entries[i];
+        auto entryObj = serializeLeaderboardEntry(entry);
         entries.Add(entryObj);
     }
 
     leaderboard["entries"] = entries;
+
+    if (state.m_Leaderboard.m_TempNewestRun !is null)
+    {
+        leaderboard["tempNewestRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_TempNewestRun);
+    }
+
     leaderboard["totalNumberFinishes"] = state.m_Leaderboard.m_TotalNumberFinishes;
-    leaderboard["numberPlayerScores"] = state.m_Leaderboard.m_NumberPlayerScores;
     leaderboard["playerBestId"] = state.m_Leaderboard.m_PlayerBestId;
     leaderboard["playerBestTime"] = state.m_Leaderboard.m_PlayerBestTime;
     leaderboard["playerNewestId"] = state.m_Leaderboard.m_PlayerNewestId;
     leaderboard["playerNewestTime"] = state.m_Leaderboard.m_PlayerNewestTime;
-    leaderboard["isPlayerNewestTemporary"] = state.m_Leaderboard.m_IsPlayerNewestTemporary;
 
     root["leaderboard"] = leaderboard;
 
@@ -83,26 +75,46 @@ void LoadLeaderboard(State&inout state)
 
     for (uint i = 0; i < entries.Length; i++)
     {
-        auto entryObj = entries[i];
-
-        auto entry = LeaderboardEntry();
-        entry.m_ScoreNumber = entryObj["scoreNumber"];
-        entry.m_PlayerName = entryObj["player"];
-        entry.m_Time = entryObj["time"];
-        entry.m_TimeNoRespawn = entryObj["timeNoRespawn"];
-        entry.m_NumberRespawns = entryObj["numberRespawns"];
-        entry.m_TimeStamp = entryObj["timestamp"];
-
+        auto entry = deserializeLeaderboardEntry(entries[i]);
         state.m_Leaderboard.AddEntry(entry);
     }
 
+    if (leaderboard.HasKey("tempNewestRun"))
+    {
+        @state.m_Leaderboard.m_TempNewestRun = @deserializeLeaderboardEntry(leaderboard["tempNewestRun"]);
+    }
+
     state.m_Leaderboard.m_TotalNumberFinishes = leaderboard["totalNumberFinishes"];
-    state.m_Leaderboard.m_NumberPlayerScores = leaderboard["numberPlayerScores"];
     state.m_Leaderboard.m_PlayerBestId = leaderboard["playerBestId"];
     state.m_Leaderboard.m_PlayerBestTime = leaderboard["playerBestTime"];
     state.m_Leaderboard.m_PlayerNewestId = leaderboard["playerNewestId"];
     state.m_Leaderboard.m_PlayerNewestTime = leaderboard["playerNewestTime"];
-    state.m_Leaderboard.m_IsPlayerNewestTemporary = leaderboard["isPlayerNewestTemporary"];
+}
+
+Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
+{
+    auto entryObj = Json::Object();
+    entryObj["scoreNumber"] = entry.m_ScoreNumber;
+    entryObj["player"] = entry.m_PlayerName;
+    entryObj["rank"] = entry.m_Rank;
+    entryObj["time"] = entry.m_Time;
+    entryObj["timeNoRespawn"] = entry.m_TimeNoRespawn;
+    entryObj["numberRespawns"] = entry.m_NumberRespawns;
+    entryObj["timestamp"] = entry.m_TimeStamp;
+    return entryObj;
+}
+
+LeaderboardEntry deserializeLeaderboardEntry(const Json::Value&in entryObj)
+{
+    auto entry = LeaderboardEntry();
+    entry.m_ScoreNumber = entryObj["scoreNumber"];
+    entry.m_PlayerName = entryObj["player"];
+    entry.m_Rank = entryObj["rank"];
+    entry.m_Time = entryObj["time"];
+    entry.m_TimeNoRespawn = entryObj["timeNoRespawn"];
+    entry.m_NumberRespawns = entryObj["numberRespawns"];
+    entry.m_TimeStamp = entryObj["timestamp"];
+    return entry;
 }
 
 string buildFileDir()
