@@ -263,6 +263,10 @@ class TimeDeltaColumn : TableColumn
     {
         return "";
     }
+    bool isSelf(const TableRenderContext&in context)
+    {
+        return false;
+    }
     bool isShowDelta(const TableRenderContext&in context)
     {
         return true;
@@ -289,13 +293,20 @@ class TimeDeltaColumn : TableColumn
             return;
         }
 
-        const int delta = getDelta(context);
-        auto deltaColor = delta < 0 ? vec4(settingColorDeltaBetter, 1) : (delta > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
-        string deltaStr = (delta > 0 ? "+" : "") + Time::Format(delta);
+        if (isSelf(context))
+        {
+            renderText(context, Time::Format(context.m_CurrentEntry.GetDisplayTime()));
+        }
+        else
+        {
+            const int delta = getDelta(context);
+            auto deltaColor = delta < 0 ? vec4(settingColorDeltaBetter, 1) : (delta > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
+            string deltaStr = (delta > 0 ? "+" : "") + Time::Format(delta);
 
-        UI::PushStyleColor(UI::Col::Text, deltaColor);
-        UI::Text(deltaStr);
-        UI::PopStyleColor();
+            UI::PushStyleColor(UI::Col::Text, deltaColor);
+            UI::Text(deltaStr);
+            UI::PopStyleColor();
+        }
     }
 }
 
@@ -305,9 +316,13 @@ class BestTimeDeltaColumn : TimeDeltaColumn
     {
         return "Delta PB";
     }
+    bool isSelf(const TableRenderContext&in context) override
+    {
+        return context.m_IsPlayerBest;
+    }
     bool isShowDelta(const TableRenderContext&in context) override
     {
-        return !context.m_IsPlayerBest && g_State.m_Leaderboard.m_FastestRun !is null;
+        return g_State.m_Leaderboard.m_FastestRun !is null;
     }
     int getDelta(const TableRenderContext&in context) override
     {
@@ -321,9 +336,13 @@ class LastTimeDeltaColumn : TimeDeltaColumn
     {
         return "Delta Last";
     }
+    bool isSelf(const TableRenderContext&in context) override
+    {
+        return context.m_IsPlayerNewest;
+    }
     bool isShowDelta(const TableRenderContext&in context) override
     {
-        return !context.m_IsPlayerNewest && g_State.m_Leaderboard.m_NewestRun !is null;
+        return g_State.m_Leaderboard.m_NewestRun !is null;
     }
     int getDelta(const TableRenderContext&in context) override
     {
