@@ -153,7 +153,7 @@ void Render()
     {
         context.m_CurrentRow = i;
         @context.m_CurrentEntry = @g_TableRows[i];
-        context.m_IsPlayerBest = context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_PlayerBestId;
+        context.m_IsPlayerBest = g_State.m_Leaderboard.m_FastestRun !is null && context.m_CurrentEntry.m_ScoreNumber ==  g_State.m_Leaderboard.m_FastestRun.m_ScoreNumber;
         context.m_IsPlayerNewest = g_State.m_Leaderboard.m_NewestRun !is null && context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_NewestRun.m_ScoreNumber;
 
         UI::TableNextRow();
@@ -322,11 +322,11 @@ class BestTimeDeltaColumn : TimeDeltaColumn
     }
     bool isShowDelta(const TableRenderContext&in context) override
     {
-        return !context.m_IsPlayerBest && g_State.m_Leaderboard.m_PlayerBestTime > 0;
+        return !context.m_IsPlayerBest && g_State.m_Leaderboard.m_FastestRun !is null;
     }
     int getDelta(const TableRenderContext&in context) override
     {
-        return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_PlayerBestTime;
+        return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_FastestRun.m_Time;
     }
 }
 

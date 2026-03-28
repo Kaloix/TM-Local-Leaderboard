@@ -35,12 +35,14 @@ void SaveLeaderboard(const State&in state)
 
     if (state.m_Leaderboard.m_NewestRun !is null)
     {
-        leaderboard["tempNewestRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_NewestRun);
+        leaderboard["newestRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_NewestRun);
+    }
+    if (state.m_Leaderboard.m_FastestRun !is null)
+    {
+        leaderboard["festestRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_FastestRun);
     }
 
     leaderboard["totalNumberFinishes"] = state.m_Leaderboard.m_TotalNumberFinishes;
-    leaderboard["playerBestId"] = state.m_Leaderboard.m_PlayerBestId;
-    leaderboard["playerBestTime"] = state.m_Leaderboard.m_PlayerBestTime;
 
     root["leaderboard"] = leaderboard;
 
@@ -71,9 +73,13 @@ void LoadLeaderboard(State&inout state)
     auto leaderboard = root["leaderboard"];
     auto entries = leaderboard["entries"];
 
-    if (leaderboard.HasKey("tempNewestRun"))
+    if (leaderboard.HasKey("newestRun"))
     {
-        @state.m_Leaderboard.m_NewestRun = @deserializeLeaderboardEntry(leaderboard["tempNewestRun"]);
+        @state.m_Leaderboard.m_NewestRun = @deserializeLeaderboardEntry(leaderboard["newestRun"]);
+    }
+    if (leaderboard.HasKey("festestRun"))
+    {
+        @state.m_Leaderboard.m_FastestRun = @deserializeLeaderboardEntry(leaderboard["festestRun"]);
     }
 
     for (uint i = 0; i < entries.Length; i++)
@@ -81,15 +87,17 @@ void LoadLeaderboard(State&inout state)
         auto @entry = @deserializeLeaderboardEntry(entries[i]);
         state.m_Leaderboard.AddEntry(@entry);
 
-        if (state.m_Leaderboard.m_NewestRun.m_ScoreNumber == entry.m_ScoreNumber)
+        if (state.m_Leaderboard.m_NewestRun !is null && state.m_Leaderboard.m_NewestRun.m_ScoreNumber == entry.m_ScoreNumber)
         {
             @state.m_Leaderboard.m_NewestRun = @entry;
+        }
+        if (state.m_Leaderboard.m_FastestRun !is null && state.m_Leaderboard.m_FastestRun.m_ScoreNumber == entry.m_ScoreNumber)
+        {
+            @state.m_Leaderboard.m_FastestRun = @entry;
         }
     }
 
     state.m_Leaderboard.m_TotalNumberFinishes = leaderboard["totalNumberFinishes"];
-    state.m_Leaderboard.m_PlayerBestId = leaderboard["playerBestId"];
-    state.m_Leaderboard.m_PlayerBestTime = leaderboard["playerBestTime"];
 }
 
 Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)

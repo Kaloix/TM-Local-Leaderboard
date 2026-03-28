@@ -269,11 +269,9 @@ class Leaderboard
 {
     array<LeaderboardEntry @> m_Entries;
     LeaderboardEntry @m_NewestRun = null;
+    LeaderboardEntry @m_FastestRun = null;
 
     uint m_TotalNumberFinishes = 0;
-
-    uint m_PlayerBestId = 0;
-    int m_PlayerBestTime = -1;
 
     LeaderboardEntry @getLastPlayerEntry()
     {
@@ -319,12 +317,11 @@ class Leaderboard
 
     void AddNewEntry(LeaderboardEntry @entry)
     {
-        AddEntry(entry);
+        AddEntry(@entry);
 
-        if (entry.m_Time < m_PlayerBestTime || m_PlayerBestTime == -1)
+        if (m_FastestRun is null ||  entry.m_Time < m_FastestRun.m_Time)
         {
-            m_PlayerBestId = entry.m_ScoreNumber;
-            m_PlayerBestTime = entry.m_Time;
+            @m_FastestRun = @entry;
         }
     }
 
