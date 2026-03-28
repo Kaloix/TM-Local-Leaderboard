@@ -175,6 +175,8 @@ void addPreviousPb()
     entry.m_PlayerName = player.Name;
     entry.m_Time = player.BestTime;
     entry.m_ScoreNumber = 1;
+    entry.m_WasPersonalBest = true;
+    entry.m_WasSessionBest = true;
     g_State.m_Leaderboard.AddNewEntry(entry);
 }
 
@@ -284,8 +286,9 @@ class Leaderboard
     {
         AddEntry(@entry);
 
-        if (m_FastestRun is null ||  entry.m_Time < m_FastestRun.m_Time)
+        if (m_FastestRun is null || entry.m_Time < m_FastestRun.m_Time)
         {
+            entry.m_WasPersonalBest = true;
             @m_FastestRun = @entry;
 
             if (m_FastestCopiumRun !is null && m_FastestRun.m_Time <= m_FastestCopiumRun.m_TimeNoRespawn)
@@ -295,6 +298,9 @@ class Leaderboard
         }
         if (m_SessionFastestRun is null || entry.m_Time < m_SessionFastestRun.m_Time)
         {
+            if (m_SessionFastestRun !is null)
+                m_SessionFastestRun.m_WasSessionBest = false;
+            entry.m_WasSessionBest = true;
             @m_SessionFastestRun = @entry;
 
             if (m_SessionFastestCopiumRun !is null && m_SessionFastestRun.m_Time <= m_SessionFastestCopiumRun.m_TimeNoRespawn)
@@ -371,6 +377,9 @@ class LeaderboardEntry
     int m_Time = 0;
     int m_TimeNoRespawn = 0;
     uint m_NumberRespawns = 0;
+
+    bool m_WasPersonalBest = false;
+    bool m_WasSessionBest = false;
 
     string GetDisplayRank() const
     {

@@ -69,6 +69,11 @@ void InitRows()
         g_TableRows.InsertLast(@g_State.m_Leaderboard.m_NewestRun);
     for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
     {
+        if (settingFilterPersonalBests && !g_State.m_Leaderboard.m_Entries[i].m_WasPersonalBest)
+            continue;
+        if (settingFilterSessionBests && !g_State.m_Leaderboard.m_Entries[i].m_WasSessionBest)
+            continue;
+
         if (@g_State.m_Leaderboard.m_NewestRun is @g_State.m_Leaderboard.m_Entries[i])
             continue;
         g_TableRows.InsertLast(@g_State.m_Leaderboard.m_Entries[i]);

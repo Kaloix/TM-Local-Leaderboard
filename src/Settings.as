@@ -52,6 +52,12 @@ bool settingDisplayLeaderboardTimestampColumn = true;
 [Setting name="Display Player Column" description="Show the player column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardPlayerColumn = false;
 
+[Setting name="Filter Personal Bests" description="Show only previous personal bests in the leaderboard" category="UI"]
+bool settingFilterPersonalBests = false;
+
+[Setting name="Filter Session Bests" description="Show only session bests in the leaderboard" category="UI"]
+bool settingFilterSessionBests = false;
+
 [Setting name="Display Newest Copium" description="Show the player's copium time of the last run in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardCopiumNewest = false;
 

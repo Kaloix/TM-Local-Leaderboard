@@ -107,6 +107,8 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
     entryObj["timeNoRespawn"] = entry.m_TimeNoRespawn;
     entryObj["numberRespawns"] = entry.m_NumberRespawns;
     entryObj["timestamp"] = entry.m_TimeStamp;
+    entryObj["wasPersonalBest"] = entry.m_WasPersonalBest;
+    entryObj["wasSessionBest"] = entry.m_WasSessionBest;
     return entryObj;
 }
 
@@ -122,6 +124,8 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
     entry.m_TimeNoRespawn = entryObj["timeNoRespawn"];
     entry.m_NumberRespawns = entryObj["numberRespawns"];
     entry.m_TimeStamp = entryObj["timestamp"];
+    entry.m_WasPersonalBest = entryObj["wasPersonalBest"];
+    entry.m_WasSessionBest = entryObj["wasSessionBest"];
     return @entry;
 }
 
