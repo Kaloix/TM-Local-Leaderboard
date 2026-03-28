@@ -222,8 +222,11 @@ class Leaderboard
     array<LeaderboardEntry @> m_Entries;
     LeaderboardEntry @m_NewestRun = null;
     LeaderboardEntry @m_FastestRun = null;
+    LeaderboardEntry @m_SessionFastestRun = null;
 
+    LeaderboardEntry @m_NewestCopiumRun = null;
     LeaderboardEntry @m_FastestCopiumRun = null;
+    LeaderboardEntry @m_SessionFastestCopiumRun = null;
 
     uint m_TotalNumberFinishes = 0;
 
@@ -250,6 +253,14 @@ class Leaderboard
     void addNewestRun(const MLFeed::PlayerCpInfo_V4 @player)
     {
         @m_NewestRun = @createNewEntry(player);
+        if (m_NewestRun.m_NumberRespawns > 0)
+        {
+            @m_NewestCopiumRun = LeaderboardEntry(m_NewestRun);
+            m_NewestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
+            setMedal(m_NewestCopiumRun);
+        } else {
+            @m_NewestCopiumRun = null;
+        }
 
         if (g_State.m_Leaderboard.m_Entries.Length < settingDataRecordLimit)
         {
@@ -277,16 +288,32 @@ class Leaderboard
         {
             @m_FastestRun = @entry;
 
-            if (m_FastestCopiumRun !is null && m_FastestRun.m_Time <= m_FastestCopiumRun.m_Time)
+            if (m_FastestCopiumRun !is null && m_FastestRun.m_Time <= m_FastestCopiumRun.m_TimeNoRespawn)
             {
                 @m_FastestCopiumRun = null;
             }
         }
+        if (m_SessionFastestRun is null || entry.m_Time < m_SessionFastestRun.m_Time)
+        {
+            @m_SessionFastestRun = @entry;
+
+            if (m_SessionFastestCopiumRun !is null && m_SessionFastestRun.m_Time <= m_SessionFastestCopiumRun.m_TimeNoRespawn)
+            {
+                @m_SessionFastestCopiumRun = null;
+            }
+        }
+
         if (entry.m_NumberRespawns > 0 && entry.m_TimeNoRespawn < m_FastestRun.m_Time && (m_FastestCopiumRun is null || entry.m_TimeNoRespawn < m_FastestCopiumRun.m_TimeNoRespawn))
         {
             @m_FastestCopiumRun = LeaderboardEntry(entry);
             m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
             setMedal(m_FastestCopiumRun);
+        }
+        if (entry.m_NumberRespawns > 0 && entry.m_TimeNoRespawn < m_SessionFastestRun.m_Time && (m_SessionFastestCopiumRun is null || entry.m_TimeNoRespawn < m_SessionFastestCopiumRun.m_TimeNoRespawn))
+        {
+            @m_SessionFastestCopiumRun = LeaderboardEntry(entry);
+            m_SessionFastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
+            setMedal(m_SessionFastestCopiumRun);
         }
     }
 
@@ -370,7 +397,7 @@ class LeaderboardEntry
         switch (m_Type)
         {
             case LeaderboardEntryType::Medal: return m_Medal.GetTime();
-            case LeaderboardEntryType::Score: m_Time;
+            case LeaderboardEntryType::Score: return m_Time;
             case LeaderboardEntryType::ScoreCopium: return m_TimeNoRespawn;
             default: return 0;
         }

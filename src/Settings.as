@@ -1,7 +1,7 @@
 // Category Data
 
 [Setting name="Record Limit" description="Maximum number of records in the leaderboard" category="Data"]
-uint settingDataRecordLimit = 4;
+uint settingDataRecordLimit = 100;
 
 [Setting name="Add PB" description="If the PB should be added if no entries are available" category="Data"]
 bool settingDataAddPb = true;
@@ -52,6 +52,15 @@ bool settingDisplayLeaderboardTimestampColumn = true;
 [Setting name="Display Player Column" description="Show the player column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardPlayerColumn = false;
 
+[Setting name="Display Newest Copium" description="Show the player's copium time of the last run in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardCopiumNewest = false;
+
+[Setting name="Display Best Copium" description="Show the player's best copium time in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardCopiumFastest = false;
+
+[Setting name="Display Session Copium" description="Show the player's best copium time of the current session in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardCopiumSessionFastest = false;
+
 [Setting name="Display Medal Author" description="Show the author of medal times in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardMedalAuthor = true;
 
@@ -81,6 +90,9 @@ vec3 settingColorDeltaEqual = vec3(0.66f, 0.66f, 0.66f);
 
 [Setting name="Color Time Best" description="Color for the player's best time in the leaderboard" color category="UI"]
 vec3 settingColorTimeBest = vec3(0.75f, 0.25f, 0.75f);
+
+[Setting name="Color Time Session Best" description="Color for the player's best time of the current session in the leaderboard" color category="UI"]
+vec3 settingColorTimeSessionBest = vec3(0.25f, 0.75f, 0.75f);
 
 [Setting name="Color Time Last" description="Color for the player's last time in the leaderboard" color category="UI"]
 vec3 settingColorTimeLast = vec3(0.5f, 1.0f, 0.0f);

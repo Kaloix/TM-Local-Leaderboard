@@ -33,10 +33,6 @@ void SaveLeaderboard(const State&in state)
 
     leaderboard["entries"] = entries;
 
-    if (state.m_Leaderboard.m_NewestRun !is null)
-    {
-        leaderboard["newestRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_NewestRun);
-    }
     if (state.m_Leaderboard.m_FastestRun !is null)
     {
         leaderboard["festestRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_FastestRun);
@@ -77,10 +73,6 @@ void LoadLeaderboard(State&inout state)
     auto leaderboard = root["leaderboard"];
     auto entries = leaderboard["entries"];
 
-    if (leaderboard.HasKey("newestRun"))
-    {
-        @state.m_Leaderboard.m_NewestRun = @deserializeLeaderboardEntry(leaderboard["newestRun"]);
-    }
     if (leaderboard.HasKey("festestRun"))
     {
         @state.m_Leaderboard.m_FastestRun = @deserializeLeaderboardEntry(leaderboard["festestRun"]);
@@ -95,10 +87,6 @@ void LoadLeaderboard(State&inout state)
         auto @entry = @deserializeLeaderboardEntry(entries[i]);
         state.m_Leaderboard.AddEntry(@entry);
 
-        if (state.m_Leaderboard.m_NewestRun !is null && state.m_Leaderboard.m_NewestRun.m_ScoreNumber == entry.m_ScoreNumber)
-        {
-            @state.m_Leaderboard.m_NewestRun = @entry;
-        }
         if (state.m_Leaderboard.m_FastestRun !is null && state.m_Leaderboard.m_FastestRun.m_ScoreNumber == entry.m_ScoreNumber)
         {
             @state.m_Leaderboard.m_FastestRun = @entry;

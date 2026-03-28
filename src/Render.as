@@ -50,8 +50,20 @@ void InitRows()
 {
     g_TableRows.RemoveRange(0, g_TableRows.Length);
 
-    if (g_State.m_Leaderboard.m_FastestCopiumRun !is null)
+    bool addedNewestCopium = false;
+    bool addedFastestCopium = false;
+    if (settingDisplayLeaderboardCopiumNewest && g_State.m_Leaderboard.m_NewestCopiumRun !is null)
+    {
+        g_TableRows.InsertLast(g_State.m_Leaderboard.m_NewestCopiumRun);
+        addedNewestCopium = true;
+    }
+    if (settingDisplayLeaderboardCopiumFastest && g_State.m_Leaderboard.m_FastestCopiumRun !is null && (!addedNewestCopium || g_State.m_Leaderboard.m_FastestCopiumRun.m_ScoreNumber != g_State.m_Leaderboard.m_NewestCopiumRun.m_ScoreNumber))
+    {
         g_TableRows.InsertLast(g_State.m_Leaderboard.m_FastestCopiumRun);
+        addedFastestCopium = true;
+    }
+    if (settingDisplayLeaderboardCopiumSessionFastest && g_State.m_Leaderboard.m_SessionFastestCopiumRun !is null && (!addedNewestCopium || g_State.m_Leaderboard.m_SessionFastestCopiumRun.m_ScoreNumber != g_State.m_Leaderboard.m_NewestCopiumRun.m_ScoreNumber) && (!addedFastestCopium || g_State.m_Leaderboard.m_SessionFastestCopiumRun.m_ScoreNumber != g_State.m_Leaderboard.m_FastestCopiumRun.m_ScoreNumber))
+        g_TableRows.InsertLast(g_State.m_Leaderboard.m_SessionFastestCopiumRun);
 
     if (g_State.m_Leaderboard.m_NewestRun !is null)
         g_TableRows.InsertLast(@g_State.m_Leaderboard.m_NewestRun);
@@ -125,9 +137,12 @@ void Render()
     {
         context.m_CurrentRow = i;
         @context.m_CurrentEntry = @g_TableRows[i];
-        context.m_IsPlayerBest = context.m_CurrentEntry is g_State.m_Leaderboard.m_FastestRun;
         context.m_IsPlayerNewest = context.m_CurrentEntry is g_State.m_Leaderboard.m_NewestRun;
+        context.m_IsPlayerBest = context.m_CurrentEntry is g_State.m_Leaderboard.m_FastestRun;
+        context.m_IsPlayerSessionBest = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionFastestRun;
+        context.m_IsPlayerNewestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_NewestCopiumRun;
         context.m_IsPlayerBestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_FastestCopiumRun;
+        context.m_IsPlayerSessionBestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionFastestCopiumRun;
 
         UI::TableNextRow();
 
@@ -148,9 +163,12 @@ class TableRenderContext
     uint m_CurrentRow = 0;
     LeaderboardEntry @m_CurrentEntry = null;
 
-    bool m_IsPlayerBest = false;
     bool m_IsPlayerNewest = false;
+    bool m_IsPlayerBest = false;
+    bool m_IsPlayerSessionBest = false;
+    bool m_IsPlayerNewestCopium = false;
     bool m_IsPlayerBestCopium = false;
+    bool m_IsPlayerSessionBestCopium = false;
 }
 
 interface TableColumn
@@ -398,6 +416,10 @@ void renderText(const TableRenderContext&in context, const string&in text)
     {
         UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeLast, 1));
     }
+    else if (context.m_IsPlayerNewestCopium)
+    {
+        UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeLast, 1) * 0.8f);
+    }
     else if (context.m_IsPlayerBest)
     {
         UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeBest * 1.4f, 1));
@@ -406,8 +428,16 @@ void renderText(const TableRenderContext&in context, const string&in text)
     {
         UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeBest * 0.9f, 1));
     }
+    else if (context.m_IsPlayerSessionBest)
+    {
+        UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeSessionBest * 1.4f, 1));
+    }
+    else if (context.m_IsPlayerSessionBestCopium)
+    {
+        UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeSessionBest * 0.9f, 1));
+    }
     UI::Text(text);
-    if (context.m_IsPlayerNewest || context.m_IsPlayerBest || context.m_IsPlayerBestCopium)
+    if (context.m_IsPlayerNewest || context.m_IsPlayerNewestCopium || context.m_IsPlayerBest || context.m_IsPlayerBestCopium || context.m_IsPlayerSessionBest || context.m_IsPlayerSessionBestCopium)
     {
         UI::PopStyleColor();
     }
