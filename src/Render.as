@@ -50,6 +50,9 @@ void InitRows()
 {
     g_TableRows.RemoveRange(0, g_TableRows.Length);
 
+    if (g_State.m_Leaderboard.m_FastestCopiumRun !is null)
+        g_TableRows.InsertLast(g_State.m_Leaderboard.m_FastestCopiumRun);
+
     if (g_State.m_Leaderboard.m_NewestRun !is null)
         g_TableRows.InsertLast(@g_State.m_Leaderboard.m_NewestRun);
     for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
@@ -96,7 +99,7 @@ void InitRows()
 
 bool timeSort(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ const&in b)
 {
-    return a.m_Time < b.m_Time;
+    return a.GetDisplayTime() < b.GetDisplayTime();
 }
 
 void Render()
@@ -120,12 +123,6 @@ void Render()
     {
         const auto mapAuthor = Text::OpenplanetFormatCodes(g_State.m_CurrentMapAuthor);
         UI::TextDisabled("By " + mapAuthor);
-    }
-
-    if (g_State.m_Leaderboard.m_Entries.Length == 0)
-    {
-        UI::End();
-        return;
     }
 
     UI::BeginTable("LeaderboardTable", g_TableColumns.Length);
@@ -153,8 +150,9 @@ void Render()
     {
         context.m_CurrentRow = i;
         @context.m_CurrentEntry = @g_TableRows[i];
-        context.m_IsPlayerBest = g_State.m_Leaderboard.m_FastestRun !is null && context.m_CurrentEntry.m_ScoreNumber ==  g_State.m_Leaderboard.m_FastestRun.m_ScoreNumber;
-        context.m_IsPlayerNewest = g_State.m_Leaderboard.m_NewestRun !is null && context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_NewestRun.m_ScoreNumber;
+        context.m_IsPlayerBest = context.m_CurrentEntry is g_State.m_Leaderboard.m_FastestRun;
+        context.m_IsPlayerNewest = context.m_CurrentEntry is g_State.m_Leaderboard.m_NewestRun;
+        context.m_IsPlayerBestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_FastestCopiumRun;
 
         UI::TableNextRow();
 
@@ -177,6 +175,7 @@ class TableRenderContext
 
     bool m_IsPlayerBest = false;
     bool m_IsPlayerNewest = false;
+    bool m_IsPlayerBestCopium = false;
 }
 
 interface TableColumn
@@ -200,11 +199,7 @@ class RankColumn : TableColumn
 
     void renderBody(TableRenderContext&inout context)
     {
-        if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal)
-        {
-            return;
-        }
-        renderText(context, "" + context.m_CurrentEntry.m_Rank);
+        renderText(context, context.m_CurrentEntry.GetDisplayRank());
     }
 }
 
@@ -223,14 +218,7 @@ class MedalColumn : TableColumn
     {
 
         UI::PushStyleColor(UI::Col::Text, vec4(context.m_CurrentEntry.m_IconColor, 1));
-        if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal)
-        {
-            UI::Text(Icons::Circle);
-        }
-        else if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Score)
-        {
-            UI::Text(Icons::CircleO);
-        }
+        UI::Text(context.m_CurrentEntry.GetDisplayIcon());
         UI::PopStyleColor();
     }
 }
@@ -249,7 +237,7 @@ class TimeColumn : TableColumn
 
     void renderBody(TableRenderContext&inout context)
     {
-        renderText(context, Time::Format(context.m_CurrentEntry.m_Time));
+        renderText(context, Time::Format(context.m_CurrentEntry.GetDisplayTime()));
     }
 }
 
@@ -267,8 +255,7 @@ class PlayerColumn : TableColumn
 
     void renderBody(TableRenderContext&inout context)
     {
-        const auto name = context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal ? context.m_CurrentEntry.m_Medal : context.m_CurrentEntry.m_PlayerName;
-        renderText(context, name);
+        renderText(context, context.m_CurrentEntry.GetDisplayName());
     }
 }
 
@@ -299,7 +286,7 @@ class TimeDeltaColumn : TableColumn
 
     void renderBody(TableRenderContext&inout context)
     {
-        if (context.m_CurrentEntry.m_Time <= 0 || !isShowDelta(context))
+        if (context.m_CurrentEntry.GetDisplayTime() <= 0 || !isShowDelta(context))
         {
             return;
         }
@@ -326,7 +313,7 @@ class BestTimeDeltaColumn : TimeDeltaColumn
     }
     int getDelta(const TableRenderContext&in context) override
     {
-        return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_FastestRun.m_Time;
+        return context.m_CurrentEntry.GetDisplayTime() - g_State.m_Leaderboard.m_FastestRun.GetDisplayTime();
     }
 }
 
@@ -342,7 +329,7 @@ class LastTimeDeltaColumn : TimeDeltaColumn
     }
     int getDelta(const TableRenderContext&in context) override
     {
-        return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_NewestRun.m_Time;
+        return context.m_CurrentEntry.GetDisplayTime() - g_State.m_Leaderboard.m_NewestRun.GetDisplayTime();
     }
 }
 
@@ -379,7 +366,7 @@ class NumberRespawnsColumn : TableColumn
 
     void renderBody(TableRenderContext&inout context)
     {
-        if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Score && context.m_CurrentEntry.m_NumberRespawns != 0)
+        if (context.m_CurrentEntry.m_NumberRespawns != 0)
         {
             renderText(context, "" + context.m_CurrentEntry.m_NumberRespawns);
         }
@@ -398,7 +385,7 @@ class ScoreNumberColumn : TableColumn
     }
     void renderBody(TableRenderContext&inout context)
     {
-        if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Score)
+        if (context.m_CurrentEntry.m_ScoreNumber > 0)
         {
             renderText(context, "" + context.m_CurrentEntry.m_ScoreNumber);
         }
@@ -438,10 +425,12 @@ void renderText(const TableRenderContext&in context, const string&in text)
     }
     else if (context.m_IsPlayerBest)
     {
-        UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeBest, 1));
+        UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeBest * 1.4f, 1));
+    } else if (context.m_IsPlayerBestCopium) {
+        UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeBest * 0.9f, 1));
     }
     UI::Text(text);
-    if (context.m_IsPlayerNewest || context.m_IsPlayerBest)
+    if (context.m_IsPlayerNewest || context.m_IsPlayerBest || context.m_IsPlayerBestCopium)
     {
         UI::PopStyleColor();
     }

@@ -116,9 +116,9 @@ void OnMapLoad()
         setMedal(g_State.m_Leaderboard.m_Entries[i]);
     }
     if (g_State.m_Leaderboard.m_NewestRun !is null)
-    {
         setMedal(g_State.m_Leaderboard.m_NewestRun);
-    }
+    if (g_State.m_Leaderboard.m_FastestCopiumRun !is null)
+        setMedal(g_State.m_Leaderboard.m_FastestCopiumRun);
 
     InitRows();
 }
@@ -160,7 +160,7 @@ void addPreviousPb()
     const auto @raceData = @MLFeed::GetRaceData_V4();
     const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
 
-    if (player.BestTime == 0)
+    if (player.BestTime <= 0)
     {
         return;
     }
@@ -256,7 +256,7 @@ void setMedal(LeaderboardEntry&inout entry)
     for (uint i = 0; i < g_State.m_MedalEntries.Length; i++)
     {
         const auto @medalEntry = @g_State.m_MedalEntries[i];
-        if (entry.m_Time <= medalEntry.m_Time)
+        if (entry.GetDisplayTime() <= medalEntry.m_Time)
         {
             entry.m_Medal = medalEntry.m_Medal;
             entry.m_IconColor = medalEntry.m_IconColor;
@@ -271,6 +271,8 @@ class Leaderboard
     LeaderboardEntry @m_NewestRun = null;
     LeaderboardEntry @m_FastestRun = null;
 
+    LeaderboardEntry @m_FastestCopiumRun = null;
+
     uint m_TotalNumberFinishes = 0;
 
     LeaderboardEntry @getLastPlayerEntry()
@@ -278,7 +280,7 @@ class Leaderboard
         return @m_Entries[m_Entries.Length];
     }
 
-    LeaderboardEntry @createNewEntry(const MLFeed::PlayerCpInfo_V4 @player)
+    LeaderboardEntry @createNewEntry(const MLFeed::PlayerCpInfo_V4 @player) const
     {
         auto @entry = LeaderboardEntry();
         entry.m_PlayerName = player.Name;
@@ -322,6 +324,17 @@ class Leaderboard
         if (m_FastestRun is null ||  entry.m_Time < m_FastestRun.m_Time)
         {
             @m_FastestRun = @entry;
+
+            if (m_FastestCopiumRun !is null && m_FastestRun.m_Time <= m_FastestCopiumRun.m_Time)
+            {
+                @m_FastestCopiumRun = null;
+            }
+        }
+        if (entry.m_NumberRespawns > 0 && entry.m_TimeNoRespawn < m_FastestRun.m_Time && (m_FastestCopiumRun is null || entry.m_TimeNoRespawn < m_FastestCopiumRun.m_TimeNoRespawn))
+        {
+            @m_FastestCopiumRun = LeaderboardEntry(entry);
+            m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
+            setMedal(m_FastestCopiumRun);
         }
     }
 
@@ -380,6 +393,35 @@ class LeaderboardEntry
     int m_Time = 0;
     int m_TimeNoRespawn = 0;
     uint m_NumberRespawns = 0;
+
+    string GetDisplayRank() const
+    {
+        switch (m_Type)
+        {
+            case LeaderboardEntryType::Medal: return "";
+            case LeaderboardEntryType::Score: return "" + m_Rank;
+            case LeaderboardEntryType::ScoreCopium: return "-";
+            default: return "";
+        }
+    }
+
+    string GetDisplayIcon() const {
+        switch (m_Type)
+        {
+            case LeaderboardEntryType::Medal: return Icons::Circle;
+            case LeaderboardEntryType::Score: return Icons::CircleO;
+            case LeaderboardEntryType::ScoreCopium: return Icons::ArrowCircleOUp;
+            default: return "";
+        }
+    }
+
+    int GetDisplayTime() const {
+        return m_Type == LeaderboardEntryType::ScoreCopium ? m_TimeNoRespawn : m_Time;
+    }
+
+    string GetDisplayName() const {
+        return m_Type == LeaderboardEntryType::Medal ? m_Medal : m_PlayerName;
+    }
 }
 
 class State
@@ -402,6 +444,7 @@ enum LeaderboardEntryType
 {
     Medal,
     Score,
+    ScoreCopium,
 }
 
 }

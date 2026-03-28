@@ -41,6 +41,10 @@ void SaveLeaderboard(const State&in state)
     {
         leaderboard["festestRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_FastestRun);
     }
+    if (state.m_Leaderboard.m_FastestCopiumRun !is null)
+    {
+        leaderboard["festestCopiumRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_FastestCopiumRun);
+    }
 
     leaderboard["totalNumberFinishes"] = state.m_Leaderboard.m_TotalNumberFinishes;
 
@@ -81,6 +85,10 @@ void LoadLeaderboard(State&inout state)
     {
         @state.m_Leaderboard.m_FastestRun = @deserializeLeaderboardEntry(leaderboard["festestRun"]);
     }
+    if (leaderboard.HasKey("festestCopiumRun"))
+    {
+        @state.m_Leaderboard.m_FastestCopiumRun = @deserializeLeaderboardEntry(leaderboard["festestCopiumRun"]);
+    }
 
     for (uint i = 0; i < entries.Length; i++)
     {
@@ -104,6 +112,7 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
 {
     auto entryObj = Json::Object();
     entryObj["scoreNumber"] = entry.m_ScoreNumber;
+    entryObj["type"] = entry.m_Type;
     entryObj["player"] = entry.m_PlayerName;
     entryObj["rank"] = entry.m_Rank;
     entryObj["time"] = entry.m_Time;
@@ -117,6 +126,8 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
 {
     auto @entry = LeaderboardEntry();
     entry.m_ScoreNumber = entryObj["scoreNumber"];
+    int typeValue = entryObj["type"];
+    entry.m_Type = LeaderboardEntryType(typeValue);
     entry.m_PlayerName = entryObj["player"];
     entry.m_Rank = entryObj["rank"];
     entry.m_Time = entryObj["time"];
