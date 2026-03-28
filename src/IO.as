@@ -43,6 +43,7 @@ void SaveLeaderboard(const State&in state)
     }
 
     leaderboard["totalNumberFinishes"] = state.m_Leaderboard.m_TotalNumberFinishes;
+    leaderboard["totalNumberSessions"] = state.m_Leaderboard.m_TotalNumberSessions;
 
     root["leaderboard"] = leaderboard;
 
@@ -94,12 +95,14 @@ void LoadLeaderboard(State&inout state)
     }
 
     state.m_Leaderboard.m_TotalNumberFinishes = leaderboard["totalNumberFinishes"];
+    state.m_Leaderboard.m_TotalNumberSessions = leaderboard["totalNumberSessions"];
 }
 
 Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
 {
     auto entryObj = Json::Object();
     entryObj["scoreNumber"] = entry.m_ScoreNumber;
+    entryObj["sessionNumber"] = entry.m_SessionNumber;
     entryObj["type"] = entry.m_Type;
     entryObj["player"] = entry.m_PlayerName;
     entryObj["rank"] = entry.m_Rank;
@@ -116,6 +119,7 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
 {
     auto @entry = LeaderboardEntry();
     entry.m_ScoreNumber = entryObj["scoreNumber"];
+    entry.m_SessionNumber = entryObj["sessionNumber"];
     int typeValue = entryObj["type"];
     entry.m_Type = LeaderboardEntryType(typeValue);
     entry.m_PlayerName = entryObj["player"];

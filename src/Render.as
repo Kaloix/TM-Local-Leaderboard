@@ -38,6 +38,8 @@ void InitRender()
         g_TableColumns.InsertLast(NumberRespawnsColumn());
     if (settingDisplayLeaderboardScoreNumberColumn)
         g_TableColumns.InsertLast(ScoreNumberColumn());
+    if (settingDisplayLeaderboardSessionNumberColumn)
+        g_TableColumns.InsertLast(SessionNumberColumn());
     if (settingDisplayLeaderboardTimestampColumn)
         g_TableColumns.InsertLast(TimestampColumn());
 
@@ -72,6 +74,8 @@ void InitRows()
         if (settingFilterPersonalBests && !g_State.m_Leaderboard.m_Entries[i].m_WasPersonalBest)
             continue;
         if (settingFilterSessionBests && !g_State.m_Leaderboard.m_Entries[i].m_WasSessionBest)
+            continue;
+        if (settingFilterSessionCurrent && g_State.m_Leaderboard.m_Entries[i].m_SessionNumber != g_State.m_Leaderboard.m_TotalNumberSessions)
             continue;
 
         if (@g_State.m_Leaderboard.m_NewestRun is @g_State.m_Leaderboard.m_Entries[i])
@@ -405,6 +409,25 @@ class ScoreNumberColumn : TableColumn
         if (context.m_CurrentEntry.m_ScoreNumber > 0)
         {
             renderText(context, "" + context.m_CurrentEntry.m_ScoreNumber);
+        }
+    }
+}
+
+class SessionNumberColumn : TableColumn
+{
+    void setup()
+    {
+        UI::TableSetupColumn("SessionNumber", UI::TableColumnFlags::WidthFixed, 30);
+    }
+    void renderHeader()
+    {
+        UI::Text("S");
+    }
+    void renderBody(TableRenderContext&inout context)
+    {
+        if (context.m_CurrentEntry.m_SessionNumber > 0)
+        {
+            renderText(context, "" + context.m_CurrentEntry.m_SessionNumber);
         }
     }
 }

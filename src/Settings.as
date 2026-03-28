@@ -46,6 +46,9 @@ bool settingDisplayLeaderboardRespawnsColumn = true;
 [Setting name="Display Score Number Column" description="Show the score number column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardScoreNumberColumn = true;
 
+[Setting name="Display Session Number Column" description="Show the session number column in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardSessionNumberColumn = true;
+
 [Setting name="Display Timestamp Column" description="Show the timestamp column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardTimestampColumn = true;
 
@@ -57,6 +60,9 @@ bool settingFilterPersonalBests = false;
 
 [Setting name="Filter Session Bests" description="Show only session bests in the leaderboard" category="UI"]
 bool settingFilterSessionBests = false;
+
+[Setting name="Filter Current Session" description="Show only times of the current session in the leaderboard" category="UI"]
+bool settingFilterSessionCurrent = false;
 
 [Setting name="Display Newest Copium" description="Show the player's copium time of the last run in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardCopiumNewest = false;

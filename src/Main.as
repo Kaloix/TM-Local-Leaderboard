@@ -112,8 +112,10 @@ void OnMapLoad()
     LoadLeaderboard(g_State);
 
     addPreviousPb();
-    addMedals();
 
+    g_State.m_Leaderboard.m_TotalNumberSessions++;
+
+    addMedals();
     // Set medals of already existing entries
     for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
     {
@@ -125,6 +127,7 @@ void OnMapLoad()
         setMedal(g_State.m_Leaderboard.m_FastestCopiumRun);
 
     InitRows();
+
 }
 
 void OnMapUnload()
@@ -170,13 +173,13 @@ void addPreviousPb()
     }
 
     g_State.m_Leaderboard.m_TotalNumberFinishes = 1;
+    g_State.m_Leaderboard.m_TotalNumberSessions = 1;
 
     auto entry = LeaderboardEntry();
     entry.m_PlayerName = player.Name;
     entry.m_Time = player.BestTime;
     entry.m_ScoreNumber = 1;
-    entry.m_WasPersonalBest = true;
-    entry.m_WasSessionBest = true;
+    entry.m_SessionNumber = 1;
     g_State.m_Leaderboard.AddNewEntry(entry);
 }
 
@@ -231,6 +234,7 @@ class Leaderboard
     LeaderboardEntry @m_SessionFastestCopiumRun = null;
 
     uint m_TotalNumberFinishes = 0;
+    uint m_TotalNumberSessions = 0;
 
     LeaderboardEntry @getLastPlayerEntry()
     {
@@ -247,6 +251,7 @@ class Leaderboard
         entry.m_TimeStamp = Time::get_Stamp();
 
         entry.m_ScoreNumber = m_TotalNumberFinishes;
+        entry.m_SessionNumber = m_TotalNumberSessions;
         setMedal(entry);
 
         return @entry;
@@ -365,6 +370,7 @@ class Leaderboard
 class LeaderboardEntry
 {
     uint m_ScoreNumber = 0;
+    uint m_SessionNumber = 0;
     LeaderboardEntryType m_Type = LeaderboardEntryType::Score;
 
     string m_PlayerName = "";
