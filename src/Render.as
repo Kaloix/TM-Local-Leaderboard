@@ -65,33 +65,8 @@ void InitRows()
     for (uint i = 0; i < g_State.m_MedalEntries.Length; i++)
     {
         auto @entry = @g_State.m_MedalEntries[i];
-
-        if (entry.m_Medal == "Author" && !settingDisplayLeaderboardMedalAuthor)
-        {
-            continue; // Skip author medal if the setting is disabled
-        }
-        else if (entry.m_Medal == "Gold" && !settingDisplayLeaderboardMedalGold)
-        {
-            continue; // Skip gold medal if the setting is disabled
-        }
-        else if (entry.m_Medal == "Silver" && !settingDisplayLeaderboardMedalSilver)
-        {
-            continue; // Skip silver medal if the setting is disabled
-        }
-        else if (entry.m_Medal == "Bronze" && !settingDisplayLeaderboardMedalBronze)
-        {
-            continue; // Skip bronze medal if the setting is disabled
-        }
-        else if (entry.m_Medal == "Champion" && !settingDisplayLeaderboardMedalChampion)
-        {
-            continue; // Skip champion medal if the setting is disabled
-        }
-        else if (entry.m_Medal == "Warrior" && !settingDisplayLeaderboardMedalWarrior)
-        {
-            continue; // Skip warrior medal if the setting is disabled
-        }
-
-        g_TableRows.InsertLast(entry);
+        if (entry.m_Medal.IsVisible())
+            g_TableRows.InsertLast(entry);
     }
 
     g_TableRows.Sort(timeSort);
@@ -217,7 +192,7 @@ class MedalColumn : TableColumn
     void renderBody(TableRenderContext&inout context)
     {
 
-        UI::PushStyleColor(UI::Col::Text, vec4(context.m_CurrentEntry.m_IconColor, 1));
+        UI::PushStyleColor(UI::Col::Text, vec4(context.m_CurrentEntry.m_Medal.GetIconColor(), 1));
         UI::Text(context.m_CurrentEntry.GetDisplayIcon());
         UI::PopStyleColor();
     }
@@ -426,7 +401,9 @@ void renderText(const TableRenderContext&in context, const string&in text)
     else if (context.m_IsPlayerBest)
     {
         UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeBest * 1.4f, 1));
-    } else if (context.m_IsPlayerBestCopium) {
+    }
+    else if (context.m_IsPlayerBestCopium)
+    {
         UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeBest * 0.9f, 1));
     }
     UI::Text(text);

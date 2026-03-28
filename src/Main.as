@@ -48,10 +48,12 @@ void Shutdown()
 
 void Update(float dt)
 {
+    CGameCtnApp @app = GetApp();
+    auto @map = @app.RootMap;
     const auto @raceData = @MLFeed::GetRaceData_V4();
     const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
 
-    if (player is null)
+    if (map is null || player is null)
     {
         // Wait for player being loaded
         if (g_State.m_CurrentMap != "")
@@ -105,10 +107,12 @@ void OnMapLoad()
     g_State.m_CurrentMapName = map.MapName;
     g_State.m_CurrentMapAuthor = map.AuthorNickName;
 
+    InitializeMedals();
+
     LoadLeaderboard(g_State);
 
     addPreviousPb();
-    addMedals(map);
+    addMedals();
 
     // Set medals of already existing entries
     for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
@@ -174,67 +178,16 @@ void addPreviousPb()
     g_State.m_Leaderboard.AddNewEntry(entry);
 }
 
-void addMedals(CGameCtnChallenge&inout map)
+void addMedals()
 {
-#if DEPENDENCY_CHAMPIONMEDALS
-    auto championTime = ChampionMedals::GetCMTime();
-    if (championTime > 0)
+    for (uint i = 0; i < g_Medals.Length; ++i)
     {
-        auto medalChampion = LeaderboardEntry();
-        medalChampion.m_Type = LeaderboardEntryType::Medal;
-        medalChampion.m_Medal = "Champion";
-        medalChampion.m_PlayerName = "Champion";
-        medalChampion.m_IconColor = vec3(0xf8 / 255.0f, 0x4a / 255.0f, 0x6e / 255.0f);
-        medalChampion.m_Time = ChampionMedals::GetCMTime();
-        g_State.m_MedalEntries.InsertLast(medalChampion);
-        // g_State.m_Leaderboard.AddEntry(medalChampion);
+        Medal @medal = @g_Medals[i];
+        auto medalEntry = LeaderboardEntry();
+        medalEntry.m_Type = LeaderboardEntryType::Medal;
+        @medalEntry.m_Medal = @medal;
+        g_State.m_MedalEntries.InsertLast(medalEntry);
     }
-#endif
-#if DEPENDENCY_WARRIORMEDALS
-    auto warriorTime = WarriorMedals::GetWMTime();
-    if (warriorTime > 0)
-    {
-        auto medalWarrior = LeaderboardEntry();
-        medalWarrior.m_Type = LeaderboardEntryType::Medal;
-        medalWarrior.m_Medal = "Warrior";
-        medalWarrior.m_PlayerName = "Warrior";
-        medalWarrior.m_IconColor = WarriorMedals::GetColorWarriorVec();
-        medalWarrior.m_Time = WarriorMedals::GetWMTime();
-        g_State.m_MedalEntries.InsertLast(medalWarrior);
-    }
-#endif
-
-    auto medalAt = LeaderboardEntry();
-    medalAt.m_Type = LeaderboardEntryType::Medal;
-    medalAt.m_Medal = "Author";
-    medalAt.m_PlayerName = "AT";
-    medalAt.m_IconColor = vec3(0, 0x77 / 255.0f, 0x11 / 255.0f);
-    medalAt.m_Time = map.MapInfo.TMObjective_AuthorTime;
-    g_State.m_MedalEntries.InsertLast(medalAt);
-
-    auto medalGold = LeaderboardEntry();
-    medalGold.m_Type = LeaderboardEntryType::Medal;
-    medalGold.m_Medal = "Gold";
-    medalGold.m_PlayerName = "Gold";
-    medalGold.m_IconColor = vec3(0xDD / 255.0f, 0xBB / 255.0f, 0x44 / 255.0f);
-    medalGold.m_Time = map.MapInfo.TMObjective_GoldTime;
-    g_State.m_MedalEntries.InsertLast(medalGold);
-
-    auto medalSilver = LeaderboardEntry();
-    medalSilver.m_Type = LeaderboardEntryType::Medal;
-    medalSilver.m_Medal = "Silver";
-    medalSilver.m_PlayerName = "Silver";
-    medalSilver.m_IconColor = vec3(0x88 / 255.0f, 0x99 / 255.0f, 0x99 / 255.0f);
-    medalSilver.m_Time = map.MapInfo.TMObjective_SilverTime;
-    g_State.m_MedalEntries.InsertLast(medalSilver);
-
-    auto medalBronze = LeaderboardEntry();
-    medalBronze.m_Type = LeaderboardEntryType::Medal;
-    medalBronze.m_Medal = "Bronze";
-    medalBronze.m_PlayerName = "Bronze";
-    medalBronze.m_IconColor = vec3(0x99 / 255.0f, 0x66 / 255.0f, 0x44 / 255.0f);
-    medalBronze.m_Time = map.MapInfo.TMObjective_BronzeTime;
-    g_State.m_MedalEntries.InsertLast(medalBronze);
 }
 
 /**
@@ -253,13 +206,12 @@ string GetMapId()
 
 void setMedal(LeaderboardEntry&inout entry)
 {
-    for (uint i = 0; i < g_State.m_MedalEntries.Length; i++)
+    for (uint i = 0; i < g_Medals.Length; i++)
     {
-        const auto @medalEntry = @g_State.m_MedalEntries[i];
-        if (entry.GetDisplayTime() <= medalEntry.m_Time)
+        const auto @medal = @g_Medals[i];
+        if (entry.GetDisplayTime() <= medal.GetTime())
         {
-            entry.m_Medal = medalEntry.m_Medal;
-            entry.m_IconColor = medalEntry.m_IconColor;
+            @entry.m_Medal = @medal;
             return;
         }
     }
@@ -383,11 +335,10 @@ class LeaderboardEntry
     LeaderboardEntryType m_Type = LeaderboardEntryType::Score;
 
     string m_PlayerName = "";
-    string m_Medal = "";
+
+    const Medal@ m_Medal =  null;
 
     uint m_Rank = 0;
-
-    vec3 m_IconColor = vec3(1, 1, 1);
 
     int64 m_TimeStamp = 0;
     int m_Time = 0;
@@ -416,11 +367,17 @@ class LeaderboardEntry
     }
 
     int GetDisplayTime() const {
-        return m_Type == LeaderboardEntryType::ScoreCopium ? m_TimeNoRespawn : m_Time;
+        switch (m_Type)
+        {
+            case LeaderboardEntryType::Medal: return m_Medal.GetTime();
+            case LeaderboardEntryType::Score: m_Time;
+            case LeaderboardEntryType::ScoreCopium: return m_TimeNoRespawn;
+            default: return 0;
+        }
     }
 
     string GetDisplayName() const {
-        return m_Type == LeaderboardEntryType::Medal ? m_Medal : m_PlayerName;
+        return m_Type == LeaderboardEntryType::Medal ? m_Medal.GetName() : m_PlayerName;
     }
 }
 
