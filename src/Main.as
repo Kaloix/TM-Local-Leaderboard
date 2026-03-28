@@ -54,6 +54,8 @@ void Update(float dt)
     if (player is null)
     {
         // Wait for player being loaded
+        if (g_State.m_CurrentMap != "")
+            OnMapUnload();
         return;
     }
 
@@ -113,9 +115,9 @@ void OnMapLoad()
     {
         setMedal(g_State.m_Leaderboard.m_Entries[i]);
     }
-    if (g_State.m_Leaderboard.m_TempNewestRun !is null)
+    if (g_State.m_Leaderboard.m_NewestRun !is null)
     {
-        setMedal(g_State.m_Leaderboard.m_TempNewestRun);
+        setMedal(g_State.m_Leaderboard.m_NewestRun);
     }
 
     InitRows();
@@ -137,7 +139,6 @@ void OnPlayerFinish()
         return;
     }
 
-    g_State.m_Leaderboard.RemoveTemporaryLast();
     g_State.m_Leaderboard.m_TotalNumberFinishes++;
     addNewRecord(player);
 }
@@ -267,24 +268,21 @@ void setMedal(LeaderboardEntry&inout entry)
 class Leaderboard
 {
     array<LeaderboardEntry @> m_Entries;
-    LeaderboardEntry @m_TempNewestRun = null;
+    LeaderboardEntry @m_NewestRun = null;
 
     uint m_TotalNumberFinishes = 0;
 
     uint m_PlayerBestId = 0;
     int m_PlayerBestTime = -1;
 
-    uint m_PlayerNewestId = 0;
-    int m_PlayerNewestTime = -1;
-
     LeaderboardEntry @getLastPlayerEntry()
     {
         return @m_Entries[m_Entries.Length];
     }
 
-    LeaderboardEntry createNewEntry(const MLFeed::PlayerCpInfo_V4 @player)
+    LeaderboardEntry @createNewEntry(const MLFeed::PlayerCpInfo_V4 @player)
     {
-        auto entry = LeaderboardEntry();
+        auto @entry = LeaderboardEntry();
         entry.m_PlayerName = player.Name;
         entry.m_Time = player.FinishTime;
         entry.m_TimeNoRespawn = (player.FinishTime - player.TimeLostToRespawns);
@@ -294,40 +292,32 @@ class Leaderboard
         entry.m_ScoreNumber = m_TotalNumberFinishes;
         setMedal(entry);
 
-        return entry;
+        return @entry;
     }
 
     void addNewestRun(const MLFeed::PlayerCpInfo_V4 @player)
     {
-        auto newEntry = createNewEntry(player);
-        m_PlayerNewestId = newEntry.m_ScoreNumber;
-        m_PlayerNewestTime = newEntry.m_Time;
+        @m_NewestRun = @createNewEntry(player);
 
         if (g_State.m_Leaderboard.m_Entries.Length < settingDataRecordLimit)
         {
-            AddNewEntry(newEntry);
+            AddNewEntry(@m_NewestRun);
         }
         else
         {
             if (player.FinishTime < m_Entries[m_Entries.Length - 1].m_Time)
             {
                 RemoveLastPlayerEntry();
-                AddNewEntry(newEntry);
+                AddNewEntry(@m_NewestRun);
             }
             else
             {
-                addTemporaryNewestRun(newEntry);
+                m_NewestRun.m_Rank = m_Entries.Length + 1;
             }
         }
     }
 
-    void addTemporaryNewestRun(LeaderboardEntry entry)
-    {
-        entry.m_Rank = m_Entries.Length + 1;
-        @m_TempNewestRun = @entry;
-    }
-
-    void AddNewEntry(LeaderboardEntry entry)
+    void AddNewEntry(LeaderboardEntry @entry)
     {
         AddEntry(entry);
 
@@ -338,7 +328,7 @@ class Leaderboard
         }
     }
 
-    void AddEntry(LeaderboardEntry entry)
+    void AddEntry(LeaderboardEntry @entry)
     {
         uint rank = 1;
         uint i = 0;
@@ -374,17 +364,6 @@ class Leaderboard
     void RemoveLastPlayerEntry()
     {
         m_Entries.RemoveLast();
-    }
-
-    void RemoveTemporaryLast()
-    {
-        if (@m_TempNewestRun is null)
-        {
-            return;
-        }
-        @m_TempNewestRun = null;
-        m_PlayerNewestId = 0;
-        m_PlayerNewestTime = -1;
     }
 }
 

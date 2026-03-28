@@ -50,15 +50,14 @@ void InitRows()
 {
     g_TableRows.RemoveRange(0, g_TableRows.Length);
 
+    if (g_State.m_Leaderboard.m_NewestRun !is null)
+        g_TableRows.InsertLast(@g_State.m_Leaderboard.m_NewestRun);
     for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
     {
+        if (@g_State.m_Leaderboard.m_NewestRun is @g_State.m_Leaderboard.m_Entries[i])
+            continue;
         g_TableRows.InsertLast(@g_State.m_Leaderboard.m_Entries[i]);
     }
-
-	if (g_State.m_Leaderboard.m_TempNewestRun !is null)
-	{
-		g_TableRows.InsertLast(@g_State.m_Leaderboard.m_TempNewestRun);
-	}
 
     for (uint i = 0; i < g_State.m_MedalEntries.Length; i++)
     {
@@ -155,7 +154,7 @@ void Render()
         context.m_CurrentRow = i;
         @context.m_CurrentEntry = @g_TableRows[i];
         context.m_IsPlayerBest = context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_PlayerBestId;
-        context.m_IsPlayerNewest = context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_PlayerNewestId;
+        context.m_IsPlayerNewest = g_State.m_Leaderboard.m_NewestRun !is null && context.m_CurrentEntry.m_ScoreNumber == g_State.m_Leaderboard.m_NewestRun.m_ScoreNumber;
 
         UI::TableNextRow();
 
@@ -339,11 +338,11 @@ class LastTimeDeltaColumn : TimeDeltaColumn
     }
     bool isShowDelta(const TableRenderContext&in context) override
     {
-        return !context.m_IsPlayerNewest && g_State.m_Leaderboard.m_PlayerNewestTime > 0;
+        return !context.m_IsPlayerNewest && g_State.m_Leaderboard.m_NewestRun !is null;
     }
     int getDelta(const TableRenderContext&in context) override
     {
-        return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_PlayerNewestTime;
+        return context.m_CurrentEntry.m_Time - g_State.m_Leaderboard.m_NewestRun.m_Time;
     }
 }
 
