@@ -44,6 +44,7 @@ void SaveLeaderboard(const State&in state)
 
     leaderboard["totalNumberFinishes"] = state.m_Leaderboard.m_TotalNumberFinishes;
     leaderboard["totalNumberSessions"] = state.m_Leaderboard.m_TotalNumberSessions;
+    leaderboard["totalTime"] = state.m_Leaderboard.m_TotalTime;
 
     root["leaderboard"] = leaderboard;
 
@@ -96,6 +97,7 @@ void LoadLeaderboard(State&inout state)
 
     state.m_Leaderboard.m_TotalNumberFinishes = leaderboard["totalNumberFinishes"];
     state.m_Leaderboard.m_TotalNumberSessions = leaderboard["totalNumberSessions"];
+    state.m_Leaderboard.m_TotalTime = leaderboard["totalTime"];
 }
 
 Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
@@ -110,6 +112,8 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
     entryObj["timeNoRespawn"] = entry.m_TimeNoRespawn;
     entryObj["numberRespawns"] = entry.m_NumberRespawns;
     entryObj["timestamp"] = entry.m_TimeStamp;
+    entryObj["timeInTotal"] = entry.m_TimeInTotal;
+    entryObj["timeInSession"] = entry.m_TimeInSession;
     entryObj["wasPersonalBest"] = entry.m_WasPersonalBest;
     entryObj["wasSessionBest"] = entry.m_WasSessionBest;
     return entryObj;
@@ -128,6 +132,8 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
     entry.m_TimeNoRespawn = entryObj["timeNoRespawn"];
     entry.m_NumberRespawns = entryObj["numberRespawns"];
     entry.m_TimeStamp = entryObj["timestamp"];
+    entry.m_TimeInTotal = entryObj["timeInTotal"];
+    entry.m_TimeInSession = entryObj["timeInSession"];
     entry.m_WasPersonalBest = entryObj["wasPersonalBest"];
     entry.m_WasSessionBest = entryObj["wasSessionBest"];
     return @entry;

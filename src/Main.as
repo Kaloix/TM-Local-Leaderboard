@@ -127,7 +127,6 @@ void OnMapLoad()
         setMedal(g_State.m_Leaderboard.m_FastestCopiumRun);
 
     InitRows();
-
 }
 
 void OnMapUnload()
@@ -236,6 +235,9 @@ class Leaderboard
     uint m_TotalNumberFinishes = 0;
     uint m_TotalNumberSessions = 0;
 
+    uint64 m_TotalTime = 0;
+    uint64 m_LastUpdated = Time::get_Now();
+
     LeaderboardEntry @getLastPlayerEntry()
     {
         return @m_Entries[m_Entries.Length];
@@ -252,6 +254,10 @@ class Leaderboard
 
         entry.m_ScoreNumber = m_TotalNumberFinishes;
         entry.m_SessionNumber = m_TotalNumberSessions;
+
+        entry.m_TimeInTotal = m_TotalTime;
+        entry.m_TimeInSession = g_State.GetSessionTime();
+
         setMedal(entry);
 
         return @entry;
@@ -259,13 +265,17 @@ class Leaderboard
 
     void addNewestRun(const MLFeed::PlayerCpInfo_V4 @player)
     {
+        updateTime();
+
         @m_NewestRun = @createNewEntry(player);
         if (m_NewestRun.m_NumberRespawns > 0)
         {
             @m_NewestCopiumRun = LeaderboardEntry(m_NewestRun);
             m_NewestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
             setMedal(m_NewestCopiumRun);
-        } else {
+        }
+        else
+        {
             @m_NewestCopiumRun = null;
         }
 
@@ -365,6 +375,15 @@ class Leaderboard
     {
         m_Entries.RemoveLast();
     }
+
+    void updateTime()
+    {
+        const auto updateTime = Time::get_Now();
+        const auto timeSinceLastUpdate = updateTime - m_LastUpdated;
+        m_LastUpdated = updateTime;
+
+        m_TotalTime += timeSinceLastUpdate;
+    }
 }
 
 class LeaderboardEntry
@@ -373,9 +392,12 @@ class LeaderboardEntry
     uint m_SessionNumber = 0;
     LeaderboardEntryType m_Type = LeaderboardEntryType::Score;
 
+    uint64 m_TimeInSession = 0;
+    uint64 m_TimeInTotal = 0;
+
     string m_PlayerName = "";
 
-    const Medal@ m_Medal =  null;
+    const Medal @m_Medal = null;
 
     uint m_Rank = 0;
 
@@ -391,34 +413,49 @@ class LeaderboardEntry
     {
         switch (m_Type)
         {
-            case LeaderboardEntryType::Medal: return "";
-            case LeaderboardEntryType::Score: return "" + m_Rank;
-            case LeaderboardEntryType::ScoreCopium: return "-";
-            default: return "";
+            case LeaderboardEntryType::Medal:
+                return "";
+            case LeaderboardEntryType::Score:
+                return "" + m_Rank;
+            case LeaderboardEntryType::ScoreCopium:
+                return "-";
+            default:
+                return "";
         }
     }
 
-    string GetDisplayIcon() const {
+    string GetDisplayIcon() const
+    {
         switch (m_Type)
         {
-            case LeaderboardEntryType::Medal: return Icons::Circle;
-            case LeaderboardEntryType::Score: return Icons::CircleO;
-            case LeaderboardEntryType::ScoreCopium: return Icons::ArrowCircleOUp;
-            default: return "";
+            case LeaderboardEntryType::Medal:
+                return Icons::Circle;
+            case LeaderboardEntryType::Score:
+                return Icons::CircleO;
+            case LeaderboardEntryType::ScoreCopium:
+                return Icons::ArrowCircleOUp;
+            default:
+                return "";
         }
     }
 
-    int GetDisplayTime() const {
+    int GetDisplayTime() const
+    {
         switch (m_Type)
         {
-            case LeaderboardEntryType::Medal: return m_Medal.GetTime();
-            case LeaderboardEntryType::Score: return m_Time;
-            case LeaderboardEntryType::ScoreCopium: return m_TimeNoRespawn;
-            default: return 0;
+            case LeaderboardEntryType::Medal:
+                return m_Medal.GetTime();
+            case LeaderboardEntryType::Score:
+                return m_Time;
+            case LeaderboardEntryType::ScoreCopium:
+                return m_TimeNoRespawn;
+            default:
+                return 0;
         }
     }
 
-    string GetDisplayName() const {
+    string GetDisplayName() const
+    {
         return m_Type == LeaderboardEntryType::Medal ? m_Medal.GetName() : m_PlayerName;
     }
 }
@@ -435,8 +472,15 @@ class State
 
     bool m_IsPlayerFinishHandled = true;
 
+    uint64 m_SessionStartTime = Time::get_Now();
+
     Leaderboard m_Leaderboard = Leaderboard();
     array<LeaderboardEntry @> m_MedalEntries;
+
+    uint64 GetSessionTime() const
+    {
+        return Time::get_Now() - m_SessionStartTime;
+    }
 }
 
 enum LeaderboardEntryType

@@ -55,6 +55,15 @@ bool settingDisplayLeaderboardTimestampColumn = true;
 [Setting name="Display Player Column" description="Show the player column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardPlayerColumn = false;
 
+[Setting name="Display Session Time" description="Show the session time column in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardSessionTimeColumn = true;
+
+[Setting name="Display Total Time" description="Show the total time column in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardTotalTimeColumn = true;
+
+[Setting name="Display Time Since" description="Show the time since the record was set in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardTimeSinceColumn = true;
+
 [Setting name="Filter Personal Bests" description="Show only previous personal bests in the leaderboard" category="UI"]
 bool settingFilterPersonalBests = false;
 

@@ -42,6 +42,12 @@ void InitRender()
         g_TableColumns.InsertLast(SessionNumberColumn());
     if (settingDisplayLeaderboardTimestampColumn)
         g_TableColumns.InsertLast(TimestampColumn());
+    if (settingDisplayLeaderboardTotalTimeColumn)
+        g_TableColumns.InsertLast(TotalTimeColumn());
+    if (settingDisplayLeaderboardSessionTimeColumn)
+        g_TableColumns.InsertLast(SessionTimeColumn());
+    if (settingDisplayLeaderboardTimeSinceColumn)
+        g_TableColumns.InsertLast(TimeSinceColumn());
 
     windowFlags = UI::GetDefaultWindowFlags();
     if (!settingDisplayLeaderboardTitleBar)
@@ -169,6 +175,8 @@ void Render()
 
 class TableRenderContext
 {
+    uint64 m_CurrentTime = Time::get_Stamp();
+
     uint m_CurrentRow = 0;
     LeaderboardEntry @m_CurrentEntry = null;
 
@@ -229,17 +237,32 @@ class TimeColumn : TableColumn
 {
     void setup()
     {
-        UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 60);
+        UI::TableSetupColumn(getHeaderName(), UI::TableColumnFlags::WidthFixed, 60);
     }
 
     void renderHeader()
     {
-        UI::Text("Time");
+        UI::Text(getHeaderName());
     }
 
     void renderBody(TableRenderContext&inout context)
     {
-        renderText(context, Time::Format(context.m_CurrentEntry.GetDisplayTime()));
+        const auto time = GetTime(context);
+        if (time > 0)
+            renderText(context, Time::Format(GetTime(context), ShowFractions()));
+    }
+
+    string getHeaderName()
+    {
+        return "Time";
+    }
+    int64 GetTime(TableRenderContext&inout context)
+    {
+        return context.m_CurrentEntry.GetDisplayTime();
+    }
+    bool ShowFractions()
+    {
+        return true;
     }
 }
 
@@ -454,6 +477,51 @@ class TimestampColumn : TableColumn
         auto time = Time::Parse(context.m_CurrentEntry.m_TimeStamp);
         string timeStr = time.Year + "-" + Text::Format("%02d", time.Month) + "-" + Text::Format("%02d", time.Day) + " " + Text::Format("%02d", time.Hour) + ":" + Text::Format("%02d", time.Minute) + ":" + Text::Format("%02d", time.Second);
         renderText(context, timeStr);
+    }
+}
+
+class TotalTimeColumn : TimeColumn
+{
+    string getHeaderName() override
+    {
+        return "Tot. T.";
+    }
+    int64 GetTime(TableRenderContext&inout context) override
+    {
+        return context.m_CurrentEntry.m_TimeInTotal;
+    }
+}
+
+class SessionTimeColumn : TimeColumn
+{
+    string getHeaderName() override
+    {
+        return "Ses. T.";
+    }
+    int64 GetTime(TableRenderContext&inout context) override
+    {
+        return context.m_CurrentEntry.m_TimeInSession;
+    }
+}
+
+class TimeSinceColumn : TimeColumn
+{
+    string getHeaderName() override
+    {
+        return "Since";
+    }
+    int64 GetTime(TableRenderContext&inout context) override
+    {
+        if (context.m_CurrentEntry.m_TimeStamp <= 0)
+        {
+            return 0;
+        }
+
+        return (context.m_CurrentTime - context.m_CurrentEntry.m_TimeStamp) * 1000;
+    }
+    bool ShowFractions() override
+    {
+        return false;
     }
 }
 
