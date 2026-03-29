@@ -116,16 +116,7 @@ void OnMapLoad()
     g_State.m_Leaderboard.m_TotalNumberSessions++;
 
     addMedals();
-    // Set medals of already existing entries
-    for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
-    {
-        setMedal(g_State.m_Leaderboard.m_Entries[i]);
-    }
-    if (g_State.m_Leaderboard.m_NewestRun !is null)
-        setMedal(g_State.m_Leaderboard.m_NewestRun);
-    if (g_State.m_Leaderboard.m_FastestCopiumRun !is null)
-        setMedal(g_State.m_Leaderboard.m_FastestCopiumRun);
-
+    setMedals();
     InitRows();
 }
 
@@ -192,6 +183,16 @@ void addMedals()
         @medalEntry.m_Medal = @medal;
         g_State.m_MedalEntries.InsertLast(medalEntry);
     }
+}
+
+void setMedals()
+{
+    for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
+        setMedal(g_State.m_Leaderboard.m_Entries[i]);
+    if (g_State.m_Leaderboard.m_NewestRun !is null)
+        setMedal(g_State.m_Leaderboard.m_NewestRun);
+    if (g_State.m_Leaderboard.m_FastestCopiumRun !is null)
+        setMedal(g_State.m_Leaderboard.m_FastestCopiumRun);
 }
 
 /**
@@ -480,6 +481,24 @@ class State
     uint64 GetSessionTime() const
     {
         return Time::get_Now() - m_SessionStartTime;
+    }
+
+    void ResetData()
+    {
+        if (m_CurrentMap == "")
+        {
+            LogWarning("No map loaded, cannot reset leaderboard.");
+            return;
+        }
+
+        LogInfo("Resetting leaderboard for map " + Text::StripFormatCodes(m_CurrentMapName));
+
+        m_SessionStartTime = Time::get_Now();
+        m_Leaderboard = Leaderboard();
+        addPreviousPb();
+        setMedals();
+        InitRows();
+        SaveLeaderboard(this);
     }
 }
 

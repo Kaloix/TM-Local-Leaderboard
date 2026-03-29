@@ -1,7 +1,12 @@
 void RenderMenu()
 {
-    if (UI::MenuItem("Local Leaderboard"))
+    if (UI::BeginMenu(Icons::ListUl + " Local Leaderboard"))
     {
-        print("Local Leaderboard menu item clicked!");
+        if (UI::MenuItem("Reset Leaderboard", "", false,  LocalLeaderboard::g_State.m_CurrentMap != ""))
+        {
+            LocalLeaderboard::g_State.ResetData();
+        }
+
+        UI::EndMenu();
     }
 }
