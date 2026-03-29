@@ -8,6 +8,18 @@ void Render()
     LocalLeaderboard::Render();
 }
 
+enum LeaderboardSortType
+{
+    Time,
+    Chronological,
+}
+
+enum LeaderboardSortDirection
+{
+    Ascending,
+    Descending,
+}
+
 namespace LocalLeaderboard
 {
 int windowFlags = 0;
@@ -76,12 +88,42 @@ void InitRows()
             g_TableRows.InsertLast(entry);
     }
 
-    g_TableRows.Sort(timeSort);
+    switch (settingLeaderboardSortType)
+    {
+        case LeaderboardSortType::Time:
+            g_TableRows.Sort(timeSort);
+            break;
+        case LeaderboardSortType::Chronological:
+            g_TableRows.Sort(chronologicalSort);
+            break;
+    }
 }
 
 bool timeSort(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ const&in b)
 {
-    return a.GetDisplayTime() < b.GetDisplayTime();
+
+    switch (settingLeaderboardSortDirection)
+    {
+        case LeaderboardSortDirection::Ascending:
+            return a.GetDisplayTime() < b.GetDisplayTime();
+        case LeaderboardSortDirection::Descending:
+            return a.GetDisplayTime() > b.GetDisplayTime();
+        default:
+            return false;
+    }
+}
+
+bool chronologicalSort(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ const&in b)
+{
+    switch (settingLeaderboardSortDirection)
+    {
+        case LeaderboardSortDirection::Ascending:
+            return a.m_TimeStamp < b.m_TimeStamp;
+        case LeaderboardSortDirection::Descending:
+            return a.m_TimeStamp > b.m_TimeStamp;
+        default:
+            return false;
+    }
 }
 
 void Render()

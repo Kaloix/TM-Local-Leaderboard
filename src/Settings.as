@@ -25,6 +25,12 @@ bool settingDisplayLeaderboardHeader = true;
 [Setting name="Display Leaderboard Tooltips" description="Show tooltips with additional information when hovering over leaderboard entries" category="UI"]
 bool settingDisplayLeaderboardTooltips = true;
 
+[Setting name="Leaderboard Sorting" description="Sort order for the leaderboard entries" category="UI"]
+LeaderboardSortType settingLeaderboardSortType = LeaderboardSortType::Time;
+
+[Setting name="Leaderboard Sorting Direction" description="Sort direction for the leaderboard entries" category="UI"]
+LeaderboardSortDirection settingLeaderboardSortDirection = LeaderboardSortDirection::Ascending;
+
 [Setting name="Display Medal Column" description="Show the medal column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardMedalColumn = true;
 
