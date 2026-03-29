@@ -14,40 +14,20 @@ int windowFlags = 0;
 
 array<LeaderboardEntry @> g_TableRows;
 array<TableColumn @> g_TableColumns;
+array<TableColumn @> g_AllTableColumns = {MedalColumn(), RankColumn(), PlayerColumn(), TimeColumn(), BestTimeDeltaColumn(), LastTimeDeltaColumn(), TimeNoRespawnColumn(), NumberRespawnsColumn(), ScoreNumberColumn(), SessionNumberColumn(), TimestampColumn(), TotalTimeColumn(), SessionTimeColumn(), TimeSinceColumn()};
 
 void InitRender()
 {
     // Clear existing columns
     g_TableColumns.RemoveRange(0, g_TableColumns.Length);
 
-    if (settingDisplayLeaderboardMedalColumn)
-        g_TableColumns.InsertLast(MedalColumn());
-    if (settingDisplayLeaderboardRankColumn)
-        g_TableColumns.InsertLast(RankColumn());
-    if (settingDisplayLeaderboardPlayerColumn)
-        g_TableColumns.InsertLast(PlayerColumn());
-    if (settingDisplayLeaderboardTimeColumn)
-        g_TableColumns.InsertLast(TimeColumn());
-    if (settingDisplayLeaderboardDeltaPBColumn)
-        g_TableColumns.InsertLast(BestTimeDeltaColumn());
-    if (settingDisplayLeaderboardDeltaLastColumn)
-        g_TableColumns.InsertLast(LastTimeDeltaColumn());
-    if (settingDisplayLeaderboardCopiumColumn)
-        g_TableColumns.InsertLast(TimeNoRespawnColumn());
-    if (settingDisplayLeaderboardRespawnsColumn)
-        g_TableColumns.InsertLast(NumberRespawnsColumn());
-    if (settingDisplayLeaderboardScoreNumberColumn)
-        g_TableColumns.InsertLast(ScoreNumberColumn());
-    if (settingDisplayLeaderboardSessionNumberColumn)
-        g_TableColumns.InsertLast(SessionNumberColumn());
-    if (settingDisplayLeaderboardTimestampColumn)
-        g_TableColumns.InsertLast(TimestampColumn());
-    if (settingDisplayLeaderboardTotalTimeColumn)
-        g_TableColumns.InsertLast(TotalTimeColumn());
-    if (settingDisplayLeaderboardSessionTimeColumn)
-        g_TableColumns.InsertLast(SessionTimeColumn());
-    if (settingDisplayLeaderboardTimeSinceColumn)
-        g_TableColumns.InsertLast(TimeSinceColumn());
+    for (uint i = 0; i < g_AllTableColumns.Length; i++)
+    {
+        if (g_AllTableColumns[i].shouldDisplay())
+        {
+            g_TableColumns.InsertLast(@g_AllTableColumns[i]);
+        }
+    }
 
     windowFlags = UI::GetDefaultWindowFlags();
     if (!settingDisplayLeaderboardTitleBar)
@@ -161,10 +141,31 @@ void Render()
 
         UI::TableNextRow();
 
+        bool isRowHovered = false;
         for (uint col = 0; col < g_TableColumns.Length; col++)
         {
             UI::TableNextColumn();
             g_TableColumns[col].renderBody(context);
+
+            isRowHovered = isRowHovered || UI::IsItemHovered();
+        }
+
+        if (settingDisplayLeaderboardTooltips && isRowHovered)
+        {
+            UI::BeginTooltip();
+            UI::BeginTable("Tooltip" + i, 2);
+
+            for (uint c = 0; c < g_AllTableColumns.Length; c++)
+            {
+                UI::TableNextRow();
+                UI::TableNextColumn();
+                g_AllTableColumns[c].renderHeader();
+                UI::TableNextColumn();
+                g_AllTableColumns[c].renderBody(context);
+            }
+
+            UI::EndTable();
+            UI::EndTooltip();
         }
     }
 
@@ -190,6 +191,7 @@ class TableRenderContext
 
 interface TableColumn
 {
+    bool shouldDisplay();
     void setup();
     void renderHeader();
     void renderBody(TableRenderContext &inout context);
@@ -197,6 +199,10 @@ interface TableColumn
 
 class RankColumn : TableColumn
 {
+    bool shouldDisplay()
+    {
+        return settingDisplayLeaderboardRankColumn;
+    }
     void setup()
     {
         UI::TableSetupColumn("Rank", UI::TableColumnFlags::WidthFixed, 30);
@@ -215,6 +221,10 @@ class RankColumn : TableColumn
 
 class MedalColumn : TableColumn
 {
+    bool shouldDisplay()
+    {
+        return settingDisplayLeaderboardMedalColumn;
+    }
     void setup()
     {
         UI::TableSetupColumn("Medal", UI::TableColumnFlags::WidthFixed, 20);
@@ -235,6 +245,10 @@ class MedalColumn : TableColumn
 
 class TimeColumn : TableColumn
 {
+    bool shouldDisplay()
+    {
+        return settingDisplayLeaderboardTimeColumn;
+    }
     void setup()
     {
         UI::TableSetupColumn(getHeaderName(), UI::TableColumnFlags::WidthFixed, 60);
@@ -249,7 +263,13 @@ class TimeColumn : TableColumn
     {
         const auto time = GetTime(context);
         if (time > 0)
+        {
             renderText(context, Time::Format(GetTime(context), ShowFractions()));
+        }
+        else
+        {
+            UI::Text("");
+        }
     }
 
     string getHeaderName()
@@ -268,6 +288,10 @@ class TimeColumn : TableColumn
 
 class PlayerColumn : TableColumn
 {
+    bool shouldDisplay()
+    {
+        return settingDisplayLeaderboardPlayerColumn;
+    }
     void setup()
     {
         UI::TableSetupColumn("Player", UI::TableColumnFlags::WidthStretch);
@@ -286,6 +310,10 @@ class PlayerColumn : TableColumn
 
 class TimeDeltaColumn : TableColumn
 {
+    bool shouldDisplay()
+    {
+        return true;
+    }
     string getHeaderName()
     {
         return "";
@@ -317,6 +345,7 @@ class TimeDeltaColumn : TableColumn
     {
         if (context.m_CurrentEntry.GetDisplayTime() <= 0 || !isShowDelta(context))
         {
+            UI::Text("");
             return;
         }
 
@@ -339,6 +368,10 @@ class TimeDeltaColumn : TableColumn
 
 class BestTimeDeltaColumn : TimeDeltaColumn
 {
+    bool shouldDisplay() override
+    {
+        return settingDisplayLeaderboardDeltaPBColumn;
+    }
     string getHeaderName() override
     {
         return "Delta PB";
@@ -359,6 +392,10 @@ class BestTimeDeltaColumn : TimeDeltaColumn
 
 class LastTimeDeltaColumn : TimeDeltaColumn
 {
+    bool shouldDisplay() override
+    {
+        return settingDisplayLeaderboardDeltaLastColumn;
+    }
     string getHeaderName() override
     {
         return "Delta Last";
@@ -379,6 +416,10 @@ class LastTimeDeltaColumn : TimeDeltaColumn
 
 class TimeNoRespawnColumn : TableColumn
 {
+    bool shouldDisplay()
+    {
+        return settingDisplayLeaderboardCopiumColumn;
+    }
     void setup()
     {
         UI::TableSetupColumn("Copium", UI::TableColumnFlags::WidthFixed, 50);
@@ -393,11 +434,17 @@ class TimeNoRespawnColumn : TableColumn
     {
         if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Score && context.m_CurrentEntry.m_NumberRespawns != 0)
             renderText(context, Time::Format(context.m_CurrentEntry.m_TimeNoRespawn));
+        else
+            UI::Text("");
     }
 }
 
 class NumberRespawnsColumn : TableColumn
 {
+    bool shouldDisplay()
+    {
+        return settingDisplayLeaderboardRespawnsColumn;
+    }
     void setup()
     {
         UI::TableSetupColumn("Respawns", UI::TableColumnFlags::WidthFixed, 20);
@@ -411,14 +458,18 @@ class NumberRespawnsColumn : TableColumn
     void renderBody(TableRenderContext&inout context)
     {
         if (context.m_CurrentEntry.m_NumberRespawns != 0)
-        {
             renderText(context, "" + context.m_CurrentEntry.m_NumberRespawns);
-        }
+        else
+            UI::Text("");
     }
 }
 
 class ScoreNumberColumn : TableColumn
 {
+    bool shouldDisplay()
+    {
+        return settingDisplayLeaderboardScoreNumberColumn;
+    }
     void setup()
     {
         UI::TableSetupColumn("ScoreNumber", UI::TableColumnFlags::WidthFixed, 30);
@@ -430,14 +481,18 @@ class ScoreNumberColumn : TableColumn
     void renderBody(TableRenderContext&inout context)
     {
         if (context.m_CurrentEntry.m_ScoreNumber > 0)
-        {
             renderText(context, "" + context.m_CurrentEntry.m_ScoreNumber);
-        }
+        else
+            UI::Text("");
     }
 }
 
 class SessionNumberColumn : TableColumn
 {
+    bool shouldDisplay()
+    {
+        return settingDisplayLeaderboardSessionNumberColumn;
+    }
     void setup()
     {
         UI::TableSetupColumn("SessionNumber", UI::TableColumnFlags::WidthFixed, 30);
@@ -449,14 +504,18 @@ class SessionNumberColumn : TableColumn
     void renderBody(TableRenderContext&inout context)
     {
         if (context.m_CurrentEntry.m_SessionNumber > 0)
-        {
             renderText(context, "" + context.m_CurrentEntry.m_SessionNumber);
-        }
+        else
+            UI::Text("");
     }
 }
 
 class TimestampColumn : TableColumn
 {
+    bool shouldDisplay()
+    {
+        return settingDisplayLeaderboardTimestampColumn;
+    }
     void setup()
     {
         UI::TableSetupColumn("Timestamp", UI::TableColumnFlags::WidthFixed, 150);
@@ -471,6 +530,7 @@ class TimestampColumn : TableColumn
     {
         if (context.m_CurrentEntry.m_TimeStamp == 0)
         {
+            UI::Text("");
             return;
         }
 
@@ -482,6 +542,10 @@ class TimestampColumn : TableColumn
 
 class TotalTimeColumn : TimeColumn
 {
+    bool shouldDisplay() override
+    {
+        return settingDisplayLeaderboardTotalTimeColumn;
+    }
     string getHeaderName() override
     {
         return "Tot. T.";
@@ -494,6 +558,10 @@ class TotalTimeColumn : TimeColumn
 
 class SessionTimeColumn : TimeColumn
 {
+    bool shouldDisplay() override
+    {
+        return settingDisplayLeaderboardSessionTimeColumn;
+    }
     string getHeaderName() override
     {
         return "Ses. T.";
@@ -506,6 +574,10 @@ class SessionTimeColumn : TimeColumn
 
 class TimeSinceColumn : TimeColumn
 {
+    bool shouldDisplay() override
+    {
+        return settingDisplayLeaderboardTimeSinceColumn;
+    }
     string getHeaderName() override
     {
         return "Since";

@@ -22,11 +22,14 @@ bool settingDisplayLeaderboard = true;
 [Setting name="Display Leaderboard Header" description="Show the header row in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardHeader = true;
 
-[Setting name="Display Rank Column" description="Show the rank column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardRankColumn = true;
+[Setting name="Display Leaderboard Tooltips" description="Show tooltips with additional information when hovering over leaderboard entries" category="UI"]
+bool settingDisplayLeaderboardTooltips = true;
 
 [Setting name="Display Medal Column" description="Show the medal column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardMedalColumn = true;
+
+[Setting name="Display Rank Column" description="Show the rank column in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardRankColumn = true;
 
 [Setting name="Display Time Column" description="Show the time column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardTimeColumn = true;
@@ -38,31 +41,31 @@ bool settingDisplayLeaderboardDeltaPBColumn = true;
 bool settingDisplayLeaderboardDeltaLastColumn = true;
 
 [Setting name="Display Copium Column" description="Show the Copium column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardCopiumColumn = true;
+bool settingDisplayLeaderboardCopiumColumn = false;
 
 [Setting name="Display Respawns Column" description="Show the Respawns column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardRespawnsColumn = true;
+bool settingDisplayLeaderboardRespawnsColumn = false;
 
 [Setting name="Display Score Number Column" description="Show the score number column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardScoreNumberColumn = true;
+bool settingDisplayLeaderboardScoreNumberColumn = false;
 
 [Setting name="Display Session Number Column" description="Show the session number column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardSessionNumberColumn = true;
+bool settingDisplayLeaderboardSessionNumberColumn = false;
 
 [Setting name="Display Timestamp Column" description="Show the timestamp column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardTimestampColumn = true;
+bool settingDisplayLeaderboardTimestampColumn = false;
 
 [Setting name="Display Player Column" description="Show the player column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardPlayerColumn = false;
 
 [Setting name="Display Session Time" description="Show the session time column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardSessionTimeColumn = true;
+bool settingDisplayLeaderboardSessionTimeColumn = false;
 
 [Setting name="Display Total Time" description="Show the total time column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardTotalTimeColumn = true;
+bool settingDisplayLeaderboardTotalTimeColumn = false;
 
 [Setting name="Display Time Since" description="Show the time since the record was set in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardTimeSinceColumn = true;
+bool settingDisplayLeaderboardTimeSinceColumn = false;
 
 [Setting name="Filter Personal Bests" description="Show only previous personal bests in the leaderboard" category="UI"]
 bool settingFilterPersonalBests = false;
