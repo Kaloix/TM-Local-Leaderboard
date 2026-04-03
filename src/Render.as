@@ -278,6 +278,12 @@ class MedalColumn : TableColumn
 
     void renderBody(TableRenderContext&inout context)
     {
+        if (context.m_CurrentEntry.m_Medal is null)
+        {
+            // Medal can be null if the record was too slow
+            UI::Text("");
+            return;
+        }
 
         UI::PushStyleColor(UI::Col::Text, vec4(context.m_CurrentEntry.m_Medal.GetIconColor(), 1));
         UI::Text(context.m_CurrentEntry.GetDisplayIcon());

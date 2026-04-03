@@ -398,6 +398,10 @@ class LeaderboardEntry
 
     string m_PlayerName = "";
 
+    /**
+     * The highest medal achieved with this run.
+     * Can be null if the run was too slow for any medal.
+     */
     const Medal @m_Medal = null;
 
     uint m_Rank = 0;
