@@ -41,6 +41,10 @@ void SaveLeaderboard(const State&in state)
     {
         leaderboard["festestCopiumRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_FastestCopiumRun);
     }
+    if (state.m_Leaderboard.m_BestCheckpointsRun !is null)
+    {
+        leaderboard["bestCheckpointsRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_BestCheckpointsRun);
+    }
 
     leaderboard["totalNumberFinishes"] = state.m_Leaderboard.m_TotalNumberFinishes;
     leaderboard["totalNumberSessions"] = state.m_Leaderboard.m_TotalNumberSessions;
@@ -82,6 +86,11 @@ void LoadLeaderboard(State&inout state)
     if (leaderboard.HasKey("festestCopiumRun"))
     {
         @state.m_Leaderboard.m_FastestCopiumRun = @deserializeLeaderboardEntry(leaderboard["festestCopiumRun"]);
+    }
+    if (leaderboard.HasKey("bestCheckpointsRun"))
+    {
+        @state.m_Leaderboard.m_BestCheckpointsRun = @deserializeLeaderboardEntry(leaderboard["bestCheckpointsRun"]);
+        LogInfo("" + state.m_Leaderboard.m_BestCheckpointsRun.m_Type);
     }
 
     for (uint i = 0; i < entries.Length; i++)

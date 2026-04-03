@@ -233,6 +233,9 @@ class Leaderboard
     LeaderboardEntry @m_FastestCopiumRun = null;
     LeaderboardEntry @m_SessionFastestCopiumRun = null;
 
+    LeaderboardEntry @m_BestCheckpointsRun = null;
+    LeaderboardEntry @m_SessionBestCheckpointsRun = null;
+
     uint m_TotalNumberFinishes = 0;
     uint m_TotalNumberSessions = 0;
 
@@ -308,6 +311,8 @@ class Leaderboard
                 m_NewestRun.m_Rank = m_Entries.Length + 1;
             }
         }
+
+        updateBestCheckpointsRun(m_NewestRun);
     }
 
     void AddNewEntry(LeaderboardEntry @entry)
@@ -396,6 +401,67 @@ class Leaderboard
 
         m_TotalTime += timeSinceLastUpdate;
     }
+
+    void updateBestCheckpointsRun(const LeaderboardEntry&in entry)
+    {
+        if (m_BestCheckpointsRun is null)
+            @m_BestCheckpointsRun = LeaderboardEntry();
+        updateCheckpointsRun(m_BestCheckpointsRun, entry);
+
+        if (m_SessionBestCheckpointsRun is null)
+            @m_SessionBestCheckpointsRun = LeaderboardEntry();
+        updateCheckpointsRun(m_SessionBestCheckpointsRun, entry);
+    }
+
+    private void updateCheckpointsRun(LeaderboardEntry &inout checkpointsRun, const LeaderboardEntry&in entry) const
+    {
+        bool hasNewBestCheckpoint = false;
+
+        if (checkpointsRun.m_Checkpoints.Length == 0)
+        {
+            checkpointsRun.m_PlayerName = entry.m_PlayerName;
+            checkpointsRun.m_Type = LeaderboardEntryType::ScoreBestCheckpoints;
+
+            for (uint i = 0; i < entry.m_Checkpoints.Length; i++)
+            {
+                CheckpointData @cpData = CheckpointData();
+                cpData.m_TimeFromPrevious = entry.m_Checkpoints[i].m_TimeFromPrevious;
+                cpData.m_TimeFromPreviousNoRespawn = entry.m_Checkpoints[i].m_TimeFromPreviousNoRespawn;
+                cpData.m_NumberRespawns = entry.m_Checkpoints[i].m_NumberRespawns;
+                checkpointsRun.m_Checkpoints.InsertLast(@cpData);
+            }
+
+            hasNewBestCheckpoint = true;
+        }
+        else
+        {
+            for (uint i = 0; i < entry.m_Checkpoints.Length; i++)
+            {
+                if (entry.m_Checkpoints[i].m_TimeFromPreviousNoRespawn < checkpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn)
+                {
+                    checkpointsRun.m_Checkpoints[i].m_TimeFromPrevious = entry.m_Checkpoints[i].m_TimeFromPrevious;
+                    checkpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn = entry.m_Checkpoints[i].m_TimeFromPreviousNoRespawn;
+                    checkpointsRun.m_Checkpoints[i].m_NumberRespawns = entry.m_Checkpoints[i].m_NumberRespawns;
+                    hasNewBestCheckpoint = true;
+                }
+            }
+        }
+
+        if (hasNewBestCheckpoint)
+        {
+            checkpointsRun.m_TimeStamp = entry.m_TimeStamp;
+            checkpointsRun.m_ScoreNumber = entry.m_ScoreNumber;
+            checkpointsRun.m_SessionNumber = entry.m_SessionNumber;
+
+            checkpointsRun.m_Time = 0;
+            for (uint i = 0; i < checkpointsRun.m_Checkpoints.Length; i++)
+            {
+                checkpointsRun.m_Time += checkpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn;
+            }
+
+            setMedal(checkpointsRun);
+        }
+    }
 }
 
 class LeaderboardEntry
@@ -422,7 +488,7 @@ class LeaderboardEntry
     int m_TimeNoRespawn = 0;
     uint m_NumberRespawns = 0;
 
-    array<CheckpointData@> m_Checkpoints;
+    array<CheckpointData @> m_Checkpoints;
 
     bool m_WasPersonalBest = false;
     bool m_WasSessionBest = false;
@@ -435,6 +501,7 @@ class LeaderboardEntry
                 return "";
             case LeaderboardEntryType::Score:
                 return "" + m_Rank;
+            case LeaderboardEntryType::ScoreBestCheckpoints:
             case LeaderboardEntryType::ScoreCopium:
                 return "-";
             default:
@@ -450,6 +517,8 @@ class LeaderboardEntry
                 return Icons::Circle;
             case LeaderboardEntryType::Score:
                 return Icons::CircleO;
+            case LeaderboardEntryType::ScoreBestCheckpoints:
+                return Icons::AngleDoubleUp;
             case LeaderboardEntryType::ScoreCopium:
                 return Icons::ArrowCircleOUp;
             default:
@@ -464,6 +533,7 @@ class LeaderboardEntry
             case LeaderboardEntryType::Medal:
                 return m_Medal.GetTime();
             case LeaderboardEntryType::Score:
+            case LeaderboardEntryType::ScoreBestCheckpoints:
                 return m_Time;
             case LeaderboardEntryType::ScoreCopium:
                 return m_TimeNoRespawn;
@@ -474,7 +544,19 @@ class LeaderboardEntry
 
     string GetDisplayName() const
     {
-        return m_Type == LeaderboardEntryType::Medal ? m_Medal.GetName() : m_PlayerName;
+        switch (m_Type)
+        {
+            case LeaderboardEntryType::Medal:
+                return m_Medal.GetName();
+            case LeaderboardEntryType::Score:
+                return m_PlayerName;
+            case LeaderboardEntryType::ScoreBestCheckpoints:
+                return m_PlayerName + " (Best Checkpoints)";
+            case LeaderboardEntryType::ScoreCopium:
+                return m_PlayerName + " (Copium)";
+            default:
+                return "";
+        }
     }
 }
 
@@ -531,6 +613,7 @@ enum LeaderboardEntryType
 {
     Medal,
     Score,
+    ScoreBestCheckpoints,
     ScoreCopium,
 }
 

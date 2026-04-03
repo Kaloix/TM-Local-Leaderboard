@@ -91,6 +91,12 @@ bool settingDisplayLeaderboardCopiumFastest = false;
 [Setting name="Display Session Copium" description="Show the player's best copium time of the current session in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardCopiumSessionFastest = false;
 
+[Setting name="Display Best Checkpoints Run" description="Show the player's best checkpoints run in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardBestCheckpointsRun = false;
+
+[Setting name="Display Session Best Checkpoints Run" description="Show the player's best checkpoints run of the current session in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardSessionBestCheckpointsRun = false;
+
 [Setting name="Display Medal Author" description="Show the author of medal times in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardMedalAuthor = true;
 

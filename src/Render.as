@@ -1,3 +1,6 @@
+const int COLUMN_TIME_DELTA_WIDTH = 60;
+const int COLUMN_NUMBER_RESPAWNS_WIDTH = 20;
+
 void Render()
 {
     if (!settingDisplayLeaderboard)
@@ -26,7 +29,7 @@ int windowFlags = 0;
 
 array<LeaderboardEntry @> g_TableRows;
 array<TableColumn @> g_TableColumns;
-array<TableColumn @> g_AllTableColumns = {MedalColumn(), RankColumn(), PlayerColumn(), TimeColumn(), BestTimeDeltaColumn(), LastTimeDeltaColumn(), TimeNoRespawnColumn(), NumberRespawnsColumn(), ScoreNumberColumn(), SessionNumberColumn(), TimestampColumn(), TotalTimeColumn(), SessionTimeColumn(), TimeSinceColumn(), CheckpointTimesColumn()};
+array<TableColumn @> g_AllTableColumns = {MedalColumn(), RankColumn(), PlayerColumn(), TimeColumn(), BestTimeDeltaColumn(), LastTimeDeltaColumn(), TimeNoRespawnColumn(), NumberRespawnsColumn(), ScoreNumberColumn(), SessionNumberColumn(), TimestampColumn(), TotalTimeColumn(), SessionTimeColumn(), TimeSinceColumn()};
 
 void InitRender()
 {
@@ -49,6 +52,11 @@ void InitRender()
 void InitRows()
 {
     g_TableRows.RemoveRange(0, g_TableRows.Length);
+
+    if (settingDisplayLeaderboardBestCheckpointsRun && g_State.m_Leaderboard.m_BestCheckpointsRun !is null)
+        g_TableRows.InsertLast(g_State.m_Leaderboard.m_BestCheckpointsRun);
+    if (settingDisplayLeaderboardSessionBestCheckpointsRun && g_State.m_Leaderboard.m_SessionBestCheckpointsRun !is null)
+        g_TableRows.InsertLast(g_State.m_Leaderboard.m_SessionBestCheckpointsRun);
 
     bool addedNewestCopium = false;
     bool addedFastestCopium = false;
@@ -180,6 +188,8 @@ void Render()
         context.m_IsPlayerNewestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_NewestCopiumRun;
         context.m_IsPlayerBestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_FastestCopiumRun;
         context.m_IsPlayerSessionBestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionFastestCopiumRun;
+        context.m_IsPlayerBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_BestCheckpointsRun;
+        context.m_IsPlayerSessionBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionBestCheckpointsRun;
 
         UI::TableNextRow();
 
@@ -207,6 +217,9 @@ void Render()
             }
 
             UI::EndTable();
+
+            RenderCheckpoints(context);
+
             UI::EndTooltip();
         }
     }
@@ -229,6 +242,8 @@ class TableRenderContext
     bool m_IsPlayerNewestCopium = false;
     bool m_IsPlayerBestCopium = false;
     bool m_IsPlayerSessionBestCopium = false;
+    bool m_IsPlayerBestCheckpoints = false;
+    bool m_IsPlayerSessionBestCheckpoints = false;
 }
 
 interface TableColumn
@@ -381,7 +396,7 @@ class TimeDeltaColumn : TableColumn
 
     void setup()
     {
-        UI::TableSetupColumn(getHeaderName(), UI::TableColumnFlags::WidthFixed, 60);
+        UI::TableSetupColumn(getHeaderName(), UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH);
     }
 
     void renderHeader()
@@ -403,13 +418,7 @@ class TimeDeltaColumn : TableColumn
         }
         else
         {
-            const int delta = getDelta(context);
-            auto deltaColor = delta < 0 ? vec4(settingColorDeltaBetter, 1) : (delta > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
-            string deltaStr = (delta > 0 ? "+" : "") + Time::Format(delta);
-
-            UI::PushStyleColor(UI::Col::Text, deltaColor);
-            UI::Text(deltaStr);
-            UI::PopStyleColor();
+            renderDelta(this.getDelta(context));
         }
     }
 }
@@ -495,7 +504,7 @@ class NumberRespawnsColumn : TableColumn
     }
     void setup()
     {
-        UI::TableSetupColumn("Respawns", UI::TableColumnFlags::WidthFixed, 20);
+        UI::TableSetupColumn("Respawns", UI::TableColumnFlags::WidthFixed, COLUMN_NUMBER_RESPAWNS_WIDTH);
     }
 
     void renderHeader()
@@ -645,40 +654,85 @@ class TimeSinceColumn : TimeColumn
     }
 }
 
-class CheckpointTimesColumn : TableColumn
+void RenderCheckpoints(const TableRenderContext&in context)
 {
-    bool shouldDisplay() override
-    {
-        // This column is not meant to be displayed, it's only used for tooltip details
-        return false;
-    }
-    void setup()
-    {
-    }
-    void renderHeader()
-    {
-        UI::Text("Checkpoint Times");
-    }
-    void renderBody(TableRenderContext&inout context)
-    {
-        if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal)
-        {
-            UI::Text("");
-            return;
-        }
-        string cpTimesStr = "";
+        UI::BeginTable("CheckpointTimes" + context.m_CurrentRow, 7);
+
+        UI::TableSetupColumn("Cp", UI::TableColumnFlags::WidthFixed, 30);
+        UI::TableSetupColumn("Time Acc", UI::TableColumnFlags::WidthFixed, 60);
+        UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 60);
+        UI::TableSetupColumn("Time NR", UI::TableColumnFlags::WidthFixed, 60);
+        UI::TableSetupColumn(Icons::Refresh, UI::TableColumnFlags::WidthFixed, COLUMN_NUMBER_RESPAWNS_WIDTH);
+        UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH);
+        UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH);
+
+        UI::TableHeadersRow();
+
         for (uint i = 0; i < context.m_CurrentEntry.m_Checkpoints.Length; i++)
         {
+            UI::TableNextRow();
+
             auto @cpData = @context.m_CurrentEntry.m_Checkpoints[i];
-            string cpName = i == context.m_CurrentEntry.m_Checkpoints.Length - 1 ? "Fin" : "Cp " + (i + 1);
-            cpTimesStr += cpName + ": " + Time::Format(cpData.m_TimeFromStart) + " (+" + Time::Format(cpData.m_TimeFromPrevious) + "[" + Time::Format(cpData.m_TimeFromPreviousNoRespawn) + "], " + cpData.m_NumberRespawns + " respawns)\n";
+
+            LeaderboardEntry @bestCheckpointsRun = g_State.m_Leaderboard.m_BestCheckpointsRun;
+            LeaderboardEntry @pb = g_State.m_Leaderboard.m_FastestRun;
+
+            bool pushedColor = false;
+            if (bestCheckpointsRun !is null && bestCheckpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn == cpData.m_TimeFromPreviousNoRespawn)
+            {
+                UI::PushStyleColor(UI::Col::Text, vec4(0xDD / 255.0f, 0xBB / 255.0f, 0x44 / 255.0f, 1));
+                pushedColor = true;
+            }
+
+            UI::TableNextColumn();
+            string cpName = i == context.m_CurrentEntry.m_Checkpoints.Length - 1 ? "Fin" : "" + (i + 1);
+            UI::Text(cpName);
+
+            UI::TableNextColumn();
+            UI::Text(Time::Format(cpData.m_TimeFromStart));
+
+            UI::TableNextColumn();
+            UI::Text(Time::Format(cpData.m_TimeFromPrevious));
+
+            UI::TableNextColumn();
+            UI::Text(Time::Format(cpData.m_TimeFromPreviousNoRespawn));
+
+            UI::TableNextColumn();
+            UI::Text("" + cpData.m_NumberRespawns);
+
+            UI::TableNextColumn();
+            if (bestCheckpointsRun !is null) {
+                int delta = cpData.m_TimeFromPreviousNoRespawn - bestCheckpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn;
+                renderDelta(delta);
+            }
+             else
+            {
+                UI::Text("");
+            }
+
+            UI::TableNextColumn();
+            if (pb !is null && pb.m_Checkpoints.Length > i) {
+                int delta = cpData.m_TimeFromPreviousNoRespawn - pb.m_Checkpoints[i].m_TimeFromPreviousNoRespawn;
+                renderDelta(delta);
+            }
+             else
+            {
+                UI::Text("");
+            }
+
+            if (pushedColor)
+            {
+                UI::PopStyleColor();
+            }
         }
-        UI::Text(cpTimesStr);
-    }
+
+        UI::EndTable();
 }
 
 void renderText(const TableRenderContext&in context, const string&in text)
 {
+    bool pushedColor = true;
+
     if (context.m_IsPlayerNewest)
     {
         UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeLast, 1));
@@ -703,11 +757,34 @@ void renderText(const TableRenderContext&in context, const string&in text)
     {
         UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeSessionBest * 0.9f, 1));
     }
+    else if (context.m_IsPlayerBestCheckpoints)
+    {
+        UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeBest * 0.7f, 1));
+    }
+    else if (context.m_IsPlayerSessionBestCheckpoints)
+    {
+        UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeSessionBest * 0.7f, 1));
+     }
+    else
+    {
+        pushedColor = false;
+    }
+
     UI::Text(text);
-    if (context.m_IsPlayerNewest || context.m_IsPlayerNewestCopium || context.m_IsPlayerBest || context.m_IsPlayerBestCopium || context.m_IsPlayerSessionBest || context.m_IsPlayerSessionBestCopium)
+
+    if (pushedColor)
     {
         UI::PopStyleColor();
     }
 }
 
+void renderDelta(int delta)
+{
+    auto deltaColor = delta < 0 ? vec4(settingColorDeltaBetter, 1) : (delta > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
+    string deltaStr = (delta > 0 ? "+" : "") + Time::Format(delta);
+
+    UI::PushStyleColor(UI::Col::Text, deltaColor);
+    UI::Text(deltaStr);
+    UI::PopStyleColor();
+}
 }
