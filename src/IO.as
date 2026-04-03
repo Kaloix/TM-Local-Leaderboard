@@ -116,6 +116,14 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
     entryObj["timeInSession"] = entry.m_TimeInSession;
     entryObj["wasPersonalBest"] = entry.m_WasPersonalBest;
     entryObj["wasSessionBest"] = entry.m_WasSessionBest;
+
+    auto checkpoints = Json::Array();
+    for (uint i = 0; i < entry.m_Checkpoints.Length; i++)    {
+        auto cpDataObj = serializeCheckpointData(entry.m_Checkpoints[i]);
+        checkpoints.Add(cpDataObj);
+    }
+    entryObj["checkpoints"] = checkpoints;
+
     return entryObj;
 }
 
@@ -136,7 +144,35 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
     entry.m_TimeInSession = entryObj["timeInSession"];
     entry.m_WasPersonalBest = entryObj["wasPersonalBest"];
     entry.m_WasSessionBest = entryObj["wasSessionBest"];
+
+    for (uint i = 0; i < entryObj["checkpoints"].Length; i++)
+    {
+        auto cpDataObj = entryObj["checkpoints"][i];
+        auto @cpData = @deserializeCheckpointData(cpDataObj);
+        entry.m_Checkpoints.InsertLast(@cpData);
+    }
+
     return @entry;
+}
+
+Json::Value serializeCheckpointData(const CheckpointData&in cpData)
+{
+    auto cpDataObj = Json::Object();
+    cpDataObj["timeFromStart"] = cpData.m_TimeFromStart;
+    cpDataObj["timeFromPrevious"] = cpData.m_TimeFromPrevious;
+    cpDataObj["timeFromPreviousNoRespawn"] = cpData.m_TimeFromPreviousNoRespawn;
+    cpDataObj["numberRespawns"] = cpData.m_NumberRespawns;
+    return cpDataObj;
+}
+
+CheckpointData @deserializeCheckpointData(const Json::Value&in cpDataObj)
+{
+    auto @cpData = CheckpointData();
+    cpData.m_TimeFromStart = cpDataObj["timeFromStart"];
+    cpData.m_TimeFromPrevious = cpDataObj["timeFromPrevious"];
+    cpData.m_TimeFromPreviousNoRespawn = cpDataObj["timeFromPreviousNoRespawn"];
+    cpData.m_NumberRespawns = cpDataObj["numberRespawns"];
+    return @cpData;
 }
 
 string buildFileDir()

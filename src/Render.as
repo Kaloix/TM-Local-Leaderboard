@@ -26,7 +26,7 @@ int windowFlags = 0;
 
 array<LeaderboardEntry @> g_TableRows;
 array<TableColumn @> g_TableColumns;
-array<TableColumn @> g_AllTableColumns = {MedalColumn(), RankColumn(), PlayerColumn(), TimeColumn(), BestTimeDeltaColumn(), LastTimeDeltaColumn(), TimeNoRespawnColumn(), NumberRespawnsColumn(), ScoreNumberColumn(), SessionNumberColumn(), TimestampColumn(), TotalTimeColumn(), SessionTimeColumn(), TimeSinceColumn()};
+array<TableColumn @> g_AllTableColumns = {MedalColumn(), RankColumn(), PlayerColumn(), TimeColumn(), BestTimeDeltaColumn(), LastTimeDeltaColumn(), TimeNoRespawnColumn(), NumberRespawnsColumn(), ScoreNumberColumn(), SessionNumberColumn(), TimestampColumn(), TotalTimeColumn(), SessionTimeColumn(), TimeSinceColumn(), CheckpointTimesColumn()};
 
 void InitRender()
 {
@@ -642,6 +642,38 @@ class TimeSinceColumn : TimeColumn
     bool ShowFractions() override
     {
         return false;
+    }
+}
+
+class CheckpointTimesColumn : TableColumn
+{
+    bool shouldDisplay() override
+    {
+        // This column is not meant to be displayed, it's only used for tooltip details
+        return false;
+    }
+    void setup()
+    {
+    }
+    void renderHeader()
+    {
+        UI::Text("Checkpoint Times");
+    }
+    void renderBody(TableRenderContext&inout context)
+    {
+        if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal)
+        {
+            UI::Text("");
+            return;
+        }
+        string cpTimesStr = "";
+        for (uint i = 0; i < context.m_CurrentEntry.m_Checkpoints.Length; i++)
+        {
+            auto @cpData = @context.m_CurrentEntry.m_Checkpoints[i];
+            string cpName = i == context.m_CurrentEntry.m_Checkpoints.Length - 1 ? "Fin" : "Cp " + (i + 1);
+            cpTimesStr += cpName + ": " + Time::Format(cpData.m_TimeFromStart) + " (+" + Time::Format(cpData.m_TimeFromPrevious) + "[" + Time::Format(cpData.m_TimeFromPreviousNoRespawn) + "], " + cpData.m_NumberRespawns + " respawns)\n";
+        }
+        UI::Text(cpTimesStr);
     }
 }
 

@@ -259,6 +259,18 @@ class Leaderboard
         entry.m_TimeInTotal = m_TotalTime;
         entry.m_TimeInSession = g_State.GetSessionTime();
 
+        auto @cpTimes = @player.CpTimes;
+        for (uint i = 1; i < cpTimes.Length; i++)
+        {
+            auto time = player.cpTimes[i] - player.cpTimes[i - 1];
+            CheckpointData @cpData = CheckpointData();
+            cpData.m_TimeFromStart = player.cpTimes[i];
+            cpData.m_TimeFromPrevious = time;
+            cpData.m_TimeFromPreviousNoRespawn = time - player.TimeLostToRespawnByCp[i - 1];
+            cpData.m_NumberRespawns = player.NbRespawnsByCp[i - 1];
+            entry.m_Checkpoints.InsertLast(@cpData);
+        }
+
         setMedal(entry);
 
         return @entry;
@@ -366,7 +378,6 @@ class Leaderboard
             i++;
             for (; i < m_Entries.Length; i++)
             {
-                LogInfo("" + m_Entries[i].m_Rank);
                 m_Entries[i].m_Rank++;
             }
         }
@@ -410,6 +421,8 @@ class LeaderboardEntry
     int m_Time = 0;
     int m_TimeNoRespawn = 0;
     uint m_NumberRespawns = 0;
+
+    array<CheckpointData@> m_Checkpoints;
 
     bool m_WasPersonalBest = false;
     bool m_WasSessionBest = false;
@@ -504,6 +517,14 @@ class State
         InitRows();
         SaveLeaderboard(this);
     }
+}
+
+class CheckpointData
+{
+    int m_TimeFromStart = 0;
+    int m_TimeFromPrevious = 0;
+    int m_TimeFromPreviousNoRespawn = 0;
+    int m_NumberRespawns = 0;
 }
 
 enum LeaderboardEntryType
