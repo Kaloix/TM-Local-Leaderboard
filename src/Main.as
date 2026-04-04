@@ -108,6 +108,7 @@ void OnMapLoad()
     g_State.m_CurrentMapAuthor = map.AuthorNickName;
 
     InitializeMedals();
+    InitializeComparisonTarget();
 
     LoadLeaderboard(g_State);
 
@@ -207,6 +208,37 @@ string GetMapId()
     }
 
     return app.RootMap.IdName;
+}
+
+CSmPlayer @GetPlayer()
+{
+    auto @playground = GetPlayground();
+    if (playground is null)
+        return null;
+    return cast<CSmPlayer>(playground.GameTerminals[0].GUIPlayer);
+}
+
+CSmArenaClient @GetPlayground()
+{
+    CGameCtnApp @app = GetApp();
+    return cast<CSmArenaClient>(app.CurrentPlayground);
+}
+
+CSmScriptPlayer @GetPlayerScript()
+{
+    CSmPlayer @player = GetPlayer();
+    if (player is null)
+        return null;
+    return cast<CSmScriptPlayer>(player.ScriptAPI);
+}
+
+int GetPlayerSpeed()
+{
+    CSmScriptPlayer @playerScript = GetPlayerScript();
+    int speed = playerScript.DisplaySpeed;
+    if (speed == 0)
+        speed = int(Math::Round(playerScript.Speed * 3.6f));
+    return speed;
 }
 
 void setMedal(LeaderboardEntry&inout entry)

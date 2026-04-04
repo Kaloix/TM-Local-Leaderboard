@@ -40,11 +40,8 @@ bool settingDisplayLeaderboardRankColumn = true;
 [Setting name="Display Time Column" description="Show the time column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardTimeColumn = true;
 
-[Setting name="Display Delta Column" description="Show the PB delta column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardDeltaPBColumn = true;
-
-[Setting name="Display Last Time Delta Column" description="Show the last time delta column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardDeltaLastColumn = true;
+[Setting name="Display Comparison Time Delta Column" description="Show the comparison time delta column in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardDeltaColumn = true;
 
 [Setting name="Display Copium Column" description="Show the Copium column in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardCopiumColumn = false;
@@ -81,6 +78,9 @@ bool settingFilterSessionBests = false;
 
 [Setting name="Filter Current Session" description="Show only times of the current session in the leaderboard" category="UI"]
 bool settingFilterSessionCurrent = false;
+
+[Setting name="Comparison Target" description="The target time to compare against in the leaderboard" category="UI"]
+ComparisonTargetType settingComparisonTarget = ComparisonTargetType::FastestRun;
 
 [Setting name="Display Newest Copium" description="Show the player's copium time of the last run in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardCopiumNewest = false;

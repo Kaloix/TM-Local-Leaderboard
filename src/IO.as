@@ -90,7 +90,6 @@ void LoadLeaderboard(State&inout state)
     if (leaderboard.HasKey("bestCheckpointsRun"))
     {
         @state.m_Leaderboard.m_BestCheckpointsRun = @deserializeLeaderboardEntry(leaderboard["bestCheckpointsRun"]);
-        LogInfo("" + state.m_Leaderboard.m_BestCheckpointsRun.m_Type);
     }
 
     for (uint i = 0; i < entries.Length; i++)

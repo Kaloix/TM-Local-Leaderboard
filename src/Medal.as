@@ -1,13 +1,32 @@
 namespace LocalLeaderboard
 {
 
+enum MedalType
+{
+#if DEPENDENCY_CHAMPIONMEDALS
+    Champion,
+#endif
+#if DEPENDENCY_WARRIORMEDALS
+    Warrior,
+#endif
+    Author,
+    Gold,
+    Silver,
+    Bronze
+}
+
 array<Medal @> g_Medals;
 
 void InitializeMedals()
 {
     g_Medals.RemoveRange(0, g_Medals.Length);
+
+#if DEPENDENCY_CHAMPIONMEDALS
     g_Medals.InsertLast(ChampionMedal());
+#endif
+#if DEPENDENCY_WARRIORMEDALS
     g_Medals.InsertLast(WarriorMedal());
+#endif
     g_Medals.InsertLast(AuthorMedal());
     g_Medals.InsertLast(GoldMedal());
     g_Medals.InsertLast(SilverMedal());

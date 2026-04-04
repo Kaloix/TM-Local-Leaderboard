@@ -29,7 +29,7 @@ int windowFlags = 0;
 
 array<LeaderboardEntry @> g_TableRows;
 array<TableColumn @> g_TableColumns;
-array<TableColumn @> g_AllTableColumns = {MedalColumn(), RankColumn(), PlayerColumn(), TimeColumn(), BestTimeDeltaColumn(), LastTimeDeltaColumn(), TimeNoRespawnColumn(), NumberRespawnsColumn(), ScoreNumberColumn(), SessionNumberColumn(), TimestampColumn(), TotalTimeColumn(), SessionTimeColumn(), TimeSinceColumn()};
+array<TableColumn @> g_AllTableColumns = {MedalColumn(), RankColumn(), PlayerColumn(), TimeColumn(), TimeDeltaColumn(), TimeNoRespawnColumn(), NumberRespawnsColumn(), ScoreNumberColumn(), SessionNumberColumn(), TimestampColumn(), TotalTimeColumn(), SessionTimeColumn(), TimeSinceColumn()};
 
 void InitRender()
 {
@@ -44,6 +44,7 @@ void InitRender()
         }
     }
 
+    // Setup window flags
     windowFlags = UI::GetDefaultWindowFlags();
     if (!settingDisplayLeaderboardTitleBar)
         windowFlags |= UI::WindowFlags::NoTitleBar;
@@ -51,6 +52,10 @@ void InitRender()
 
 void InitRows()
 {
+    // Set comparison target for the delta column
+    @(cast<TimeDeltaColumn>(g_AllTableColumns[4])).m_ComparisonTarget = @GetComparisonTarget(settingComparisonTarget);
+
+    // Add rows to display
     g_TableRows.RemoveRange(0, g_TableRows.Length);
 
     if (settingDisplayLeaderboardBestCheckpointsRun && g_State.m_Leaderboard.m_BestCheckpointsRun !is null)
@@ -373,101 +378,39 @@ class PlayerColumn : TableColumn
 
 class TimeDeltaColumn : TableColumn
 {
+    ComparisonTarget@ m_ComparisonTarget = null;
+
     bool shouldDisplay()
     {
-        return true;
+        return settingDisplayLeaderboardDeltaColumn;
     }
-    string getHeaderName()
-    {
-        return "";
-    }
-    bool isSelf(const TableRenderContext&in context)
-    {
-        return false;
-    }
-    bool isShowDelta(const TableRenderContext&in context)
-    {
-        return true;
-    }
-    int getDelta(const TableRenderContext&in context)
-    {
-        return 0;
-    }
-
     void setup()
     {
-        UI::TableSetupColumn(getHeaderName(), UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH);
+        UI::TableSetupColumn("Delta", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH);
     }
 
     void renderHeader()
     {
-        UI::Text(getHeaderName());
+        UI::Text("Delta");
     }
 
     void renderBody(TableRenderContext&inout context)
     {
-        if (context.m_CurrentEntry.GetDisplayTime() <= 0 || !isShowDelta(context))
+        bool showDelta = m_ComparisonTarget !is null && m_ComparisonTarget.IsAvailable() && context.m_CurrentEntry.GetDisplayTime() > 0;
+        if (context.m_CurrentEntry.GetDisplayTime() <= 0 || !showDelta)
         {
             UI::Text("");
             return;
         }
 
-        if (isSelf(context))
+        if (context.m_CurrentEntry is m_ComparisonTarget.GetComparisonTargetEntry())
         {
             renderText(context, Time::Format(context.m_CurrentEntry.GetDisplayTime()));
         }
         else
         {
-            renderDelta(this.getDelta(context));
+            renderDelta(context.m_CurrentEntry.GetDisplayTime() - m_ComparisonTarget.GetTime());
         }
-    }
-}
-
-class BestTimeDeltaColumn : TimeDeltaColumn
-{
-    bool shouldDisplay() override
-    {
-        return settingDisplayLeaderboardDeltaPBColumn;
-    }
-    string getHeaderName() override
-    {
-        return "Delta PB";
-    }
-    bool isSelf(const TableRenderContext&in context) override
-    {
-        return context.m_IsPlayerBest;
-    }
-    bool isShowDelta(const TableRenderContext&in context) override
-    {
-        return g_State.m_Leaderboard.m_FastestRun !is null;
-    }
-    int getDelta(const TableRenderContext&in context) override
-    {
-        return context.m_CurrentEntry.GetDisplayTime() - g_State.m_Leaderboard.m_FastestRun.GetDisplayTime();
-    }
-}
-
-class LastTimeDeltaColumn : TimeDeltaColumn
-{
-    bool shouldDisplay() override
-    {
-        return settingDisplayLeaderboardDeltaLastColumn;
-    }
-    string getHeaderName() override
-    {
-        return "Delta Last";
-    }
-    bool isSelf(const TableRenderContext&in context) override
-    {
-        return context.m_IsPlayerNewest;
-    }
-    bool isShowDelta(const TableRenderContext&in context) override
-    {
-        return g_State.m_Leaderboard.m_NewestRun !is null;
-    }
-    int getDelta(const TableRenderContext&in context) override
-    {
-        return context.m_CurrentEntry.GetDisplayTime() - g_State.m_Leaderboard.m_NewestRun.GetDisplayTime();
     }
 }
 
