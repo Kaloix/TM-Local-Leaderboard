@@ -52,6 +52,15 @@ void SaveLeaderboard(const State&in state)
 
     root["leaderboard"] = leaderboard;
 
+    auto customEntries = Json::Array();
+    for (uint i = 0; i < state.m_CustomEntries.Length; i++)
+    {
+        const auto @entry = @state.m_CustomEntries[i];
+        auto entryObj = serializeLeaderboardEntry(entry);
+        customEntries.Add(entryObj);
+    }
+    root["customEntries"] = customEntries;
+
     Json::ToFile(filePath, root);
     LogDebug("Leaderboard saved to " + filePath);
 }
@@ -106,6 +115,13 @@ void LoadLeaderboard(State&inout state)
     state.m_Leaderboard.m_TotalNumberFinishes = leaderboard["totalNumberFinishes"];
     state.m_Leaderboard.m_TotalNumberSessions = leaderboard["totalNumberSessions"];
     state.m_Leaderboard.m_TotalTime = leaderboard["totalTime"];
+
+    auto customEntries = root["customEntries"];
+    for (uint i = 0; i < customEntries.Length; i++)
+    {
+        auto @entry = @deserializeLeaderboardEntry(customEntries[i]);
+        state.m_CustomEntries.InsertLast(@entry);
+    }
 }
 
 Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)

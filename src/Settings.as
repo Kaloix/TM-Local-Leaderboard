@@ -97,6 +97,9 @@ bool settingDisplayLeaderboardBestCheckpointsRun = false;
 [Setting name="Display Session Best Checkpoints Run" description="Show the player's best checkpoints run of the current session in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardSessionBestCheckpointsRun = false;
 
+[Setting name="Display Custom Entries" description="Show custom entries in the leaderboard UI" category="UI"]
+bool settingDisplayLeaderboardCustomEntries = true;
+
 [Setting name="Display Medal Author" description="Show the author of medal times in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardMedalAuthor = true;
 

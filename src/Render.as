@@ -94,6 +94,7 @@ void InitRows()
         g_TableRows.InsertLast(@g_State.m_Leaderboard.m_Entries[i]);
     }
 
+    // Add medal entries
     for (uint i = 0; i < g_State.m_MedalEntries.Length; i++)
     {
         auto @entry = @g_State.m_MedalEntries[i];
@@ -101,6 +102,16 @@ void InitRows()
             g_TableRows.InsertLast(entry);
     }
 
+    // Add custom entries
+    if (settingDisplayLeaderboardCustomEntries)
+    {
+        for (uint i = 0; i < g_State.m_CustomEntries.Length; i++)
+        {
+            g_TableRows.InsertLast(@g_State.m_CustomEntries[i]);
+        }
+    }
+
+    // Sort rows
     switch (settingLeaderboardSortType)
     {
         case LeaderboardSortType::Time:
@@ -298,16 +309,14 @@ class MedalColumn : TableColumn
 
     void renderBody(TableRenderContext&inout context)
     {
-        if (context.m_CurrentEntry.m_Medal is null)
-        {
-            // Medal can be null if the record was too slow
-            UI::Text("");
-            return;
-        }
+        // Medal can be null if the record was too slow
+        if (context.m_CurrentEntry.m_Medal !is null)
+            UI::PushStyleColor(UI::Col::Text, vec4(context.m_CurrentEntry.m_Medal.GetIconColor(), 1));
 
-        UI::PushStyleColor(UI::Col::Text, vec4(context.m_CurrentEntry.m_Medal.GetIconColor(), 1));
         UI::Text(context.m_CurrentEntry.GetDisplayIcon());
-        UI::PopStyleColor();
+
+        if (context.m_CurrentEntry.m_Medal !is null)
+            UI::PopStyleColor();
     }
 }
 

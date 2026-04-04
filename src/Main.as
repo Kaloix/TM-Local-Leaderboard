@@ -194,6 +194,8 @@ void setMedals()
         setMedal(g_State.m_Leaderboard.m_NewestRun);
     if (g_State.m_Leaderboard.m_FastestCopiumRun !is null)
         setMedal(g_State.m_Leaderboard.m_FastestCopiumRun);
+    for (uint i = 0; i < g_State.m_CustomEntries.Length; i++)
+        setMedal(g_State.m_CustomEntries[i]);
 }
 
 /**
@@ -252,6 +254,7 @@ void setMedal(LeaderboardEntry&inout entry)
             return;
         }
     }
+    @entry.m_Medal = null;
 }
 
 class Leaderboard
@@ -529,6 +532,7 @@ class LeaderboardEntry
     {
         switch (m_Type)
         {
+            case LeaderboardEntryType::CustomScore:
             case LeaderboardEntryType::Medal:
                 return "";
             case LeaderboardEntryType::Score:
@@ -545,6 +549,8 @@ class LeaderboardEntry
     {
         switch (m_Type)
         {
+            case LeaderboardEntryType::CustomScore:
+                return Icons::ClockO;
             case LeaderboardEntryType::Medal:
                 return Icons::Circle;
             case LeaderboardEntryType::Score:
@@ -562,6 +568,8 @@ class LeaderboardEntry
     {
         switch (m_Type)
         {
+            case LeaderboardEntryType::CustomScore:
+                return m_Time;
             case LeaderboardEntryType::Medal:
                 return m_Medal.GetTime();
             case LeaderboardEntryType::Score:
@@ -578,6 +586,8 @@ class LeaderboardEntry
     {
         switch (m_Type)
         {
+            case LeaderboardEntryType::CustomScore:
+                return m_PlayerName;
             case LeaderboardEntryType::Medal:
                 return m_Medal.GetName();
             case LeaderboardEntryType::Score:
@@ -608,6 +618,7 @@ class State
 
     Leaderboard m_Leaderboard = Leaderboard();
     array<LeaderboardEntry @> m_MedalEntries;
+    array<LeaderboardEntry @> m_CustomEntries;
 
     uint64 GetSessionTime() const
     {
@@ -631,6 +642,61 @@ class State
         InitRows();
         SaveLeaderboard(this);
     }
+
+    void AddCustomEntry()
+    {
+        LeaderboardEntry newEntry;
+        newEntry.m_Type = LeaderboardEntryType::CustomScore;
+        newEntry.m_Time = 0;
+        newEntry.m_PlayerName = "Custom Entry";
+        setMedal(newEntry);
+        m_CustomEntries.InsertLast(newEntry);
+
+        InitRows();
+        SaveLeaderboard(this);
+    }
+
+    void UpdateCustomEntryName(uint index, const string&in newName)
+    {
+        if (index >= m_CustomEntries.Length)
+        {
+            LogWarning("Custom entry index out of bounds: " + index);
+            return;
+        }
+
+        m_CustomEntries[index].m_PlayerName = newName;
+
+        SaveLeaderboard(this);
+    }
+
+    void UpdateCustomEntryTime(uint index, int newTime)
+    {
+        if (index >= m_CustomEntries.Length)
+        {
+            LogWarning("Custom entry index out of bounds: " + index);
+            return;
+        }
+
+        m_CustomEntries[index].m_Time = newTime;
+        setMedal(m_CustomEntries[index]);
+
+        InitRows();
+        SaveLeaderboard(this);
+    }
+
+    void RemoveCustomEntry(uint index)
+    {
+        if (index >= m_CustomEntries.Length)
+        {
+            LogWarning("Custom entry index out of bounds: " + index);
+            return;
+        }
+
+        m_CustomEntries.RemoveAt(index);
+
+        InitRows();
+        SaveLeaderboard(this);
+    }
 }
 
 class CheckpointData
@@ -644,6 +710,7 @@ class CheckpointData
 enum LeaderboardEntryType
 {
     Medal,
+    CustomScore,
     Score,
     ScoreBestCheckpoints,
     ScoreCopium,
