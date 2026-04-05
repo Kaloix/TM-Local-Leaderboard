@@ -185,6 +185,7 @@ Json::Value serializeCheckpointData(const CheckpointData&in cpData)
     cpDataObj["timeFromStart"] = cpData.m_TimeFromStart;
     cpDataObj["timeFromPrevious"] = cpData.m_TimeFromPrevious;
     cpDataObj["timeFromPreviousNoRespawn"] = cpData.m_TimeFromPreviousNoRespawn;
+    cpDataObj["speed"] = cpData.m_Speed;
     cpDataObj["numberRespawns"] = cpData.m_NumberRespawns;
     return cpDataObj;
 }
@@ -195,6 +196,7 @@ CheckpointData @deserializeCheckpointData(const Json::Value&in cpDataObj)
     cpData.m_TimeFromStart = cpDataObj["timeFromStart"];
     cpData.m_TimeFromPrevious = cpDataObj["timeFromPrevious"];
     cpData.m_TimeFromPreviousNoRespawn = cpDataObj["timeFromPreviousNoRespawn"];
+    cpData.m_Speed = cpDataObj["speed"];
     cpData.m_NumberRespawns = cpDataObj["numberRespawns"];
     return @cpData;
 }

@@ -157,7 +157,6 @@ void Render()
         return; // Don't render if no map is loaded
     }
 
-    // UI::Begin("Local Leaderboard", true, windowFlags);
     bool open = true;
     UI::Begin("Local Leaderboard", open, windowFlags);
 
@@ -608,77 +607,95 @@ class TimeSinceColumn : TimeColumn
 
 void RenderCheckpoints(const TableRenderContext&in context)
 {
-        UI::BeginTable("CheckpointTimes" + context.m_CurrentRow, 7);
+    UI::BeginTable("CheckpointTimes" + context.m_CurrentRow, 8);
 
-        UI::TableSetupColumn("Cp", UI::TableColumnFlags::WidthFixed, 30);
-        UI::TableSetupColumn("Time Acc", UI::TableColumnFlags::WidthFixed, 60);
-        UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 60);
-        UI::TableSetupColumn("Time NR", UI::TableColumnFlags::WidthFixed, 60);
-        UI::TableSetupColumn(Icons::Refresh, UI::TableColumnFlags::WidthFixed, COLUMN_NUMBER_RESPAWNS_WIDTH);
-        UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH);
-        UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH);
+    UI::TableSetupColumn("Cp", UI::TableColumnFlags::WidthFixed, 30);
+    UI::TableSetupColumn("Time Acc", UI::TableColumnFlags::WidthFixed, 60);
+    UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 60);
+    UI::TableSetupColumn("Time NR", UI::TableColumnFlags::WidthFixed, 60);
+    UI::TableSetupColumn("Speed", UI::TableColumnFlags::WidthFixed, 40);
+    UI::TableSetupColumn(Icons::Refresh, UI::TableColumnFlags::WidthFixed, COLUMN_NUMBER_RESPAWNS_WIDTH);
+    UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH + 50);
+    UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH + 50);
 
-        UI::TableHeadersRow();
+    UI::TableHeadersRow();
 
-        for (uint i = 0; i < context.m_CurrentEntry.m_Checkpoints.Length; i++)
+    for (uint i = 0; i < context.m_CurrentEntry.m_Checkpoints.Length; i++)
+    {
+        UI::TableNextRow();
+
+        auto @cpData = @context.m_CurrentEntry.m_Checkpoints[i];
+
+        LeaderboardEntry @bestCheckpointsRun = g_State.m_Leaderboard.m_BestCheckpointsRun;
+        LeaderboardEntry @pb = g_State.m_Leaderboard.m_FastestRun;
+
+        bool pushedColor = false;
+        if (bestCheckpointsRun !is null && bestCheckpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn == cpData.m_TimeFromPreviousNoRespawn)
         {
-            UI::TableNextRow();
-
-            auto @cpData = @context.m_CurrentEntry.m_Checkpoints[i];
-
-            LeaderboardEntry @bestCheckpointsRun = g_State.m_Leaderboard.m_BestCheckpointsRun;
-            LeaderboardEntry @pb = g_State.m_Leaderboard.m_FastestRun;
-
-            bool pushedColor = false;
-            if (bestCheckpointsRun !is null && bestCheckpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn == cpData.m_TimeFromPreviousNoRespawn)
-            {
-                UI::PushStyleColor(UI::Col::Text, vec4(0xDD / 255.0f, 0xBB / 255.0f, 0x44 / 255.0f, 1));
-                pushedColor = true;
-            }
-
-            UI::TableNextColumn();
-            string cpName = i == context.m_CurrentEntry.m_Checkpoints.Length - 1 ? "Fin" : "" + (i + 1);
-            UI::Text(cpName);
-
-            UI::TableNextColumn();
-            UI::Text(Time::Format(cpData.m_TimeFromStart));
-
-            UI::TableNextColumn();
-            UI::Text(Time::Format(cpData.m_TimeFromPrevious));
-
-            UI::TableNextColumn();
-            UI::Text(Time::Format(cpData.m_TimeFromPreviousNoRespawn));
-
-            UI::TableNextColumn();
-            UI::Text("" + cpData.m_NumberRespawns);
-
-            UI::TableNextColumn();
-            if (bestCheckpointsRun !is null) {
-                int delta = cpData.m_TimeFromPreviousNoRespawn - bestCheckpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn;
-                renderDelta(delta);
-            }
-             else
-            {
-                UI::Text("");
-            }
-
-            UI::TableNextColumn();
-            if (pb !is null && pb.m_Checkpoints.Length > i) {
-                int delta = cpData.m_TimeFromPreviousNoRespawn - pb.m_Checkpoints[i].m_TimeFromPreviousNoRespawn;
-                renderDelta(delta);
-            }
-             else
-            {
-                UI::Text("");
-            }
-
-            if (pushedColor)
-            {
-                UI::PopStyleColor();
-            }
+            UI::PushStyleColor(UI::Col::Text, vec4(0xDD / 255.0f, 0xBB / 255.0f, 0x44 / 255.0f, 1));
+            pushedColor = true;
         }
 
-        UI::EndTable();
+        UI::TableNextColumn();
+        string cpName = i == context.m_CurrentEntry.m_Checkpoints.Length - 1 ? "Fin" : "" + (i + 1);
+        UI::Text(cpName);
+
+        UI::TableNextColumn();
+        UI::Text(Time::Format(cpData.m_TimeFromStart));
+
+        UI::TableNextColumn();
+        UI::Text(Time::Format(cpData.m_TimeFromPrevious));
+
+        UI::TableNextColumn();
+        UI::Text(Time::Format(cpData.m_TimeFromPreviousNoRespawn));
+
+        UI::TableNextColumn();
+        UI::Text("" + cpData.m_Speed);
+
+        UI::TableNextColumn();
+        UI::Text("" + cpData.m_NumberRespawns);
+
+        UI::TableNextColumn();
+        if (bestCheckpointsRun !is null)
+        {
+            int delta = cpData.m_TimeFromPreviousNoRespawn - bestCheckpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn;
+            renderDelta(delta);
+            UI::SameLine();
+            UI::Text("(");
+            UI::SameLine(0.0f, 0.0f);
+            renderDeltaSpeed(cpData.m_Speed - bestCheckpointsRun.m_Checkpoints[i].m_Speed);
+            UI::SameLine(0.0f, 0.0f);
+            UI::Text(")");
+        }
+        else
+        {
+            UI::Text("");
+        }
+
+        UI::TableNextColumn();
+        if (pb !is null && pb.m_Checkpoints.Length > i)
+        {
+            int delta = cpData.m_TimeFromPreviousNoRespawn - pb.m_Checkpoints[i].m_TimeFromPreviousNoRespawn;
+            renderDelta(delta);
+            UI::SameLine();
+            UI::Text(" (");
+            UI::SameLine(0.0f, 0.0f);
+            renderDeltaSpeed(cpData.m_Speed - pb.m_Checkpoints[i].m_Speed);
+            UI::SameLine(0.0f, 0.0f);
+            UI::Text(")");
+        }
+        else
+        {
+            UI::Text("");
+        }
+
+        if (pushedColor)
+        {
+            UI::PopStyleColor();
+        }
+    }
+
+    UI::EndTable();
 }
 
 void renderText(const TableRenderContext&in context, const string&in text)
@@ -733,10 +750,21 @@ void renderText(const TableRenderContext&in context, const string&in text)
 void renderDelta(int delta)
 {
     auto deltaColor = delta < 0 ? vec4(settingColorDeltaBetter, 1) : (delta > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
-    string deltaStr = (delta > 0 ? "+" : "") + Time::Format(delta);
+    string deltaStr = (delta > 0 ? "+" : (delta < 0 ? "" : "±")) + Time::Format(delta);
 
     UI::PushStyleColor(UI::Col::Text, deltaColor);
     UI::Text(deltaStr);
     UI::PopStyleColor();
 }
+
+void renderDeltaSpeed(int delta)
+{
+    auto deltaColor = delta < 0 ? vec4(settingColorDeltaBetter, 1) : (delta > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
+    string deltaStr = (delta > 0 ? "+" : (delta < 0 ? "" : "±")) + delta;
+
+    UI::PushStyleColor(UI::Col::Text, deltaColor);
+    UI::Text(deltaStr);
+    UI::PopStyleColor();
+}
+
 }
