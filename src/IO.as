@@ -1,6 +1,35 @@
 namespace LocalLeaderboard
 {
 
+void saveSettings()
+{
+    string filePath = IO::FromStorageFolder("settings.json");
+
+    auto root = Json::Object();
+    root["version"] = Meta::ExecutingPlugin().Version;
+    root["settings"] = serializeSettings();
+
+    Json::ToFile(filePath, root);
+    LogInfo("Saved settings to " + filePath);
+}
+
+void loadSettings() {
+
+    string filePath = IO::FromStorageFolder("settings.json");
+
+    if (!IO::FileExists(filePath))
+    {
+        // Start with an empty leaderboard if no file exists
+        LogInfo("No settings found at " + filePath);
+        return;
+    }
+
+    auto root = Json::FromFile(filePath);
+    deserializeSettings(root["settings"]);
+
+    LogInfo("Loaded settings from " + filePath);
+}
+
 void SaveLeaderboard(const State&in state)
 {
     if (state.m_CurrentMap == "")
@@ -199,6 +228,68 @@ CheckpointData @deserializeCheckpointData(const Json::Value&in cpDataObj)
     cpData.m_Speed = cpDataObj["speed"];
     cpData.m_NumberRespawns = cpDataObj["numberRespawns"];
     return @cpData;
+}
+
+Json::Value serializeSettings()
+{
+    auto settingsObj = Json::Object();
+    settingsObj["tableSettings"] = serializeTableSettings();
+    return settingsObj;
+}
+
+void deserializeSettings(const Json::Value&in settingsObj)
+{
+    deserializeTableSettings(settingsObj["tableSettings"]);
+}
+
+Json::Value serializeTableSettings()
+{
+    auto tableSettingsObj = Json::Object();
+
+    auto columns = Json::Array();
+    for (uint i = 0; i < g_AllTableColumns.Length; ++i)
+    {
+        columns.Add(serializeColumnSettings(g_AllTableColumns[i]));
+    }
+    tableSettingsObj["columns"] = columns;
+
+    return tableSettingsObj;
+}
+
+void deserializeTableSettings(const Json::Value&in tableSettingsObj)
+{
+    auto columnSettingsObj = tableSettingsObj["columns"];
+
+    for (uint i = 0; i < columnSettingsObj.Length; ++i)
+    {
+        auto @columnSettings = @g_AllTableColumns[i];
+        deserializeColumnSettings(columnSettings, columnSettingsObj[i]);
+    }
+}
+
+Json::Value serializeColumnSettings(const TableColumn&in column)
+{
+    auto columnSettingsObj = Json::Object();
+    columnSettingsObj["type"] = column.GetType();
+    columnSettingsObj["show"] = column.m_Show;
+
+    // if (column.GetType() == TableColumnType::TimeDeltaColumn) {
+    //     const TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
+    //     columnSettingsObj["target"] = timeDeltaColumn.m_ComparisonTarget.GetType();
+    // }
+
+    return columnSettingsObj;
+}
+
+void deserializeColumnSettings(TableColumn&inout column, const Json::Value&in columnSettingsObj)
+{
+    column.m_Show = columnSettingsObj["show"];
+
+    // if (column.GetType() == TableColumnType::TimeDeltaColumn) {
+    //     TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
+    //     const int target = columnSettingsObj["target"];
+    //     @timeDeltaColumn.m_ComparisonTarget = GetComparisonTarget(ComparisonTargetType(target));
+    // }
 }
 
 string buildFileDir()

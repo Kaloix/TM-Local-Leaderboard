@@ -26,8 +26,7 @@ void Update(float dt)
 
 void OnSettingsChanged()
 {
-    LocalLeaderboard::InitRender();
-    LocalLeaderboard::InitRows();
+    LocalLeaderboard::OnSettingsChanged();
 }
 
 namespace LocalLeaderboard
@@ -37,6 +36,7 @@ State g_State = State();
 
 void Init()
 {
+    loadSettings();
     InitRender();
     LogDebug("Local Leaderboard plugin initializing.");
 }
@@ -44,6 +44,13 @@ void Init()
 void Shutdown()
 {
     LogDebug("Local Leaderboard plugin shutting down.");
+}
+
+void OnSettingsChanged()
+{
+    saveSettings();
+    InitRender();
+    InitRows();
 }
 
 void Update(float dt)
@@ -120,6 +127,7 @@ void OnMapLoad()
 
     InitializeMedals();
     InitializeComparisonTarget();
+    initializeTableColumns();
 
     LoadLeaderboard(g_State);
 

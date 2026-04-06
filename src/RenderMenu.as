@@ -13,6 +13,12 @@ void RenderMenu()
             UI::EndMenu();
         }
 
+        if (UI::BeginMenu(Icons::ClockO + " Edit Table Columns"))
+        {
+            LocalLeaderboard::RenderTableColumnsMenu();
+            UI::EndMenu();
+        }
+
         UI::EndMenu();
     }
 }
@@ -96,6 +102,56 @@ void RenderCustomEntries()
             g_State.UpdateCustomEntryTime(i, newTime);
         }
     }
+
+    UI::EndTable();
+}
+
+void RenderTableColumnsMenu()
+{
+
+    UI::BeginTable("CustomEntriesTable", 3);
+
+    UI::TableSetupColumn("A##Actions", UI::TableColumnFlags::WidthFixed, 50);
+    UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed, 200);
+
+    UI::TableHeadersRow();
+
+    for (uint i = 0; i < g_AllTableColumns.Length; ++i)
+    {
+        UI::TableNextRow();
+
+        auto @column = @g_AllTableColumns[i];
+
+        UI::TableNextColumn();
+        const auto newShow = UI::Checkbox("##Show" + i, column.m_Show);
+        if (column.m_Show != newShow) {
+            column.m_Show = newShow;
+            OnSettingsChanged();
+            break;
+        }
+
+        // if (UI::Button(Icons::ArrowUp + "##" + i) && i > 0)
+        // {
+        //     auto @tmp = columnSettings[i];
+        //     @columnSettings[i] = @columnSettings[i - 1];
+        //     @columnSettings[i - 1] = @tmp;
+        //     OnSettingsChanged();
+        //     break;
+        // }
+
+        // if (UI::Button(Icons::ArrowDown + "##" + i) && i < g_TableColumns.Length - 1)
+        // {
+        //     auto @tmp = columnSettings[i];
+        //     @columnSettings[i] = @columnSettings[i + 1];
+        //     @columnSettings[i + 1] = @tmp;
+        //     OnSettingsChanged();
+        //     break;
+        // }
+
+        UI::TableNextColumn();
+        UI::Text(column.GetName());
+    }
+
 
     UI::EndTable();
 }

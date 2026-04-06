@@ -31,45 +31,6 @@ LeaderboardSortType settingLeaderboardSortType = LeaderboardSortType::Time;
 [Setting name="Leaderboard Sorting Direction" description="Sort direction for the leaderboard entries" category="UI"]
 LeaderboardSortDirection settingLeaderboardSortDirection = LeaderboardSortDirection::Ascending;
 
-[Setting name="Display Medal Column" description="Show the medal column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardMedalColumn = true;
-
-[Setting name="Display Rank Column" description="Show the rank column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardRankColumn = true;
-
-[Setting name="Display Time Column" description="Show the time column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardTimeColumn = true;
-
-[Setting name="Display Comparison Time Delta Column" description="Show the comparison time delta column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardDeltaColumn = true;
-
-[Setting name="Display Copium Column" description="Show the Copium column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardCopiumColumn = false;
-
-[Setting name="Display Respawns Column" description="Show the Respawns column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardRespawnsColumn = false;
-
-[Setting name="Display Score Number Column" description="Show the score number column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardScoreNumberColumn = false;
-
-[Setting name="Display Session Number Column" description="Show the session number column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardSessionNumberColumn = false;
-
-[Setting name="Display Timestamp Column" description="Show the timestamp column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardTimestampColumn = false;
-
-[Setting name="Display Player Column" description="Show the player column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardPlayerColumn = false;
-
-[Setting name="Display Session Time" description="Show the session time column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardSessionTimeColumn = false;
-
-[Setting name="Display Total Time" description="Show the total time column in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardTotalTimeColumn = false;
-
-[Setting name="Display Time Since" description="Show the time since the record was set in the leaderboard" category="UI"]
-bool settingDisplayLeaderboardTimeSinceColumn = false;
-
 [Setting name="Filter Personal Bests" description="Show only previous personal bests in the leaderboard" category="UI"]
 bool settingFilterPersonalBests = false;
 
