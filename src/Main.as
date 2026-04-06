@@ -26,17 +26,18 @@ void Update(float dt)
 
 void OnSettingsChanged()
 {
-    LocalLeaderboard::InitRender();
-    LocalLeaderboard::InitRows();
+    LocalLeaderboard::OnSettingsChanged();
 }
 
 namespace LocalLeaderboard
 {
 
+Settings g_Settings = Settings();
 State g_State = State();
 
 void Init()
 {
+    loadSettings(g_Settings);
     InitRender();
     LogDebug("Local Leaderboard plugin initializing.");
 }
@@ -44,6 +45,13 @@ void Init()
 void Shutdown()
 {
     LogDebug("Local Leaderboard plugin shutting down.");
+}
+
+void OnSettingsChanged()
+{
+    saveSettings(g_Settings);
+    InitRender();
+    InitRows();
 }
 
 void Update(float dt)

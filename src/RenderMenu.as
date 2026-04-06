@@ -13,6 +13,12 @@ void RenderMenu()
             UI::EndMenu();
         }
 
+        if (UI::BeginMenu(Icons::ClockO + " Edit Table Columns"))
+        {
+            LocalLeaderboard::RenderTableColumnsMenu();
+            UI::EndMenu();
+        }
+
         UI::EndMenu();
     }
 }
@@ -96,6 +102,70 @@ void RenderCustomEntries()
             g_State.UpdateCustomEntryTime(i, newTime);
         }
     }
+
+    UI::EndTable();
+}
+
+void RenderTableColumnsMenu()
+{
+
+    array<ColumnSettings @> @columnSettings = @g_Settings.m_TableSettings.m_Columns;
+
+    UI::BeginCombo();
+    for (uint i = 0; i < g_AllTableColumns.Length; ++i)
+    {
+        auto @column = g_AllTableColumns[i];
+        if (UI::Selectable(column.renderHeader()))
+        {
+            g_Settings.m_TableSettings.m_Columns.InsertLast(ColumnSettings(column.GetType()));
+            saveSettings(g_Settings);
+        }
+    }
+    UI::EndCombo();
+
+
+    UI::BeginTable("CustomEntriesTable", 3);
+
+    UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed, 30);
+    UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed, 200);
+
+    UI::TableHeadersRow();
+
+    UI::TableNextRow();
+    for (uint i = 0; i < g_TableColumns.Length; ++i)
+    {
+        auto @column = g_TableColumns[i];
+
+        UI::TableNextColumn();
+        if (UI::Button(Icons::Trash + "##" + i))
+        {
+            columnSettings.RemoveAt(i);
+            OnSettingsChanged();
+            break;
+        }
+
+        if (UI::Button(Icons::ArrowUp + "##" + i) && i > 0)
+        {
+            auto @tmp = columnSettings[i];
+            @columnSettings[i] = @columnSettings[i - 1];
+            @columnSettings[i - 1] = @tmp;
+            OnSettingsChanged();
+            break;
+        }
+
+        if (UI::Button(Icons::ArrowDown + "##" + i) && i < g_TableColumns.Length - 1)
+        {
+            auto @tmp = columnSettings[i];
+            @columnSettings[i] = @columnSettings[i + 1];
+            @columnSettings[i + 1] = @tmp;
+            OnSettingsChanged();
+            break;
+        }
+
+        UI::TableNextColumn();
+        column.renderHeader();
+    }
+
 
     UI::EndTable();
 }

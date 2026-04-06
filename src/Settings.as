@@ -139,3 +139,58 @@ vec3 settingColorTimeLast = vec3(0.5f, 1.0f, 0.0f);
 // Category Debug
 [Setting name="Show Debug Info" description="Show debug information in the console" category="Debug"]
 bool settingShowDebugInfo = false;
+
+
+namespace LocalLeaderboard
+{
+
+class Settings
+{
+    TableSettings m_TableSettings = TableSettings();
+}
+
+class TableSettings
+{
+    array<ColumnSettings @> m_Columns = {
+        ColumnSettings(TableColumnType::MedalColumn),
+        ColumnSettings(TableColumnType::RankColumn),
+        ColumnSettings(TableColumnType::TimeColumn),
+        ColumnSettings(TableColumnType::TimeDeltaColumn, TimeDeltaColumnSettings(ComparisonTargetType::FastestRun)),
+    };
+}
+
+class ColumnSettings
+{
+    TableColumnType m_Type;
+    TableColumnSettings@ m_CustomSettings;
+
+    ColumnSettings(const TableColumnType type)
+    {
+        m_Type = type;
+        m_CustomSettings = null;
+    }
+    ColumnSettings(const TableColumnType type, TableColumnSettings@ customSettings)
+    {
+        m_Type = type;
+        @m_CustomSettings = @customSettings;
+    }
+}
+
+class TableColumnSettings
+{
+}
+
+class TimeDeltaColumnSettings : TableColumnSettings
+{
+    ComparisonTargetType m_Target;
+    TimeDeltaColumnSettings()
+    {
+        m_Target = null;
+    }
+    TimeDeltaColumnSettings(const ComparisonTargetType target)
+    {
+        m_Target = target;
+    }
+}
+
+}

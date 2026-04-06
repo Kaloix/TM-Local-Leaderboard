@@ -1,6 +1,35 @@
 namespace LocalLeaderboard
 {
 
+void saveSettings(const Settings&in settings)
+{
+    string filePath = IO::FromStorageFolder("settings.json");
+
+    auto root = Json::Object();
+    root["version"] = Meta::ExecutingPlugin().Version;
+    root["settings"] = serializeSettings(settings);
+
+    Json::ToFile(filePath, root);
+    LogInfo("Saved settings to " + filePath);
+}
+
+void loadSettings(Settings&inout settings) {
+
+    string filePath = IO::FromStorageFolder("settings.json");
+
+    if (!IO::FileExists(filePath))
+    {
+        // Start with an empty leaderboard if no file exists
+        LogInfo("No settings found at " + filePath);
+        return;
+    }
+
+    auto root = Json::FromFile(filePath);
+    deserializeSettings(settings, root["settings"]);
+
+    LogInfo("Loaded settings from " + filePath);
+}
+
 void SaveLeaderboard(const State&in state)
 {
     if (state.m_CurrentMap == "")
@@ -199,6 +228,85 @@ CheckpointData @deserializeCheckpointData(const Json::Value&in cpDataObj)
     cpData.m_Speed = cpDataObj["speed"];
     cpData.m_NumberRespawns = cpDataObj["numberRespawns"];
     return @cpData;
+}
+
+Json::Value serializeSettings(const Settings&in settings)
+{
+    auto settingsObj = Json::Object();
+    settingsObj["tableSettings"] = serializeTableSettings(settings.m_TableSettings);
+    return settingsObj;
+}
+
+void deserializeSettings(Settings&inout settings, const Json::Value&in settingsObj)
+{
+    settings.m_TableSettings = deserializeTableSettings(settingsObj["tableSettings"]);
+}
+
+Json::Value serializeTableSettings(const TableSettings&in tableSettings)
+{
+    auto tableSettingsObj = Json::Object();
+
+    auto columns = Json::Array();
+    for (uint i = 0; i < tableSettings.m_Columns.Length; ++i)
+    {
+        columns.Add(serializeColumnSettings(tableSettings.m_Columns[i]));
+    }
+    tableSettingsObj["columns"] = columns;
+
+    return tableSettingsObj;
+}
+
+void deserializeTableSettings(TableSettings&inout tableSettings, const Json::Value&in tableSettingsObj)
+{
+    tableSettings.m_Columns.RemoveRange(0, tableSettings.m_Columns.Length);
+    for (uint i = 0; i < tableSettingsObj.Length; ++i)
+    {
+        auto @columnSettings = ColumnSettings(TableColumnType::MedalColumn);
+        deserializeColumnSettings(columnSettings, tableSettingsObj.Get(i));
+        tableSettings.m_Columns.InsertLast(columnSettings);
+    }
+}
+
+Json::Value serializeColumnSettings(const ColumnSettings&in columnSettings)
+{
+    auto columnSettingsObj = Json::Object();
+    columnSettingsObj["type"] = columnSettings.m_Type;
+
+    if (columnSettings.m_CustomSettings !is null)
+    {
+        auto @castedTimeDeltaColumnSettings = cast<TimeDeltaColumnSettings>(columnSettings.m_CustomSettings);
+        if (castedTimeDeltaColumnSettings !is null)
+            columnSettingsObj["custom"] = serializeTimeDeltaColumnSettings(castedTimeDeltaColumnSettings);
+    }
+
+    return columnSettingsObj;
+}
+
+void deserializeColumnSettings(ColumnSettings&inout columnSettings, const Json::Value&in columnSettingsObj)
+{
+    columnSettings.m_Type = columnSettingsObj["type"];
+
+    if (columnSettingsObj.HasKey("custom"))
+    {
+        if (columnSettings.m_Type == TableColumnType::TimeDeltaColumn) {
+            columnSettings.m_CustomSettings = TimeDeltaColumnSettings();
+            deserializeTimeDeltaColumnSettings(columnSettings.m_CustomSettings, columnSettingsObj["custom"]);
+        }
+    } else {
+        columnSettings.m_CustomSettings = null;
+    }
+}
+
+Json::Value serializeTimeDeltaColumnSettings(const TimeDeltaColumnSettings&in columnsSettings)
+{
+    auto columnSettingsObj = Json::Object();
+    columnSettingsObj["target"] = columnsSettings.m_Target;
+    return columnSettingsObj;
+}
+
+void deserializeTimeDeltaColumnSettings(TimeDeltaColumnSettings&inout columnSettings, const Json::Value&in columnSettingsObj)
+{
+    columnSettings.m_Target = columnSettingsObj["target"];
 }
 
 string buildFileDir()
