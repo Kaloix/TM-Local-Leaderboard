@@ -36,12 +36,35 @@ enum TableColumnType
 
 void initializeTableColumns()
 {
-    // @(cast<TimeDeltaColumn>(g_AllTableColumns[4]).m_ComparisonTarget) = @g_ComparisonTargets[0];
+    // Set comparison target for the delta column
+    @(cast<TimeDeltaColumn>(g_AllTableColumns[4])).m_ComparisonTarget = @GetComparisonTarget(settingComparisonTarget);
+
+    // Set position
+    for (int i = 0; i < g_AllTableColumns.Length; ++i)
+    {
+        g_AllTableColumns[i].m_Pos = i;
+    }
+}
+
+TableColumn@ GetTableColumn(const int pos)
+{
+    for (int i = 0; i < g_AllTableColumns.Length; ++i)
+    {
+        if (g_AllTableColumns[i].m_Pos == pos)
+        {
+            return @g_AllTableColumns[i];
+        }
+    }
+
+    LogWarning("No column at position: " + pos);
+    return null;
 }
 
 class TableColumn
 {
     bool m_Show = true;
+
+    int m_Pos = 0;
 
     TableColumnType GetType() const
     {

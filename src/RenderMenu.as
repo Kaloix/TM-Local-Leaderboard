@@ -109,9 +109,9 @@ void RenderCustomEntries()
 void RenderTableColumnsMenu()
 {
 
-    UI::BeginTable("CustomEntriesTable", 3);
+    UI::BeginTable("CustomEntriesTable", 2);
 
-    UI::TableSetupColumn("A##Actions", UI::TableColumnFlags::WidthFixed, 50);
+    UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed, 200);
     UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed, 200);
 
     UI::TableHeadersRow();
@@ -120,7 +120,7 @@ void RenderTableColumnsMenu()
     {
         UI::TableNextRow();
 
-        auto @column = @g_AllTableColumns[i];
+        auto @column = @GetTableColumn(i);
 
         UI::TableNextColumn();
         const auto newShow = UI::Checkbox("##Show" + i, column.m_Show);
@@ -130,23 +130,32 @@ void RenderTableColumnsMenu()
             break;
         }
 
-        // if (UI::Button(Icons::ArrowUp + "##" + i) && i > 0)
-        // {
-        //     auto @tmp = columnSettings[i];
-        //     @columnSettings[i] = @columnSettings[i - 1];
-        //     @columnSettings[i - 1] = @tmp;
-        //     OnSettingsChanged();
-        //     break;
-        // }
+        UI::SameLine();
+        UI::BeginDisabled(i == 0);
+        if (UI::Button(Icons::ArrowUp + "##" + i))
+        {
+            GetTableColumn(i - 1).m_Pos += 1;
+            column.m_Pos -= 1;
+            OnSettingsChanged();
 
-        // if (UI::Button(Icons::ArrowDown + "##" + i) && i < g_TableColumns.Length - 1)
-        // {
-        //     auto @tmp = columnSettings[i];
-        //     @columnSettings[i] = @columnSettings[i + 1];
-        //     @columnSettings[i + 1] = @tmp;
-        //     OnSettingsChanged();
-        //     break;
-        // }
+            UI::EndDisabled();
+            break;
+        }
+        UI::EndDisabled();
+
+        UI::SameLine();
+        UI::BeginDisabled(i == g_AllTableColumns.Length - 1);
+        if (UI::Button(Icons::ArrowDown + "##" + i) )
+        {
+            GetTableColumn(i + 1).m_Pos -= 1;
+            column.m_Pos += 1;
+
+            OnSettingsChanged();
+
+            UI::EndDisabled();
+            break;
+        }
+        UI::EndDisabled();
 
         UI::TableNextColumn();
         UI::Text(column.GetName());

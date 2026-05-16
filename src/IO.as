@@ -272,6 +272,7 @@ Json::Value serializeColumnSettings(const TableColumn&in column)
     auto columnSettingsObj = Json::Object();
     columnSettingsObj["type"] = column.GetType();
     columnSettingsObj["show"] = column.m_Show;
+    columnSettingsObj["pos"] = column.m_Pos;
 
     // if (column.GetType() == TableColumnType::TimeDeltaColumn) {
     //     const TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
@@ -284,6 +285,7 @@ Json::Value serializeColumnSettings(const TableColumn&in column)
 void deserializeColumnSettings(TableColumn&inout column, const Json::Value&in columnSettingsObj)
 {
     column.m_Show = columnSettingsObj["show"];
+    column.m_Pos = columnSettingsObj["pos"];
 
     // if (column.GetType() == TableColumnType::TimeDeltaColumn) {
     //     TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);

@@ -37,6 +37,7 @@ void InitRender()
     g_TableColumns.RemoveRange(0, g_TableColumns.Length);
     g_TableWidth = 0.0f;
 
+    // Add all columns that are active
     for (uint i = 0; i < g_AllTableColumns.Length; ++i)
     {
         if (g_AllTableColumns[i].shouldDisplay())
@@ -46,6 +47,9 @@ void InitRender()
         }
     }
 
+    // Order columns
+    g_TableColumns.Sort(columnSort);
+
     // Setup window flags
     windowFlags = UI::GetDefaultWindowFlags() | UI::WindowFlags::NoResize;
     if (!settingDisplayLeaderboardTitleBar)
@@ -54,9 +58,6 @@ void InitRender()
 
 void InitRows()
 {
-    // Set comparison target for the delta column
-    @(cast<TimeDeltaColumn>(g_AllTableColumns[4])).m_ComparisonTarget = @GetComparisonTarget(settingComparisonTarget);
-
     // Add rows to display
     g_TableRows.RemoveRange(0, g_TableRows.Length);
 
@@ -150,6 +151,11 @@ bool chronologicalSort(const LeaderboardEntry @ const&in a, const LeaderboardEnt
         default:
             return false;
     }
+}
+
+bool columnSort(const TableColumn@ const&in a, const TableColumn@ const&in b)
+{
+    return a.m_Pos < b.m_Pos;
 }
 
 void Render()
