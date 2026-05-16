@@ -40,9 +40,6 @@ bool settingFilterSessionBests = false;
 [Setting name="Filter Current Session" description="Show only times of the current session in the leaderboard" category="UI"]
 bool settingFilterSessionCurrent = false;
 
-[Setting name="Comparison Target" description="The target time to compare against in the leaderboard" category="UI"]
-ComparisonTargetType settingComparisonTarget = ComparisonTargetType::FastestRun;
-
 [Setting name="Display Newest Copium" description="Show the player's copium time of the last run in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardCopiumNewest = false;
 

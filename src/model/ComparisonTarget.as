@@ -78,7 +78,10 @@ class ComparisonTarget
     {
         return ComparisonTargetType::FastestRun;
     }
-
+    string GetName() const
+    {
+        return "";
+    }
     int GetTime() const
     {
         return GetComparisonTargetEntry().GetDisplayTime();
@@ -112,6 +115,10 @@ class PersonalBestComparisonTarget : ComparisonTarget
     {
         return ComparisonTargetType::FastestRun;
     }
+    string GetName() const override
+    {
+        return "Personal Best";
+    }
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {
         return @g_State.m_Leaderboard.m_FastestRun;
@@ -123,6 +130,10 @@ class SessionBestComparisonTarget : ComparisonTarget
     ComparisonTargetType GetType() const override
     {
         return ComparisonTargetType::SessionFastestRun;
+    }
+    string GetName() const override
+    {
+        return "Session Best";
     }
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {
@@ -140,6 +151,10 @@ class NewestRunComparisonTarget : ComparisonTarget
     {
         return ComparisonTargetType::NewestRun;
     }
+    string GetName() const override
+    {
+        return "Latest";
+    }
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {
         return @g_State.m_Leaderboard.m_NewestRun;
@@ -156,6 +171,10 @@ class FastestCopiumComparisonTarget : ComparisonTarget
     {
         return ComparisonTargetType::FastestCopium;
     }
+    string GetName() const override
+    {
+        return "Fastest Copium";
+    }
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {
         return @g_State.m_Leaderboard.m_FastestCopiumRun;
@@ -168,6 +187,10 @@ class SessionFastestCopiumComparisonTarget : ComparisonTarget
     {
         return ComparisonTargetType::SessionFastestCopium;
     }
+    string GetName() const override
+    {
+        return "Session Copium";
+    }
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {
         return @g_State.m_Leaderboard.m_SessionFastestCopiumRun;
@@ -179,6 +202,10 @@ class NewestCopiumComparisonTarget : ComparisonTarget
     ComparisonTargetType GetType() const override
     {
         return ComparisonTargetType::NewestCopium;
+    }
+    string GetName() const override
+    {
+        return "Latest Copium";
     }
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {
@@ -196,6 +223,10 @@ class BestCheckpointsComparisonTarget : ComparisonTarget
     {
         return ComparisonTargetType::BestCheckpoints;
     }
+    string GetName() const override
+    {
+        return "Best Checkpoints";
+    }
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {
         return @g_State.m_Leaderboard.m_BestCheckpointsRun;
@@ -207,6 +238,10 @@ class SessionBestCheckpointsComparisonTarget : ComparisonTarget
     ComparisonTargetType GetType() const override
     {
         return ComparisonTargetType::SessionBestCheckpoints;
+    }
+    string GetName() const override
+    {
+        return "Session Checkpoints";
     }
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {
@@ -223,6 +258,10 @@ class MedalComparisonTarget : ComparisonTarget
     MedalType GetMedalType() const
     {
         return MedalType::Author;
+    }
+    string GetName() const override
+    {
+        return GetComparisonTargetEntry().m_Medal.GetName();
     }
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {

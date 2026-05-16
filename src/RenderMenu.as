@@ -109,10 +109,11 @@ void RenderCustomEntries()
 void RenderTableColumnsMenu()
 {
 
-    UI::BeginTable("CustomEntriesTable", 2);
+    UI::BeginTable("CustomEntriesTable", 3);
 
     UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed, 200);
     UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed, 200);
+    UI::TableSetupColumn("##Other", UI::TableColumnFlags::WidthFixed, 300);
 
     UI::TableHeadersRow();
 
@@ -127,7 +128,6 @@ void RenderTableColumnsMenu()
         if (column.m_Show != newShow) {
             column.m_Show = newShow;
             OnSettingsChanged();
-            break;
         }
 
         UI::SameLine();
@@ -159,6 +159,27 @@ void RenderTableColumnsMenu()
 
         UI::TableNextColumn();
         UI::Text(column.GetName());
+
+        UI::TableNextColumn();
+        if (column.GetType() == TableColumnType::TimeDeltaColumn) {
+            auto @timeDeltaColumn = cast<TimeDeltaColumn>(column);
+
+            UI::PushItemWidth(250.0f);
+            if (UI::BeginCombo("##Target" + i, timeDeltaColumn.m_ComparisonTarget.GetName()))
+            {
+                for (uint j = 0; j < g_ComparisonTargets.Length; ++j)
+                {
+                    auto @comparisonTarget = @g_ComparisonTargets[j];
+                    if (UI::Selectable(comparisonTarget.GetName(), false))
+                    {
+                        @timeDeltaColumn.m_ComparisonTarget = @comparisonTarget;
+                        OnSettingsChanged();
+                    }
+                }
+                UI::EndCombo();
+            }
+            UI::PopItemWidth();
+        }
     }
 
 

@@ -37,10 +37,10 @@ enum TableColumnType
 void initializeTableColumns()
 {
     // Set comparison target for the delta column
-    @(cast<TimeDeltaColumn>(g_AllTableColumns[4])).m_ComparisonTarget = @GetComparisonTarget(settingComparisonTarget);
+    @(cast<TimeDeltaColumn>(g_AllTableColumns[4])).m_ComparisonTarget = @GetComparisonTarget(ComparisonTargetType::FastestRun);
 
     // Set position
-    for (int i = 0; i < g_AllTableColumns.Length; ++i)
+    for (uint i = 0; i < g_AllTableColumns.Length; ++i)
     {
         g_AllTableColumns[i].m_Pos = i;
     }
@@ -48,7 +48,7 @@ void initializeTableColumns()
 
 TableColumn@ GetTableColumn(const int pos)
 {
-    for (int i = 0; i < g_AllTableColumns.Length; ++i)
+    for (uint i = 0; i < g_AllTableColumns.Length; ++i)
     {
         if (g_AllTableColumns[i].m_Pos == pos)
         {
