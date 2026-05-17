@@ -36,6 +36,10 @@ State g_State = State();
 
 void Init()
 {
+    InitializeMedals();
+    InitializeComparisonTarget();
+    initializeTableColumns();
+
     loadSettings();
     InitRender();
     LogDebug("Local Leaderboard plugin initializing.");
@@ -124,10 +128,6 @@ void OnMapLoad()
     g_State.m_CurrentMap = map.IdName;
     g_State.m_CurrentMapName = map.MapName;
     g_State.m_CurrentMapAuthor = map.AuthorNickName;
-
-    InitializeMedals();
-    InitializeComparisonTarget();
-    initializeTableColumns();
 
     LoadLeaderboard(g_State);
 

@@ -72,6 +72,17 @@ ComparisonTarget@ GetComparisonTarget(ComparisonTargetType type)
     return null;
 }
 
+ComparisonTarget@ GetComparisonTarget(const string&in name)
+{
+    for (uint i = 0; i < g_ComparisonTargets.Length; i++)
+    {
+        if (g_ComparisonTargets[i].GetName() == name)
+            return @g_ComparisonTargets[i];
+    }
+    LogWarning("Comparison target not found for name: " + name);
+    return null;
+}
+
 class ComparisonTarget
 {
     ComparisonTargetType GetType() const
@@ -261,7 +272,7 @@ class MedalComparisonTarget : ComparisonTarget
     }
     string GetName() const override
     {
-        return GetComparisonTargetEntry().m_Medal.GetName();
+        return g_Medals[GetMedalType()].GetName() + " Medal";
     }
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {

@@ -249,7 +249,7 @@ Json::Value serializeTableSettings()
     auto columns = Json::Array();
     for (uint i = 0; i < g_AllTableColumns.Length; ++i)
     {
-        columns.Add(serializeColumnSettings(g_AllTableColumns[i]));
+        columns.Add(serializeColumnSettings(@g_AllTableColumns[i]));
     }
     tableSettingsObj["columns"] = columns;
 
@@ -267,31 +267,32 @@ void deserializeTableSettings(const Json::Value&in tableSettingsObj)
     }
 }
 
-Json::Value serializeColumnSettings(const TableColumn&in column)
+Json::Value serializeColumnSettings(const TableColumn@ column)
 {
     auto columnSettingsObj = Json::Object();
     columnSettingsObj["type"] = column.GetType();
     columnSettingsObj["show"] = column.m_Show;
     columnSettingsObj["pos"] = column.m_Pos;
 
-    // if (column.GetType() == TableColumnType::TimeDeltaColumn) {
-    //     const TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
-    //     columnSettingsObj["target"] = timeDeltaColumn.m_ComparisonTarget.GetType();
-    // }
+    if (column.GetType() == TableColumnType::TimeDeltaColumn) {
+        const TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
+        if (timeDeltaColumn.m_ComparisonTarget !is null)
+            columnSettingsObj["target"] = timeDeltaColumn.m_ComparisonTarget.GetName();
+    }
 
     return columnSettingsObj;
 }
 
-void deserializeColumnSettings(TableColumn&inout column, const Json::Value&in columnSettingsObj)
+void deserializeColumnSettings(TableColumn@ column, const Json::Value&in columnSettingsObj)
 {
     column.m_Show = columnSettingsObj["show"];
     column.m_Pos = columnSettingsObj["pos"];
 
-    // if (column.GetType() == TableColumnType::TimeDeltaColumn) {
-    //     TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
-    //     const int target = columnSettingsObj["target"];
-    //     @timeDeltaColumn.m_ComparisonTarget = GetComparisonTarget(ComparisonTargetType(target));
-    // }
+    if (column.GetType() == TableColumnType::TimeDeltaColumn) {
+        TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
+        const string target = columnSettingsObj["target"];
+        @timeDeltaColumn.m_ComparisonTarget = @GetComparisonTarget(target);
+    }
 }
 
 string buildFileDir()
