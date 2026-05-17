@@ -237,6 +237,8 @@ class Leaderboard
 
 class LeaderboardEntry
 {
+    int64 m_Id = Time::get_Stamp();
+
     uint m_ScoreNumber = 0;
     uint m_SessionNumber = 0;
     LeaderboardEntryType m_Type = LeaderboardEntryType::Score;

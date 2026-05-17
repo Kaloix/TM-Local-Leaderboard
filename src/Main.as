@@ -308,12 +308,25 @@ class State
         LeaderboardEntry newEntry;
         newEntry.m_Type = LeaderboardEntryType::CustomScore;
         newEntry.m_Time = 0;
-        newEntry.m_PlayerName = "Custom Entry";
+        newEntry.m_PlayerName = "Custom Entry " + (m_CustomEntries.Length + 1);
         setMedal(newEntry);
         m_CustomEntries.InsertLast(newEntry);
 
         InitRows();
         SaveLeaderboard(this);
+    }
+
+    LeaderboardEntry@ GetCustomEntry(const int64 id)
+    {
+        for (uint i = 0; i < m_CustomEntries.Length; ++i)
+        {
+            LeaderboardEntry@ entry = @m_CustomEntries[i];
+            if (entry.m_Id == id)
+            {
+                return entry;
+            }
+        }
+        return null;
     }
 
     void UpdateCustomEntryName(uint index, const string&in newName)

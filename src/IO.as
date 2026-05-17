@@ -156,6 +156,7 @@ void LoadLeaderboard(State&inout state)
 Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
 {
     auto entryObj = Json::Object();
+    entryObj["id"] = entry.m_Id;
     entryObj["scoreNumber"] = entry.m_ScoreNumber;
     entryObj["sessionNumber"] = entry.m_SessionNumber;
     entryObj["type"] = entry.m_Type;
@@ -183,6 +184,7 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
 LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
 {
     auto @entry = LeaderboardEntry();
+    entry.m_Id = entryObj["id"];
     entry.m_ScoreNumber = entryObj["scoreNumber"];
     entry.m_SessionNumber = entryObj["sessionNumber"];
     int typeValue = entryObj["type"];
@@ -277,7 +279,15 @@ Json::Value serializeColumnSettings(const TableColumn@ column)
     if (column.GetType() == TableColumnType::TimeDeltaColumn) {
         const TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
         if (timeDeltaColumn.m_ComparisonTarget !is null)
-            columnSettingsObj["target"] = timeDeltaColumn.m_ComparisonTarget.GetName();
+        {
+            auto @target = @timeDeltaColumn.m_ComparisonTarget;
+            columnSettingsObj["target"] = target.GetName();
+            if (timeDeltaColumn.m_ComparisonTarget.GetType() == ComparisonTargetType::CustomEntry)
+            {
+                auto @customTarget = cast<CustomEntryComparisonTarget>(target);
+                columnSettingsObj["targetEntryId"] = customTarget.m_CustomEntryId;
+            }
+        }
     }
 
     return columnSettingsObj;
@@ -291,7 +301,14 @@ void deserializeColumnSettings(TableColumn@ column, const Json::Value&in columnS
     if (column.GetType() == TableColumnType::TimeDeltaColumn) {
         TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
         const string target = columnSettingsObj["target"];
-        @timeDeltaColumn.m_ComparisonTarget = @GetComparisonTarget(target);
+        auto @comparisonTarget = @GetComparisonTarget(target);
+        @timeDeltaColumn.m_ComparisonTarget = @comparisonTarget;
+
+        if (comparisonTarget.GetType() == ComparisonTargetType::CustomEntry)
+        {
+            auto @customTarget = cast<CustomEntryComparisonTarget>(comparisonTarget);
+            customTarget.m_CustomEntryId = columnSettingsObj["targetEntryId"];
+        }
     }
 }
 

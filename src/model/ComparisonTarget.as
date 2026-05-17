@@ -16,6 +16,9 @@ enum ComparisonTargetType
     BestCheckpoints,
     SessionBestCheckpoints,
 
+    // Custom entries
+    CustomEntry,
+
     // Medals
 #if DEPENDENCY_CHAMPIONMEDALS
     ChampionMedal,
@@ -48,6 +51,8 @@ void InitializeComparisonTarget()
     // Checkpoints runs
     g_ComparisonTargets.InsertLast(BestCheckpointsComparisonTarget());
     g_ComparisonTargets.InsertLast(SessionBestCheckpointsComparisonTarget());
+    // Custom entries
+    g_ComparisonTargets.InsertLast(CustomEntryComparisonTarget());
     // Medals
 #if DEPENDENCY_CHAMPIONMEDALS
     g_ComparisonTargets.InsertLast(ChampionMedalComparisonTarget());
@@ -257,6 +262,27 @@ class SessionBestCheckpointsComparisonTarget : ComparisonTarget
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {
         return @g_State.m_Leaderboard.m_SessionBestCheckpointsRun;
+    }
+}
+
+// ====================
+// --- Custom Entry ---
+// ====================
+
+class CustomEntryComparisonTarget : ComparisonTarget
+{
+    int64 m_CustomEntryId = -1;
+    ComparisonTargetType GetType() const override
+    {
+        return ComparisonTargetType::CustomEntry;
+    }
+    string GetName() const override
+    {
+        return "Custom Entry";
+    }
+    LeaderboardEntry@ GetComparisonTargetEntry() const override
+    {
+        return g_State.GetCustomEntry(m_CustomEntryId);
     }
 }
 

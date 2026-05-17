@@ -170,12 +170,32 @@ void RenderTableColumnsMenu()
                 for (uint j = 0; j < g_ComparisonTargets.Length; ++j)
                 {
                     auto @comparisonTarget = @g_ComparisonTargets[j];
-                    if (UI::Selectable(comparisonTarget.GetName(), false))
+                    auto isEntrySelected = timeDeltaColumn.m_ComparisonTarget.GetType() == comparisonTarget.GetType();
+
+                    if (comparisonTarget.GetType() == ComparisonTargetType::CustomEntry)
                     {
-                        @timeDeltaColumn.m_ComparisonTarget = @comparisonTarget;
-                        OnSettingsChanged();
+                        auto @customEntryTarget = cast<CustomEntryComparisonTarget>(comparisonTarget);
+                        for (uint k = 0; k < g_State.m_CustomEntries.Length; ++k)
+                        {
+                            auto @customEntry = @g_State.m_CustomEntries[k];
+                            if (UI::Selectable("Custom Entry: " + customEntry.m_PlayerName, isEntrySelected && customEntryTarget.m_CustomEntryId == customEntry.m_Id))
+                            {
+                                customEntryTarget.m_CustomEntryId = customEntry.m_Id;
+                                @timeDeltaColumn.m_ComparisonTarget = customEntryTarget;
+                                OnSettingsChanged();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (UI::Selectable(comparisonTarget.GetName(), isEntrySelected))
+                        {
+                            @timeDeltaColumn.m_ComparisonTarget = @comparisonTarget;
+                            OnSettingsChanged();
+                        }
                     }
                 }
+
                 UI::EndCombo();
             }
             UI::PopItemWidth();
