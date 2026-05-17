@@ -220,6 +220,12 @@ void addMedals()
     for (uint i = 0; i < g_Medals.Length; ++i)
     {
         Medal @medal = @g_Medals[i];
+
+        if (medal.GetTime() <= 0) {
+            LogDebug("No time for medal " + medal.GetName());
+            continue;
+        }
+
         auto medalEntry = LeaderboardEntry();
         medalEntry.m_Type = LeaderboardEntryType::Medal;
         @medalEntry.m_Medal = @medal;
