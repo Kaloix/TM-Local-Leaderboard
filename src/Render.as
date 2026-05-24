@@ -61,10 +61,17 @@ void InitRows()
     // Add rows to display
     g_TableRows.RemoveRange(0, g_TableRows.Length);
 
-    if (settingDisplayLeaderboardBestCheckpointsRun && g_State.m_Leaderboard.m_BestCheckpointsRun !is null)
+    // Sum of best checkpoints overall and of the current session
+    if (settingDisplayLeaderboardBestCheckpointsRun && g_State.m_Leaderboard.m_BestCheckpointsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_BestCheckpointsRun.m_Time)
         g_TableRows.InsertLast(g_State.m_Leaderboard.m_BestCheckpointsRun);
-    if (settingDisplayLeaderboardSessionBestCheckpointsRun && g_State.m_Leaderboard.m_SessionBestCheckpointsRun !is null)
+    if (settingDisplayLeaderboardSessionBestCheckpointsRun && g_State.m_Leaderboard.m_SessionBestCheckpointsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_SessionBestCheckpointsRun.m_Time)
         g_TableRows.InsertLast(g_State.m_Leaderboard.m_SessionBestCheckpointsRun);
+
+    // Sum of best laps overall and of the current session
+    if (settingDisplayLeaderboardBestLapsRun && g_State.m_Leaderboard.m_BestLapsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_BestLapsRun.m_Time)
+        g_TableRows.InsertLast(g_State.m_Leaderboard.m_BestLapsRun);
+    if (settingDisplayLeaderboardSessionBestLapsRun && g_State.m_Leaderboard.m_SessionBestLapsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_SessionBestLapsRun.m_Time)
+        g_TableRows.InsertLast(g_State.m_Leaderboard.m_SessionBestLapsRun);
 
     bool addedNewestCopium = false;
     bool addedFastestCopium = false;
@@ -215,6 +222,8 @@ void Render()
         context.m_IsPlayerSessionBestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionFastestCopiumRun;
         context.m_IsPlayerBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_BestCheckpointsRun;
         context.m_IsPlayerSessionBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionBestCheckpointsRun;
+        context.m_IsPlayerBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_BestLapsRun;
+        context.m_IsPlayerSessionBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionBestLapsRun;
 
         UI::TableNextRow();
 
@@ -243,7 +252,10 @@ void Render()
 
             UI::EndTable();
 
-            RenderCheckpoints(context);
+            if (context.m_CurrentEntry.m_Checkpoints.Length > 1)
+                RenderCheckpoints(context);
+            if (context.m_CurrentEntry.m_Laps.Length > 1)
+                RenderLaps(context);
 
             UI::EndTooltip();
         }
@@ -269,6 +281,8 @@ class TableRenderContext
     bool m_IsPlayerSessionBestCopium = false;
     bool m_IsPlayerBestCheckpoints = false;
     bool m_IsPlayerSessionBestCheckpoints = false;
+    bool m_IsPlayerBestLaps = false;
+    bool m_IsPlayerSessionBestLaps = false;
 }
 
 void RenderCheckpoints(const TableRenderContext&in context)
@@ -289,6 +303,14 @@ void RenderCheckpoints(const TableRenderContext&in context)
     for (uint i = 0; i < context.m_CurrentEntry.m_Checkpoints.Length; i++)
     {
         UI::TableNextRow();
+
+        const auto @raceData = @MLFeed::GetRaceData_V4();
+        if (raceData.LapCount > 1 && i % (raceData.CPCount + 1) == 0)
+        {
+            UI::TableSetColumnIndex(1);
+            UI::Text("Lap " + (i / (raceData.CpCount + 1) + 1));
+            UI::TableNextRow();
+        }
 
         auto @cpData = @context.m_CurrentEntry.m_Checkpoints[i];
 
@@ -364,6 +386,84 @@ void RenderCheckpoints(const TableRenderContext&in context)
     UI::EndTable();
 }
 
+void RenderLaps(const TableRenderContext&in context)
+{
+    UI::BeginTable("LapTimes" + context.m_CurrentRow, 8);
+
+    UI::TableSetupColumn("Lap", UI::TableColumnFlags::WidthFixed, 30);
+    UI::TableSetupColumn("Time Acc", UI::TableColumnFlags::WidthFixed, 60);
+    UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 60);
+    UI::TableSetupColumn("Time NR", UI::TableColumnFlags::WidthFixed, 60);
+    UI::TableSetupColumn(Icons::Refresh, UI::TableColumnFlags::WidthFixed, COLUMN_NUMBER_RESPAWNS_WIDTH);
+    UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH + 50);
+    UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH + 50);
+
+    UI::TableHeadersRow();
+
+    for (uint i = 0; i < context.m_CurrentEntry.m_Laps.Length; i++)
+    {
+        UI::TableNextRow();
+
+        auto @lapData = @context.m_CurrentEntry.m_Laps[i];
+
+        LeaderboardEntry @bestLapsRun = g_State.m_Leaderboard.m_BestLapsRun;
+        LeaderboardEntry @pb = g_State.m_Leaderboard.m_FastestRun;
+
+        bool pushedColor = false;
+
+        if (bestLapsRun !is null && bestLapsRun.m_Laps[i].m_TimeFromPrevious == lapData.m_TimeFromPrevious)
+        {
+            UI::PushStyleColor(UI::Col::Text, vec4(0xDD / 255.0f, 0xBB / 255.0f, 0x44 / 255.0f, 1));
+            pushedColor = true;
+        }
+
+        UI::TableNextColumn();
+        UI::Text("" + (i + 1));
+
+        UI::TableNextColumn();
+        UI::Text(Time::Format(lapData.m_TimeFromStart));
+
+        UI::TableNextColumn();
+        UI::Text(Time::Format(lapData.m_TimeFromPrevious));
+
+        UI::TableNextColumn();
+        UI::Text(Time::Format(lapData.m_TimeFromPreviousNoRespawn));
+
+        UI::TableNextColumn();
+        UI::Text("" + lapData.m_NumberRespawns);
+
+        UI::TableNextColumn();
+        if (bestLapsRun !is null)
+        {
+            int delta = lapData.m_TimeFromPrevious - bestLapsRun.m_Laps[i].m_TimeFromPrevious;
+            renderDelta(delta);
+        }
+        else
+        {
+            UI::Text("");
+        }
+
+        UI::TableNextColumn();
+        if (pb !is null && pb.m_Laps.Length > i)
+        {
+            int delta = lapData.m_TimeFromPrevious - pb.m_Laps[i].m_TimeFromPrevious;
+            renderDelta(delta);
+        }
+        else
+        {
+            UI::Text("");
+        }
+
+        if (pushedColor)
+        {
+            UI::PopStyleColor();
+        }
+    }
+
+
+    UI::EndTable();
+}
+
 void renderText(const TableRenderContext&in context, const string&in text)
 {
     bool pushedColor = true;
@@ -399,7 +499,15 @@ void renderText(const TableRenderContext&in context, const string&in text)
     else if (context.m_IsPlayerSessionBestCheckpoints)
     {
         UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeSessionBest * 0.7f, 1));
-     }
+    }
+    else if (context.m_IsPlayerBestLaps)
+    {
+        UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeBest * 0.7f, 1));
+    }
+    else if (context.m_IsPlayerSessionBestLaps)
+    {
+        UI::PushStyleColor(UI::Col::Text, vec4(settingColorTimeSessionBest * 0.7f, 1));
+    }
     else
     {
         pushedColor = false;

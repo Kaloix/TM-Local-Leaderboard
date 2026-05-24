@@ -149,6 +149,7 @@ void OnMapUnload()
 void OnRespawn()
 {
     g_State.m_CurrentCheckpoints.RemoveRange(0, g_State.m_CurrentCheckpoints.Length);
+    g_State.m_CurrentLaps.RemoveRange(0, g_State.m_CurrentLaps.Length);
 }
 
 void OnReachingCheckpoint(int checkpoint)
@@ -156,6 +157,7 @@ void OnReachingCheckpoint(int checkpoint)
     const auto @raceData = @MLFeed::GetRaceData_V4();
     const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
 
+    // Add CP
     auto time = player.cpTimes[checkpoint] - player.cpTimes[checkpoint - 1];
 
     CheckpointData @cpData = CheckpointData();
@@ -166,6 +168,22 @@ void OnReachingCheckpoint(int checkpoint)
     cpData.m_TimeFromPrevious = time;
     cpData.m_TimeFromPreviousNoRespawn = time - player.TimeLostToRespawnByCp[checkpoint - 1];
     cpData.m_NumberRespawns = player.NbRespawnsByCp[checkpoint - 1];
+
+    // Add lap
+    if (checkpoint % (raceData.CpCount + 1) == 0)
+    {
+        LapData @lapData = LapData();
+        lapData.m_TimeFromStart = cpData.m_TimeFromStart;
+
+        for (uint i = (raceData.CPCount + 1) * g_State.m_CurrentLaps.Length; i < g_State.m_CurrentCheckpoints.Length; ++i)
+        {
+            lapData.m_TimeFromPrevious += g_State.m_CurrentCheckpoints[i].m_TimeFromPrevious;
+            lapData.m_TimeFromPreviousNoRespawn += g_State.m_CurrentCheckpoints[i].m_TimeFromPreviousNoRespawn;
+            lapData.m_NumberRespawns += g_State.m_CurrentCheckpoints[i].m_NumberRespawns;
+        }
+
+        g_State.m_CurrentLaps.InsertLast(lapData);
+    }
 }
 
 void OnPlayerFinish()
@@ -273,6 +291,7 @@ class State
 
     bool m_IsPlayerFinishHandled = true;
     array<CheckpointData @> m_CurrentCheckpoints;
+    array<LapData @> m_CurrentLaps;
 
     uint64 m_SessionStartTime = Time::get_Now();
 

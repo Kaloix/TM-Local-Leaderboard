@@ -55,6 +55,12 @@ bool settingDisplayLeaderboardBestCheckpointsRun = false;
 [Setting name="Display Session Best Checkpoints Run" description="Show the player's best checkpoints run of the current session in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardSessionBestCheckpointsRun = false;
 
+[Setting name="Display Best Laps Run" description="Show the player's best laps run in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardBestLapsRun = false;
+
+[Setting name="Display Session Best Laps Run" description="Show the player's best laps run of the current session in the leaderboard" category="UI"]
+bool settingDisplayLeaderboardSessionBestLapsRun = false;
+
 [Setting name="Display Custom Entries" description="Show custom entries in the leaderboard UI" category="UI"]
 bool settingDisplayLeaderboardCustomEntries = true;
 

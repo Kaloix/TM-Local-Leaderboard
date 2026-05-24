@@ -74,6 +74,10 @@ void SaveLeaderboard(const State&in state)
     {
         leaderboard["bestCheckpointsRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_BestCheckpointsRun);
     }
+    if (state.m_Leaderboard.m_BestLapsRun !is null)
+    {
+        leaderboard["bestLapsRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_BestLapsRun);
+    }
 
     leaderboard["totalNumberFinishes"] = state.m_Leaderboard.m_TotalNumberFinishes;
     leaderboard["totalNumberSessions"] = state.m_Leaderboard.m_TotalNumberSessions;
@@ -129,6 +133,10 @@ void LoadLeaderboard(State&inout state)
     {
         @state.m_Leaderboard.m_BestCheckpointsRun = @deserializeLeaderboardEntry(leaderboard["bestCheckpointsRun"]);
     }
+    if (leaderboard.HasKey("bestLapsRun"))
+    {
+        @state.m_Leaderboard.m_BestLapsRun = @deserializeLeaderboardEntry(leaderboard["bestLapsRun"]);
+    }
 
     for (uint i = 0; i < entries.Length; i++)
     {
@@ -178,6 +186,14 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
     }
     entryObj["checkpoints"] = checkpoints;
 
+    auto laps = Json::Array();
+    for (uint i = 0; i < entry.m_Laps.Length; ++i)
+    {
+        auto lapDataObj = serializeLapData(entry.m_Laps[i]);
+        laps.Add(lapDataObj);
+    }
+    entryObj["laps"] = laps;
+
     return entryObj;
 }
 
@@ -207,6 +223,13 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
         entry.m_Checkpoints.InsertLast(@cpData);
     }
 
+    for (uint i = 0; i < entryObj["laps"].Length; ++i)
+    {
+        auto lapDataObj = entryObj["laps"][i];
+        auto @lapData = @deserializeLapData(lapDataObj);
+        entry.m_Laps.InsertLast(@lapData);
+    }
+
     return @entry;
 }
 
@@ -230,6 +253,26 @@ CheckpointData @deserializeCheckpointData(const Json::Value&in cpDataObj)
     cpData.m_Speed = cpDataObj["speed"];
     cpData.m_NumberRespawns = cpDataObj["numberRespawns"];
     return @cpData;
+}
+
+Json::Value serializeLapData(const LapData&in lapData)
+{
+    auto lapDataObj = Json::Object();
+    lapDataObj["timeFromStart"] = lapData.m_TimeFromStart;
+    lapDataObj["timeFromPrevious"] = lapData.m_TimeFromPrevious;
+    lapDataObj["timeFromPreviousNoRespawn"] = lapData.m_TimeFromPreviousNoRespawn;
+    lapDataObj["numberRespawns"] = lapData.m_NumberRespawns;
+    return lapDataObj;
+}
+
+LapData @deserializeLapData(const Json::Value&in lapDataObj)
+{
+    auto @lapData = LapData();
+    lapData.m_TimeFromStart = lapDataObj["timeFromStart"];
+    lapData.m_TimeFromPrevious = lapDataObj["timeFromPrevious"];
+    lapData.m_TimeFromPreviousNoRespawn = lapDataObj["timeFromPreviousNoRespawn"];
+    lapData.m_NumberRespawns = lapDataObj["numberRespawns"];
+    return @lapData;
 }
 
 Json::Value serializeSettings()
