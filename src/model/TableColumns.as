@@ -74,25 +74,29 @@ class TableColumn
     {
         return "";
     }
-    float GetWidth() const
+    string GetHeaderValue() const
     {
-        return 0.0f;
+        return GetName();
+    }
+    string GetBodyValue(const TableRenderContext&in context) const
+    {
+        return "";
     }
     bool shouldDisplay() const
     {
         return m_Show;
     }
-    void setup() const
+    void setup(const uint index) const
     {
-        UI::TableSetupColumn(GetName(), UI::TableColumnFlags::WidthFixed, GetWidth());
+        UI::TableSetupColumn(GetHeaderValue() + "##" + index, UI::TableColumnFlags::WidthFixed);
     }
     void renderHeader() const
     {
-        UI::Text(GetName());
+        UI::Text(GetHeaderValue());
     }
     void renderBody(TableRenderContext &inout context) const
     {
-        UI::Text("");
+        renderText(context, GetBodyValue(context));
     }
 }
 
@@ -106,13 +110,9 @@ class RankColumn : TableColumn
     {
         return "Rank";
     }
-    float GetWidth() const override
+    string GetBodyValue(const TableRenderContext&in context) const override
     {
-        return 30.0f;
-    }
-    void renderBody(TableRenderContext&inout context) const override
-    {
-        renderText(context, context.m_CurrentEntry.GetDisplayRank());
+        return context.m_CurrentEntry.GetDisplayRank();
     }
 }
 
@@ -126,23 +126,21 @@ class MedalColumn : TableColumn
     {
         return "Medal";
     }
-    float GetWidth() const override
+    string GetHeaderValue() const override
     {
-        return 20.0f;
+        return "";
     }
-    void renderHeader() const override
+    string GetBodyValue(const TableRenderContext&in context) const override
     {
-        // UI::Text("");
-        ;
+        return context.m_CurrentEntry.GetDisplayIcon();
     }
-
     void renderBody(TableRenderContext&inout context) const override
     {
         // Medal can be null if the record was too slow
         if (context.m_CurrentEntry.m_Medal !is null)
             UI::PushStyleColor(UI::Col::Text, vec4(context.m_CurrentEntry.m_Medal.GetIconColor(), 1));
 
-        UI::Text(context.m_CurrentEntry.GetDisplayIcon());
+        UI::Text(GetBodyValue(context));
 
         if (context.m_CurrentEntry.m_Medal !is null)
             UI::PopStyleColor();
@@ -159,33 +157,15 @@ class TimeColumn : TableColumn
     {
         return "Time";
     }
-    float GetWidth() const override
-    {
-        return 80.0f;
-    }
-    void renderHeader()
-    {
-        UI::Text(getHeaderName());
-    }
-
-    void renderBody(TableRenderContext&inout context) const override
+    string GetBodyValue(const TableRenderContext&in context) const override
     {
         const auto time = GetTime(context);
         if (time > 0)
-        {
-            renderText(context, Time::Format(GetTime(context), ShowFractions()));
-        }
+            return Time::Format(GetTime(context), ShowFractions());
         else
-        {
-            UI::Text("");
-        }
+            return "";
     }
-
-    string getHeaderName()
-    {
-        return "Time";
-    }
-    int64 GetTime(TableRenderContext&inout context)
+    int64 GetTime(TableRenderContext&in context) const
     {
         return context.m_CurrentEntry.GetDisplayTime();
     }
@@ -205,13 +185,9 @@ class PlayerColumn : TableColumn
     {
         return "Player";
     }
-    float GetWidth() const override
+    string GetBodyValue(const TableRenderContext&in context) const override
     {
-        return 60.0f;
-    }
-    void renderBody(TableRenderContext&inout context) const override
-    {
-        renderText(context, context.m_CurrentEntry.GetDisplayName());
+        return context.m_CurrentEntry.GetDisplayName();
     }
 }
 
@@ -227,9 +203,22 @@ class TimeDeltaColumn : TableColumn
     {
         return "Delta";
     }
-    float GetWidth() const override
+    string GetBodyValue(const TableRenderContext&in context) const override
     {
-        return COLUMN_TIME_DELTA_WIDTH;
+        bool showDelta = m_ComparisonTarget !is null && m_ComparisonTarget.IsAvailable() && context.m_CurrentEntry.GetDisplayTime() > 0;
+        if (context.m_CurrentEntry.GetDisplayTime() <= 0 || !showDelta)
+        {
+            return "";
+        }
+
+        if (context.m_CurrentEntry is m_ComparisonTarget.GetComparisonTargetEntry())
+        {
+            return Time::Format(context.m_CurrentEntry.GetDisplayTime());
+        }
+        else
+        {
+            return "" + (context.m_CurrentEntry.GetDisplayTime() - m_ComparisonTarget.GetTime());
+        }
     }
     void renderBody(TableRenderContext&inout context) const override
     {
@@ -261,16 +250,11 @@ class TimeNoRespawnColumn : TableColumn
     {
         return "Copium";
     }
-    float GetWidth() const override
-    {
-        return 50.0f;
-    }
-    void renderBody(TableRenderContext&inout context) const override
-    {
+    string GetBodyValue(const TableRenderContext&in context) const override {
         if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Score && context.m_CurrentEntry.m_NumberRespawns != 0)
-            renderText(context, Time::Format(context.m_CurrentEntry.m_TimeNoRespawn));
+            return Time::Format(context.m_CurrentEntry.m_TimeNoRespawn);
         else
-            UI::Text("");
+            return "";
     }
 }
 
@@ -284,20 +268,16 @@ class NumberRespawnsColumn : TableColumn
     {
         return "Respawns";
     }
-    float GetWidth() const override
+    string GetHeaderValue() const override
     {
-        return COLUMN_NUMBER_RESPAWNS_WIDTH;
+        return Icons::Refresh;
     }
-    void renderHeader() const override
-    {
-        UI::Text(Icons::Refresh);
-    }
-    void renderBody(TableRenderContext&inout context) const override
+    string GetBodyValue(const TableRenderContext&in context) const override
     {
         if (context.m_CurrentEntry.m_NumberRespawns != 0)
-            renderText(context, "" + context.m_CurrentEntry.m_NumberRespawns);
+            return "" + context.m_CurrentEntry.m_NumberRespawns;
         else
-            UI::Text("");
+            return "";
     }
 }
 
@@ -311,20 +291,16 @@ class ScoreNumberColumn : TableColumn
     {
         return "Score Number";
     }
-    float GetWidth() const override
+    string GetHeaderValue() const override
     {
-        return 30.0f;
+        return "No.";
     }
-    void renderHeader() const override
-    {
-        UI::Text("No.");
-    }
-    void renderBody(TableRenderContext&inout context) const override
+    string GetBodyValue(const TableRenderContext&in context) const override
     {
         if (context.m_CurrentEntry.m_ScoreNumber > 0)
-            renderText(context, "" + context.m_CurrentEntry.m_ScoreNumber);
+            return  "" + context.m_CurrentEntry.m_ScoreNumber;
         else
-            UI::Text("");
+            return "";
     }
 }
 
@@ -338,20 +314,16 @@ class SessionNumberColumn : TableColumn
     {
         return "Session Number";
     }
-    float GetWidth() const override
+    string GetHeaderValue() const override
     {
-        return 30.0f;
+        return "S";
     }
-    void renderHeader() const override
-    {
-        UI::Text("S");
-    }
-    void renderBody(TableRenderContext&inout context) const override
+    string GetBodyValue(const TableRenderContext&in context) const override
     {
         if (context.m_CurrentEntry.m_SessionNumber > 0)
-            renderText(context, "" + context.m_CurrentEntry.m_SessionNumber);
+            return "" + context.m_CurrentEntry.m_SessionNumber;
         else
-            UI::Text("");
+            return "";
     }
 }
 
@@ -365,21 +337,15 @@ class TimestampColumn : TableColumn
     {
         return "Timestamp";
     }
-    float GetWidth() const override
-    {
-        return 150.0f;
-    }
-    void renderBody(TableRenderContext&inout context) const override
+    string GetBodyValue(const TableRenderContext&in context) const override
     {
         if (context.m_CurrentEntry.m_TimeStamp == 0)
         {
-            UI::Text("");
-            return;
+            return "";
         }
 
         auto time = Time::Parse(context.m_CurrentEntry.m_TimeStamp);
-        string timeStr = time.Year + "-" + Text::Format("%02d", time.Month) + "-" + Text::Format("%02d", time.Day) + " " + Text::Format("%02d", time.Hour) + ":" + Text::Format("%02d", time.Minute) + ":" + Text::Format("%02d", time.Second);
-        renderText(context, timeStr);
+        return time.Year + "-" + Text::Format("%02d", time.Month) + "-" + Text::Format("%02d", time.Day) + " " + Text::Format("%02d", time.Hour) + ":" + Text::Format("%02d", time.Minute) + ":" + Text::Format("%02d", time.Second);
     }
 }
 
@@ -393,11 +359,11 @@ class TotalTimeColumn : TimeColumn
     {
         return "Total Time";
     }
-    string getHeaderName() override
+    string GetHeaderValue() const override
     {
         return "Tot. T.";
     }
-    int64 GetTime(TableRenderContext&inout context) override
+    int64 GetTime(TableRenderContext&in context) const override
     {
         return context.m_CurrentEntry.m_TimeInTotal;
     }
@@ -413,11 +379,11 @@ class SessionTimeColumn : TimeColumn
     {
         return "Session Time";
     }
-    string getHeaderName() override
+    string GetHeaderValue() const override
     {
         return "Ses. T.";
     }
-    int64 GetTime(TableRenderContext&inout context) override
+    int64 GetTime(TableRenderContext&in context) const override
     {
         return context.m_CurrentEntry.m_TimeInSession;
     }
@@ -433,11 +399,11 @@ class TimeSinceColumn : TimeColumn
     {
         return "Time Since Record";
     }
-    string getHeaderName() override
+    string GetHeaderValue() const override
     {
         return "Since";
     }
-    int64 GetTime(TableRenderContext&inout context) override
+    int64 GetTime(TableRenderContext&in context) const override
     {
         if (context.m_CurrentEntry.m_TimeStamp <= 0)
         {

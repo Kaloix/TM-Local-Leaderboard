@@ -1,6 +1,3 @@
-const int COLUMN_TIME_DELTA_WIDTH = 85;
-const int COLUMN_NUMBER_RESPAWNS_WIDTH = 20;
-
 void Render()
 {
     if (!settingDisplayLeaderboard)
@@ -26,7 +23,6 @@ enum LeaderboardSortDirection
 namespace LocalLeaderboard
 {
 int windowFlags = 0;
-float g_TableWidth = 0.0f;
 
 array<LeaderboardEntry @> g_TableRows;
 array<TableColumn @> g_TableColumns;
@@ -35,7 +31,6 @@ void InitRender()
 {
     // Clear existing columns
     g_TableColumns.RemoveRange(0, g_TableColumns.Length);
-    g_TableWidth = 0.0f;
 
     // Add all columns that are active
     for (uint i = 0; i < g_AllTableColumns.Length; ++i)
@@ -43,7 +38,6 @@ void InitRender()
         if (g_AllTableColumns[i].shouldDisplay())
         {
             g_TableColumns.InsertLast(@g_AllTableColumns[i]);
-            g_TableWidth += g_AllTableColumns[i].GetWidth();
         }
     }
 
@@ -51,7 +45,7 @@ void InitRender()
     g_TableColumns.Sort(columnSort);
 
     // Setup window flags
-    windowFlags = UI::GetDefaultWindowFlags() | UI::WindowFlags::NoResize;
+    windowFlags = UI::GetDefaultWindowFlags() | UI::WindowFlags::AlwaysAutoResize;
     if (!settingDisplayLeaderboardTitleBar)
         windowFlags |= UI::WindowFlags::NoTitleBar;
 }
@@ -172,8 +166,6 @@ void Render()
         return; // Don't render if no map is loaded
     }
 
-    UI::SetNextWindowSize(int(g_TableWidth), 0);
-
     bool open = true;
     UI::Begin("Local Leaderboard", open, windowFlags);
 
@@ -189,41 +181,25 @@ void Render()
         UI::TextDisabled("By " + mapAuthor);
     }
 
-    UI::BeginTable("LeaderboardTable", g_TableColumns.Length);
+    UI::BeginTable("LeaderboardTable", g_TableColumns.Length, UI::TableFlags::SizingFixedFit);
 
     // Setup columns
     for (uint i = 0; i < g_TableColumns.Length; i++)
     {
-        g_TableColumns[i].setup();
+        g_TableColumns[i].setup(i);
     }
 
     // Table header
     if (settingDisplayLeaderboardHeader)
     {
-        UI::TableNextRow(UI::TableRowFlags::Headers);
-        for (uint i = 0; i < g_TableColumns.Length; i++)
-        {
-            UI::TableNextColumn();
-            g_TableColumns[i].renderHeader();
-        }
+        UI::TableHeadersRow();
     }
 
     // Table body
     auto context = TableRenderContext();
     for (uint i = 0; i < g_TableRows.Length; i++)
     {
-        context.m_CurrentRow = i;
-        @context.m_CurrentEntry = @g_TableRows[i];
-        context.m_IsPlayerNewest = context.m_CurrentEntry is g_State.m_Leaderboard.m_NewestRun;
-        context.m_IsPlayerBest = context.m_CurrentEntry is g_State.m_Leaderboard.m_FastestRun;
-        context.m_IsPlayerSessionBest = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionFastestRun;
-        context.m_IsPlayerNewestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_NewestCopiumRun;
-        context.m_IsPlayerBestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_FastestCopiumRun;
-        context.m_IsPlayerSessionBestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionFastestCopiumRun;
-        context.m_IsPlayerBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_BestCheckpointsRun;
-        context.m_IsPlayerSessionBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionBestCheckpointsRun;
-        context.m_IsPlayerBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_BestLapsRun;
-        context.m_IsPlayerSessionBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionBestLapsRun;
+        PrepareRenderContext(context, i);
 
         UI::TableNextRow();
 
@@ -285,18 +261,34 @@ class TableRenderContext
     bool m_IsPlayerSessionBestLaps = false;
 }
 
+void PrepareRenderContext(TableRenderContext&inout context, uint i)
+{
+    context.m_CurrentRow = i;
+    @context.m_CurrentEntry = @g_TableRows[i];
+    context.m_IsPlayerNewest = context.m_CurrentEntry is g_State.m_Leaderboard.m_NewestRun;
+    context.m_IsPlayerBest = context.m_CurrentEntry is g_State.m_Leaderboard.m_FastestRun;
+    context.m_IsPlayerSessionBest = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionFastestRun;
+    context.m_IsPlayerNewestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_NewestCopiumRun;
+    context.m_IsPlayerBestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_FastestCopiumRun;
+    context.m_IsPlayerSessionBestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionFastestCopiumRun;
+    context.m_IsPlayerBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_BestCheckpointsRun;
+    context.m_IsPlayerSessionBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionBestCheckpointsRun;
+    context.m_IsPlayerBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_BestLapsRun;
+    context.m_IsPlayerSessionBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionBestLapsRun;
+}
+
 void RenderCheckpoints(const TableRenderContext&in context)
 {
-    UI::BeginTable("CheckpointTimes" + context.m_CurrentRow, 8);
+    UI::BeginTable("CheckpointTimes" + context.m_CurrentRow, 8, UI::TableFlags::SizingFixedFit);
 
-    UI::TableSetupColumn("Cp", UI::TableColumnFlags::WidthFixed, 30);
-    UI::TableSetupColumn("Time Acc", UI::TableColumnFlags::WidthFixed, 60);
-    UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 60);
-    UI::TableSetupColumn("Time NR", UI::TableColumnFlags::WidthFixed, 60);
-    UI::TableSetupColumn("Speed", UI::TableColumnFlags::WidthFixed, 40);
-    UI::TableSetupColumn(Icons::Refresh, UI::TableColumnFlags::WidthFixed, COLUMN_NUMBER_RESPAWNS_WIDTH);
-    UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH + 50);
-    UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH + 50);
+    UI::TableSetupColumn("Cp", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Time Acc", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Time NR", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Speed", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn(Icons::Refresh, UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed);
 
     UI::TableHeadersRow();
 
@@ -388,15 +380,15 @@ void RenderCheckpoints(const TableRenderContext&in context)
 
 void RenderLaps(const TableRenderContext&in context)
 {
-    UI::BeginTable("LapTimes" + context.m_CurrentRow, 8);
+    UI::BeginTable("LapTimes" + context.m_CurrentRow, 8, UI::TableFlags::SizingFixedFit);
 
-    UI::TableSetupColumn("Lap", UI::TableColumnFlags::WidthFixed, 30);
-    UI::TableSetupColumn("Time Acc", UI::TableColumnFlags::WidthFixed, 60);
-    UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 60);
-    UI::TableSetupColumn("Time NR", UI::TableColumnFlags::WidthFixed, 60);
-    UI::TableSetupColumn(Icons::Refresh, UI::TableColumnFlags::WidthFixed, COLUMN_NUMBER_RESPAWNS_WIDTH);
-    UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH + 50);
-    UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed, COLUMN_TIME_DELTA_WIDTH + 50);
+    UI::TableSetupColumn("Lap", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Time Acc", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Time NR", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn(Icons::Refresh, UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed);
 
     UI::TableHeadersRow();
 
@@ -466,6 +458,12 @@ void RenderLaps(const TableRenderContext&in context)
 
 void renderText(const TableRenderContext&in context, const string&in text)
 {
+    if (text.Length == 0)
+    {
+        UI::Text("");
+        return;
+    }
+
     bool pushedColor = true;
 
     if (context.m_IsPlayerNewest)
