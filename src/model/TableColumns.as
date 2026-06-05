@@ -4,6 +4,7 @@ namespace LocalLeaderboard
 array<TableColumn @> g_AllTableColumns = {
     MedalColumn(),
     RankColumn(),
+    GlobalPositionColumn(),
     PlayerColumn(),
     TimeColumn(),
     TimeDeltaColumn(),
@@ -21,6 +22,7 @@ enum TableColumnType
 {
     MedalColumn,
     RankColumn,
+    GlobalPositionColumn,
     PlayerColumn,
     TimeColumn,
     TimeDeltaColumn,
@@ -37,7 +39,7 @@ enum TableColumnType
 void initializeTableColumns()
 {
     // Set comparison target for the delta column
-    @(cast<TimeDeltaColumn>(g_AllTableColumns[4])).m_ComparisonTarget = @GetComparisonTarget(ComparisonTargetType::FastestRun);
+    @(cast<TimeDeltaColumn>(GetTableColumnByType(TableColumnType::TimeDeltaColumn))).m_ComparisonTarget = @GetComparisonTarget(ComparisonTargetType::FastestRun);
 
     // Set position
     for (uint i = 0; i < g_AllTableColumns.Length; ++i)
@@ -57,6 +59,20 @@ TableColumn@ GetTableColumn(const int pos)
     }
 
     LogWarning("No column at position: " + pos);
+    return null;
+}
+
+TableColumn@ GetTableColumnByType(const TableColumnType type)
+{
+    for (uint i = 0; i < g_AllTableColumns.Length; ++i)
+    {
+        if (g_AllTableColumns[i].GetType() == type)
+        {
+            return @g_AllTableColumns[i];
+        }
+    }
+
+    LogWarning("No column with type: " + type);
     return null;
 }
 
@@ -113,6 +129,24 @@ class RankColumn : TableColumn
     string GetBodyValue(const TableRenderContext&in context) const override
     {
         return context.m_CurrentEntry.GetDisplayRank();
+    }
+}
+
+class GlobalPositionColumn : TableColumn
+{
+    TableColumnType GetType() const override
+    {
+        return TableColumnType::GlobalPositionColumn;
+    }
+    string GetName() const override
+    {
+        return "Pos";
+    }
+    string GetBodyValue(const TableRenderContext&in context) const override
+    {
+        if (context.m_CurrentEntry.m_GlobalPosition <= 0)
+            return "";
+        return "" + context.m_CurrentEntry.m_GlobalPosition;
     }
 }
 

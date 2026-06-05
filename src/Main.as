@@ -36,6 +36,7 @@ State g_State = State();
 
 void Init()
 {
+    InitNadeoApi();
     InitializeMedals();
     InitializeComparisonTarget();
     initializeTableColumns();
@@ -132,6 +133,7 @@ void OnMapLoad()
     LoadLeaderboard(g_State);
 
     addPreviousPb();
+    InitPersonalBestAsync();
 
     g_State.m_Leaderboard.m_TotalNumberSessions++;
 

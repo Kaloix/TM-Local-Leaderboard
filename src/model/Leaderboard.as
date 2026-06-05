@@ -97,6 +97,7 @@ class Leaderboard
         {
             entry.m_WasPersonalBest = true;
             @m_FastestRun = @entry;
+            InitPersonalBestAsync();
 
             if (m_FastestCopiumRun !is null && m_FastestRun.m_Time <= m_FastestCopiumRun.m_TimeNoRespawn)
             {
@@ -320,7 +321,15 @@ class LeaderboardEntry
      */
     const Medal @m_Medal = null;
 
+    /**
+     * The local rank.
+     */
     uint m_Rank = 0;
+
+    /**
+     * The global rank.
+     */
+     uint m_GlobalPosition = 0;
 
     int64 m_TimeStamp = 0;
     int m_Time = 0;
