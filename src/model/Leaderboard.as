@@ -122,6 +122,7 @@ class Leaderboard
             @m_FastestCopiumRun = LeaderboardEntry(entry);
             m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
             setMedal(m_FastestCopiumRun);
+            InitPositionForEntryAsync(m_FastestCopiumRun);
         }
         if (entry.m_NumberRespawns > 0 && entry.m_TimeNoRespawn < m_SessionFastestRun.m_Time && (m_SessionFastestCopiumRun is null || entry.m_TimeNoRespawn < m_SessionFastestCopiumRun.m_TimeNoRespawn))
         {
@@ -238,6 +239,8 @@ class Leaderboard
             }
 
             setMedal(checkpointsRun);
+
+            InitPositionForEntryAsync(@checkpointsRun);
         }
     }
 
@@ -298,6 +301,8 @@ class Leaderboard
             }
 
             setMedal(lapsRun);
+
+            InitPositionForEntryAsync(@lapsRun);
         }
     }
 }

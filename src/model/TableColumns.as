@@ -146,7 +146,10 @@ class GlobalPositionColumn : TableColumn
     {
         if (context.m_CurrentEntry.m_GlobalPosition <= 0)
             return "";
-        return "" + context.m_CurrentEntry.m_GlobalPosition;
+        if (context.m_CurrentEntry.m_GlobalPosition >= 100000)
+            return "<" + (context.m_CurrentEntry.m_GlobalPosition / 1000) + "k";
+        else
+            return "" + context.m_CurrentEntry.m_GlobalPosition;
     }
 }
 

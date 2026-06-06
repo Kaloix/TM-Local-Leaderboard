@@ -139,6 +139,9 @@ void OnMapLoad()
 
     addMedals();
     setMedals();
+
+    InitPositionsAsync();
+
     InitRows();
 }
 
@@ -376,6 +379,8 @@ class State
 
         InitRows();
         SaveLeaderboard(this);
+
+        InitPositionForEntryAsync(@m_CustomEntries[index]);
     }
 
     void RemoveCustomEntry(uint index)
