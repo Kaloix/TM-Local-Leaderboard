@@ -3,6 +3,12 @@ namespace LocalLeaderboard
 
 void InitNadeoApi()
 {
+    if (!settingUseNadeoApi)
+    {
+        LogDebug("Usage of Nadeo's API is disabled");
+        return;
+    }
+
     LogDebug("Authenticating to NadeoLiveServices...");
     NadeoServices::AddAudience("NadeoLiveServices");
     while (!NadeoServices::IsAuthenticated("NadeoLiveServices"))
@@ -96,6 +102,11 @@ uint64 g_LastRequest = 0;
 uint64 g_RateLimit = 1000;
 Json::Value@ DoRequest(Net::HttpRequest@ request)
 {
+    if (!settingUseNadeoApi)
+    {
+        return Json::Object();
+    }
+
     LogDebug("Doing request to " + request.Url);
     // Apply rate limit
     const auto now = Time::get_Now();

@@ -6,6 +6,9 @@ uint settingDataRecordLimit = 100;
 [Setting name="Add PB" description="If the PB should be added if no entries are available" category="Data"]
 bool settingDataAddPb = true;
 
+[Setting name="Use Nadeo API" description="If Nadeo's API should be used for estimating positions and fetching global records." category="Data"]
+bool settingUseNadeoApi = true;
+
 // Category UI
 [Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="UI"]
 bool settingDisplayLeaderboardTitleBar = false;
