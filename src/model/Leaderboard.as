@@ -334,7 +334,7 @@ class LeaderboardEntry
     /**
      * The global rank.
      */
-     uint m_GlobalPosition = 0;
+    uint m_GlobalPosition = 0;
 
     int64 m_TimeStamp = 0;
     int m_Time = 0;
@@ -351,7 +351,8 @@ class LeaderboardEntry
     {
         switch (m_Type)
         {
-            case LeaderboardEntryType::CustomScore:
+            case LeaderboardEntryType::CustomPosition:
+            case LeaderboardEntryType::CustomTime:
             case LeaderboardEntryType::Medal:
                 return "";
             case LeaderboardEntryType::Score:
@@ -369,7 +370,8 @@ class LeaderboardEntry
     {
         switch (m_Type)
         {
-            case LeaderboardEntryType::CustomScore:
+            case LeaderboardEntryType::CustomPosition:
+            case LeaderboardEntryType::CustomTime:
                 return Icons::ClockO;
             case LeaderboardEntryType::Medal:
                 return Icons::Circle;
@@ -389,7 +391,8 @@ class LeaderboardEntry
     {
         switch (m_Type)
         {
-            case LeaderboardEntryType::CustomScore:
+            case LeaderboardEntryType::CustomPosition:
+            case LeaderboardEntryType::CustomTime:
                 return m_Time;
             case LeaderboardEntryType::Medal:
                 return m_Medal.GetTime();
@@ -408,7 +411,8 @@ class LeaderboardEntry
     {
         switch (m_Type)
         {
-            case LeaderboardEntryType::CustomScore:
+            case LeaderboardEntryType::CustomPosition:
+            case LeaderboardEntryType::CustomTime:
                 return m_PlayerName;
             case LeaderboardEntryType::Medal:
                 return m_Medal.GetName();
@@ -446,7 +450,8 @@ class LapData
 enum LeaderboardEntryType
 {
     Medal,
-    CustomScore,
+    CustomPosition,
+    CustomTime,
     Score,
     ScoreBestCheckpoints,
     ScoreBestLaps,

@@ -7,9 +7,15 @@ void RenderMenu()
             LocalLeaderboard::g_State.ResetData();
         }
 
-        if (UI::BeginMenu(Icons::ClockO + " Edit Custom Entries"))
+        if (UI::BeginMenu(Icons::ClockO + " Edit Custom Times"))
         {
-            LocalLeaderboard::RenderCustomEntries();
+            LocalLeaderboard::RenderCustomTimeEntries();
+            UI::EndMenu();
+        }
+
+        if (UI::BeginMenu(Icons::ClockO + " Edit Custom Positions"))
+        {
+            LocalLeaderboard::RenderCustomPositionEntries();
             UI::EndMenu();
         }
 
@@ -26,15 +32,14 @@ void RenderMenu()
 namespace LocalLeaderboard
 {
 
-void RenderCustomEntries()
+void RenderCustomTimeEntries()
 {
-    if (UI::Button("Add Custom Entry"))
+    if (UI::Button("Add"))
     {
-        g_State.AddCustomEntry();
+        g_State.AddCustomTimeEntry();
     }
 
-
-    UI::BeginTable("CustomEntriesTable", 3);
+    UI::BeginTable("CustomTimeEntriesTable", 3);
 
     UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed, 30);
     UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed, 200);
@@ -42,15 +47,15 @@ void RenderCustomEntries()
 
     UI::TableHeadersRow();
 
-    for (uint i = 0; i < g_State.m_CustomEntries.Length ; i++)
+    for (uint i = 0; i < g_State.m_CustomTimeEntries.Length ; i++)
     {
         UI::TableNextRow();
-        auto @entry = g_State.m_CustomEntries[i];
+        auto @entry = g_State.m_CustomTimeEntries[i];
 
         UI::TableNextColumn();
         if (UI::Button(Icons::Trash + "##" + i))
         {
-            g_State.RemoveCustomEntry(i);
+            g_State.RemoveCustomTimeEntry(i);
             // Break because the array length has been modified
             break;
         }
@@ -58,10 +63,10 @@ void RenderCustomEntries()
         UI::TableNextColumn();
         bool nameChanged = false;
         UI::SetNextItemWidth(200);
-        auto newName = UI::InputText("##PlayerName" + i, g_State.m_CustomEntries[i].m_PlayerName, nameChanged);
+        auto newName = UI::InputText("##PlayerName" + i, g_State.m_CustomTimeEntries[i].m_PlayerName, nameChanged);
         if (nameChanged)
         {
-            g_State.UpdateCustomEntryName(i, newName);
+            g_State.UpdateCustomTimeEntryName(i, newName);
         }
 
         UI::TableNextColumn();
@@ -99,7 +104,58 @@ void RenderCustomEntries()
         if ( newTimeMinutes != currentMinutes || newTimeSeconds != currentSeconds || newTimeMilliseconds != currentMilliseconds)
         {
             auto newTime =  newTimeMinutes * 60000 + newTimeSeconds * 1000 + newTimeMilliseconds;
-            g_State.UpdateCustomEntryTime(i, newTime);
+            g_State.UpdateCustomTimeEntryTime(i, newTime);
+        }
+    }
+
+    UI::EndTable();
+}
+
+void RenderCustomPositionEntries()
+{
+    if (UI::Button("Add"))
+    {
+        g_State.AddCustomPositionEntry();
+    }
+
+    UI::BeginTable("CustomPositionEntriesTable", 3);
+
+    UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed, 30);
+    UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed, 200);
+    UI::TableSetupColumn("Pos", UI::TableColumnFlags::WidthFixed, 500);
+
+    UI::TableHeadersRow();
+
+    for (uint i = 0; i < g_State.m_CustomPositionEntries.Length ; i++)
+    {
+        UI::TableNextRow();
+        auto @entry = g_State.m_CustomPositionEntries[i];
+
+        UI::TableNextColumn();
+        if (UI::Button(Icons::Trash + "##" + i))
+        {
+            g_State.RemoveCustomPositionEntry(i);
+            // Break because the array length has been modified
+            break;
+        }
+
+        UI::TableNextColumn();
+        bool nameChanged = false;
+        UI::SetNextItemWidth(200);
+        auto newName = UI::InputText("##PlayerName" + i, entry.m_PlayerName, nameChanged);
+        if (nameChanged)
+        {
+            g_State.UpdateCustomPositionEntryName(i, newName);
+        }
+
+        UI::TableNextColumn();
+
+        int currentPosition = entry.m_GlobalPosition;
+        auto newPosition = Math::Max(1, UI::InputInt("##Position" + i, currentPosition));
+
+        if (newPosition != currentPosition)
+        {
+            g_State.UpdateCustomPositionEntryPosition(i, newPosition);
         }
     }
 
@@ -172,13 +228,27 @@ void RenderTableColumnsMenu()
                     auto @comparisonTarget = @g_ComparisonTargets[j];
                     auto isEntrySelected = timeDeltaColumn.m_ComparisonTarget.GetType() == comparisonTarget.GetType();
 
-                    if (comparisonTarget.GetType() == ComparisonTargetType::CustomEntry)
+                    if (comparisonTarget.GetType() == ComparisonTargetType::CustomTime)
                     {
-                        auto @customEntryTarget = cast<CustomEntryComparisonTarget>(comparisonTarget);
-                        for (uint k = 0; k < g_State.m_CustomEntries.Length; ++k)
+                        auto @customEntryTarget = cast<CustomTimeComparisonTarget>(comparisonTarget);
+                        for (uint k = 0; k < g_State.m_CustomTimeEntries.Length; ++k)
                         {
-                            auto @customEntry = @g_State.m_CustomEntries[k];
-                            if (UI::Selectable("Custom Entry: " + customEntry.m_PlayerName, isEntrySelected && customEntryTarget.m_CustomEntryId == customEntry.m_Id))
+                            auto @customEntry = @g_State.m_CustomTimeEntries[k];
+                            if (UI::Selectable("Custom Time: " + customEntry.m_PlayerName, isEntrySelected && customEntryTarget.m_CustomEntryId == customEntry.m_Id))
+                            {
+                                customEntryTarget.m_CustomEntryId = customEntry.m_Id;
+                                @timeDeltaColumn.m_ComparisonTarget = customEntryTarget;
+                                OnSettingsChanged();
+                            }
+                        }
+                    }
+                    else if (comparisonTarget.GetType() == ComparisonTargetType::CustomPosition)
+                    {
+                        auto @customEntryTarget = cast<CustomPositionComparisonTarget>(comparisonTarget);
+                        for (uint k = 0; k < g_State.m_CustomPositionEntries.Length; ++k)
+                        {
+                            auto @customEntry = @g_State.m_CustomPositionEntries[k];
+                            if (UI::Selectable("Custom Position: " + customEntry.m_GlobalPosition, isEntrySelected && customEntryTarget.m_CustomEntryId == customEntry.m_Id))
                             {
                                 customEntryTarget.m_CustomEntryId = customEntry.m_Id;
                                 @timeDeltaColumn.m_ComparisonTarget = customEntryTarget;

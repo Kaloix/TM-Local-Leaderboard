@@ -36,12 +36,12 @@ void InitPersonalBest()
     g_State.m_Leaderboard.m_FastestRun.m_GlobalPosition = position;
 }
 
-awaitable@ g_InitPositions = null;
-void InitPositionsAsync()
+awaitable@ g_InitLiveData = null;
+void InitLiveDataAsync()
 {
-    if (g_InitPositions !is null && g_InitPositions.IsRunning())
+    if (g_InitLiveData !is null && g_InitLiveData.IsRunning())
         return;
-    @g_InitPositions = @startnew(InitPositions);
+    @g_InitLiveData = @startnew(InitLiveData);
 }
 
 awaitable@ g_InitPositionForEntryAsync = null;
@@ -54,7 +54,7 @@ void InitPositionForEntryAsync(LeaderboardEntry@ entry)
     @g_InitPositionForEntryAsync = @startnew(InitPositionForEntryData);
 }
 
-void InitPositions()
+void InitLiveData()
 {
     // Medals
     for (uint i = 0; i < g_State.m_MedalEntries.Length; ++i) {
@@ -62,8 +62,13 @@ void InitPositions()
     }
 
     // Custom times
-    for (uint i = 0; i < g_State.m_CustomEntries.Length; ++i) {
-        InitPositionForEntry(@g_State.m_CustomEntries[i]);
+    for (uint i = 0; i < g_State.m_CustomTimeEntries.Length; ++i) {
+        InitPositionForEntry(@g_State.m_CustomTimeEntries[i]);
+    }
+
+    // Custom positions
+    for (uint i = 0; i < g_State.m_CustomPositionEntries.Length; ++i) {
+        InitTimeForEntry(@g_State.m_CustomPositionEntries[i]);
     }
 
     // Copium
@@ -84,6 +89,34 @@ void InitPositionForEntry(LeaderboardEntry@ entry)
     array<int> times = {entry.GetDisplayTime()};
     const auto positions = FetchForTimes(times);
     entry.m_GlobalPosition = positions[0];
+}
+
+awaitable@ g_InitTimeForEntryAsync = null;
+LeaderboardEntry@ g_InitTimeForEntryAsyncData = null;
+void InitTimeForEntryAsync(LeaderboardEntry@ entry)
+{
+    if (g_InitTimeForEntryAsync !is null && g_InitTimeForEntryAsync.IsRunning())
+        return;
+    @g_InitTimeForEntryAsyncData = @entry;
+    @g_InitTimeForEntryAsync = @startnew(InitTimeForEntryData);
+}
+
+void InitTimeForEntryData()
+{
+    InitTimeForEntry(@g_InitTimeForEntryAsyncData);
+}
+
+void InitTimeForEntry(LeaderboardEntry@ entry)
+{
+    if (entry is null)
+        return;
+
+    const auto results = FetchRecords(entry.m_GlobalPosition);
+    entry.m_Time = results[0];
+    entry.m_TimeStamp = results[1];
+
+    setMedal(entry);
+    InitRows();
 }
 
 Json::Value@ FetchFromNadeoApi(const string&in uri)
@@ -127,13 +160,27 @@ Json::Value@ DoRequest(Net::HttpRequest@ request)
     return request.Json();
 }
 
-void FetchRecords()
+array<int> FetchRecords(uint position)
 {
+    const auto @response = FetchFromNadeoApi("/api/token/leaderboard/group/Personal_Best/map/" + g_State.m_CurrentMap + "/top?length=" + 1 + "&onlyWorld=true&offset=" + (position - 1));
+
+    if (!response.HasKey("tops"))
+        return {0, 0};
+
+    const auto tops = response["tops"];
+    if (tops.Length < 1)
+        return {0, 0};
+
+    const auto top = tops[0]["top"];
+    if (top.Length < 1)
+        return {0, 0};
+
+    return {top[0]["score"], top[0]["timestamp"]};
 }
 
 int FetchPersonalBest()
 {
-    const auto response = FetchFromNadeoApi("/api/token/leaderboard/group/Personal_Best/map/"+ g_State.m_CurrentMap +"/surround/0/0?onlyWorld=true");
+    const auto @response = FetchFromNadeoApi("/api/token/leaderboard/group/Personal_Best/map/"+ g_State.m_CurrentMap +"/surround/0/0?onlyWorld=true");
 
     if (!response.HasKey("tops"))
         return 0;
@@ -168,8 +215,6 @@ array<int> FetchForTimes(const array<int>&in time)
         if (g_State.m_Leaderboard.m_FastestRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time <= time[i])
             continue;
 
-        LogDebug("Looking for time " + time[i]);
-
         auto map = Json::Object();
         map["mapUid"] = g_State.m_CurrentMap;
         map["groupUid"] = "Personal_Best";
@@ -190,6 +235,9 @@ array<int> FetchForTimes(const array<int>&in time)
     body["maps"] = maps;
 
     const auto @results = PostToNadeoApi("/api/token/leaderboard/group/map" + params, Json::Write(body));
+
+    if (results.GetType() != Json::Type::Array)
+        return positions;
 
     for (uint i = 0; i < results.Length; ++i)
     {

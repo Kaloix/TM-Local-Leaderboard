@@ -64,8 +64,11 @@ bool settingDisplayLeaderboardBestLapsRun = false;
 [Setting name="Display Session Best Laps Run" description="Show the player's best laps run of the current session in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardSessionBestLapsRun = false;
 
-[Setting name="Display Custom Entries" description="Show custom entries in the leaderboard UI" category="UI"]
-bool settingDisplayLeaderboardCustomEntries = true;
+[Setting name="Display Custom Times" description="Show custom times in the leaderboard UI" category="UI"]
+bool settingDisplayLeaderboardCustomTimes = true;
+
+[Setting name="Display Custom Positions" description="Show custom positions in the leaderboard UI" category="UI"]
+bool settingDisplayLeaderboardCustomPositions = true;
 
 [Setting name="Display Medal Author" description="Show the author of medal times in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardMedalAuthor = true;

@@ -52,6 +52,9 @@ void InitRender()
 
 void InitRows()
 {
+    if (g_State.m_CurrentMap == "")
+        return;
+
     // Add rows to display
     g_TableRows.RemoveRange(0, g_TableRows.Length);
 
@@ -107,11 +110,18 @@ void InitRows()
     }
 
     // Add custom entries
-    if (settingDisplayLeaderboardCustomEntries)
+    if (settingDisplayLeaderboardCustomTimes)
     {
-        for (uint i = 0; i < g_State.m_CustomEntries.Length; i++)
+        for (uint i = 0; i < g_State.m_CustomTimeEntries.Length; i++)
         {
-            g_TableRows.InsertLast(@g_State.m_CustomEntries[i]);
+            g_TableRows.InsertLast(@g_State.m_CustomTimeEntries[i]);
+        }
+    }
+    if (settingDisplayLeaderboardCustomPositions)
+    {
+        for (uint i = 0; i < g_State.m_CustomPositionEntries.Length; i++)
+        {
+            g_TableRows.InsertLast(@g_State.m_CustomPositionEntries[i]);
         }
     }
 

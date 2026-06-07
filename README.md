@@ -3,10 +3,10 @@
 A Trackmania plugin adding a local leaderboard.
 
 Plan
-- Custom rank rows
+- Get total amount of player from other plugins
 - Improve styling of leaderboard
-- Cleanup and bugfixes
 - Create cool README
-- Allow multiple delta columns
-- reduced serialized data
+- Reduce serialized data
 - Add support for other regions
+- Read checkpoints for AT
+- Custom entries for setting CP times or lap times

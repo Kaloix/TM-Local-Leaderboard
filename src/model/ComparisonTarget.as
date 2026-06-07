@@ -17,7 +17,8 @@ enum ComparisonTargetType
     SessionBestCheckpoints,
 
     // Custom entries
-    CustomEntry,
+    CustomTime,
+    CustomPosition,
 
     // Medals
 #if DEPENDENCY_CHAMPIONMEDALS
@@ -52,7 +53,8 @@ void InitializeComparisonTarget()
     g_ComparisonTargets.InsertLast(BestCheckpointsComparisonTarget());
     g_ComparisonTargets.InsertLast(SessionBestCheckpointsComparisonTarget());
     // Custom entries
-    g_ComparisonTargets.InsertLast(CustomEntryComparisonTarget());
+    g_ComparisonTargets.InsertLast(CustomTimeComparisonTarget());
+    g_ComparisonTargets.InsertLast(CustomPositionComparisonTarget());
     // Medals
 #if DEPENDENCY_CHAMPIONMEDALS
     g_ComparisonTargets.InsertLast(ChampionMedalComparisonTarget());
@@ -269,20 +271,37 @@ class SessionBestCheckpointsComparisonTarget : ComparisonTarget
 // --- Custom Entry ---
 // ====================
 
-class CustomEntryComparisonTarget : ComparisonTarget
+class CustomTimeComparisonTarget : ComparisonTarget
 {
     int64 m_CustomEntryId = -1;
     ComparisonTargetType GetType() const override
     {
-        return ComparisonTargetType::CustomEntry;
+        return ComparisonTargetType::CustomTime;
     }
     string GetName() const override
     {
-        return "Custom Entry";
+        return "Custom Time";
     }
     LeaderboardEntry@ GetComparisonTargetEntry() const override
     {
-        return g_State.GetCustomEntry(m_CustomEntryId);
+        return g_State.GetCustomTime(m_CustomEntryId);
+    }
+}
+
+class CustomPositionComparisonTarget : ComparisonTarget
+{
+    int64 m_CustomEntryId = -1;
+    ComparisonTargetType GetType() const override
+    {
+        return ComparisonTargetType::CustomPosition;
+    }
+    string GetName() const override
+    {
+        return "Custom Position";
+    }
+    LeaderboardEntry@ GetComparisonTargetEntry() const override
+    {
+        return g_State.GetCustomPosition(m_CustomEntryId);
     }
 }
 

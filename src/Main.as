@@ -140,9 +140,9 @@ void OnMapLoad()
     addMedals();
     setMedals();
 
-    InitPositionsAsync();
-
     InitRows();
+
+    InitLiveDataAsync();
 }
 
 void OnMapUnload()
@@ -266,8 +266,8 @@ void setMedals()
         setMedal(g_State.m_Leaderboard.m_FastestCopiumRun);
     if (g_State.m_Leaderboard.m_BestCheckpointsRun !is null)
         setMedal(g_State.m_Leaderboard.m_BestCheckpointsRun);
-    for (uint i = 0; i < g_State.m_CustomEntries.Length; i++)
-        setMedal(g_State.m_CustomEntries[i]);
+    for (uint i = 0; i < g_State.m_CustomTimeEntries.Length; i++)
+        setMedal(g_State.m_CustomTimeEntries[i]);
 }
 
 void setMedal(LeaderboardEntry&inout entry)
@@ -302,7 +302,8 @@ class State
 
     Leaderboard m_Leaderboard = Leaderboard();
     array<LeaderboardEntry @> m_MedalEntries;
-    array<LeaderboardEntry @> m_CustomEntries;
+    array<LeaderboardEntry @> m_CustomTimeEntries;
+    array<LeaderboardEntry @> m_CustomPositionEntries;
 
     uint64 GetSessionTime() const
     {
@@ -327,24 +328,22 @@ class State
         SaveLeaderboard(this);
     }
 
-    void AddCustomEntry()
+    void AddCustomTimeEntry()
     {
         LeaderboardEntry newEntry;
-        newEntry.m_Type = LeaderboardEntryType::CustomScore;
-        newEntry.m_Time = 0;
-        newEntry.m_PlayerName = "Custom Entry " + (m_CustomEntries.Length + 1);
-        setMedal(newEntry);
-        m_CustomEntries.InsertLast(newEntry);
+        newEntry.m_Type = LeaderboardEntryType::CustomTime;
+        newEntry.m_PlayerName = "Custom Time " + (m_CustomTimeEntries.Length + 1);
+        m_CustomTimeEntries.InsertLast(newEntry);
 
         InitRows();
         SaveLeaderboard(this);
     }
 
-    LeaderboardEntry@ GetCustomEntry(const int64 id)
+    LeaderboardEntry@ GetCustomTime(const int64 id)
     {
-        for (uint i = 0; i < m_CustomEntries.Length; ++i)
+        for (uint i = 0; i < m_CustomTimeEntries.Length; ++i)
         {
-            LeaderboardEntry@ entry = @m_CustomEntries[i];
+            LeaderboardEntry@ entry = @m_CustomTimeEntries[i];
             if (entry.m_Id == id)
             {
                 return entry;
@@ -353,49 +352,119 @@ class State
         return null;
     }
 
-    void UpdateCustomEntryName(uint index, const string&in newName)
+    void UpdateCustomTimeEntryName(uint index, const string&in newName)
     {
-        if (index >= m_CustomEntries.Length)
+        if (index >= m_CustomTimeEntries.Length)
         {
-            LogWarning("Custom entry index out of bounds: " + index);
+            LogWarning("Custom time entry index out of bounds: " + index);
             return;
         }
 
-        m_CustomEntries[index].m_PlayerName = newName;
+        m_CustomTimeEntries[index].m_PlayerName = newName;
 
         SaveLeaderboard(this);
     }
 
-    void UpdateCustomEntryTime(uint index, int newTime)
+    void UpdateCustomTimeEntryTime(uint index, int newTime)
     {
-        if (index >= m_CustomEntries.Length)
+        if (index >= m_CustomTimeEntries.Length)
         {
-            LogWarning("Custom entry index out of bounds: " + index);
+            LogWarning("Custom time entry index out of bounds: " + index);
             return;
         }
 
-        m_CustomEntries[index].m_Time = newTime;
-        setMedal(m_CustomEntries[index]);
+        m_CustomTimeEntries[index].m_Time = newTime;
+        setMedal(m_CustomTimeEntries[index]);
 
         InitRows();
         SaveLeaderboard(this);
 
-        InitPositionForEntryAsync(@m_CustomEntries[index]);
+        InitPositionForEntryAsync(@m_CustomTimeEntries[index]);
     }
 
-    void RemoveCustomEntry(uint index)
+    void RemoveCustomTimeEntry(uint index)
     {
-        if (index >= m_CustomEntries.Length)
+        if (index >= m_CustomTimeEntries.Length)
         {
-            LogWarning("Custom entry index out of bounds: " + index);
+            LogWarning("Custom time entry index out of bounds: " + index);
             return;
         }
 
-        m_CustomEntries.RemoveAt(index);
+        m_CustomTimeEntries.RemoveAt(index);
 
         InitRows();
         SaveLeaderboard(this);
     }
+
+    void AddCustomPositionEntry()
+    {
+        LeaderboardEntry newEntry;
+        newEntry.m_Type = LeaderboardEntryType::CustomPosition;
+        newEntry.m_PlayerName = "Custom Pos " + (m_CustomPositionEntries.Length + 1);
+        newEntry.m_GlobalPosition = 1;
+
+        m_CustomPositionEntries.InsertLast(newEntry);
+
+        SaveLeaderboard(this);
+
+        InitTimeForEntryAsync(@newEntry);
+    }
+
+    LeaderboardEntry@ GetCustomPosition(const int64 id)
+    {
+        for (uint i = 0; i < m_CustomPositionEntries.Length; ++i)
+        {
+            LeaderboardEntry@ entry = @m_CustomPositionEntries[i];
+            if (entry.m_Id == id)
+            {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    void UpdateCustomPositionEntryName(uint index, const string&in newName)
+    {
+        if (index >= m_CustomPositionEntries.Length)
+        {
+            LogWarning("Custom position entry index out of bounds: " + index);
+            return;
+        }
+
+        m_CustomPositionEntries[index].m_PlayerName = newName;
+
+        SaveLeaderboard(this);
+    }
+
+    void UpdateCustomPositionEntryPosition(uint index, int newPosition)
+    {
+        if (index >= m_CustomPositionEntries.Length)
+        {
+            LogWarning("Custom position entry index out of bounds: " + index);
+            return;
+        }
+
+        m_CustomPositionEntries[index].m_GlobalPosition = newPosition;
+
+        SaveLeaderboard(this);
+
+        InitTimeForEntryAsync(@m_CustomPositionEntries[index]);
+    }
+
+    void RemoveCustomPositionEntry(uint index)
+    {
+        if (index >= m_CustomPositionEntries.Length)
+        {
+            LogWarning("Custom position entry index out of bounds: " + index);
+            return;
+        }
+
+        m_CustomPositionEntries.RemoveAt(index);
+
+        InitRows();
+        SaveLeaderboard(this);
+    }
+
 }
 
 }

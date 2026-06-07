@@ -85,15 +85,27 @@ void SaveLeaderboard(const State&in state)
 
     root["leaderboard"] = leaderboard;
 
-    auto customEntries = Json::Array();
-    for (uint i = 0; i < state.m_CustomEntries.Length; i++)
+    // Custom times
+    auto customTimeEntries = Json::Array();
+    for (uint i = 0; i < state.m_CustomTimeEntries.Length; i++)
     {
-        const auto @entry = @state.m_CustomEntries[i];
-        auto entryObj = serializeLeaderboardEntry(entry);
-        customEntries.Add(entryObj);
+        const auto @entry = @state.m_CustomTimeEntries[i];
+        auto @entryObj = @serializeCustomTime(entry);
+        customTimeEntries.Add(entryObj);
     }
-    root["customEntries"] = customEntries;
+    root["customTimeEntries"] = customTimeEntries;
 
+    // Custom positions
+    auto customPositionEntries = Json::Array();
+    for (uint i = 0; i < state.m_CustomPositionEntries.Length; i++)
+    {
+        const auto @entry = @state.m_CustomPositionEntries[i];
+        auto @entryObj = @serializeCustomPosition(entry);
+        customPositionEntries.Add(entryObj);
+    }
+    root["customPositionEntries"] = customPositionEntries;
+
+    // Save file
     Json::ToFile(filePath, root);
     LogDebug("Leaderboard saved to " + filePath);
 }
@@ -128,14 +140,17 @@ void LoadLeaderboard(State&inout state)
     if (leaderboard.HasKey("festestCopiumRun"))
     {
         @state.m_Leaderboard.m_FastestCopiumRun = @deserializeLeaderboardEntry(leaderboard["festestCopiumRun"]);
+        state.m_Leaderboard.m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
     }
     if (leaderboard.HasKey("bestCheckpointsRun"))
     {
         @state.m_Leaderboard.m_BestCheckpointsRun = @deserializeLeaderboardEntry(leaderboard["bestCheckpointsRun"]);
+        state.m_Leaderboard.m_BestCheckpointsRun.m_Type = LeaderboardEntryType::ScoreBestCheckpoints;
     }
     if (leaderboard.HasKey("bestLapsRun"))
     {
         @state.m_Leaderboard.m_BestLapsRun = @deserializeLeaderboardEntry(leaderboard["bestLapsRun"]);
+        state.m_Leaderboard.m_BestLapsRun.m_Type = LeaderboardEntryType::ScoreBestLaps;
     }
 
     for (uint i = 0; i < entries.Length; i++)
@@ -153,11 +168,20 @@ void LoadLeaderboard(State&inout state)
     state.m_Leaderboard.m_TotalNumberSessions = leaderboard["totalNumberSessions"];
     state.m_Leaderboard.m_TotalTime = leaderboard["totalTime"];
 
-    auto customEntries = root["customEntries"];
-    for (uint i = 0; i < customEntries.Length; i++)
+    // Custom times
+    auto customTimeEntries = root["customTimeEntries"];
+    for (uint i = 0; i < customTimeEntries.Length; i++)
     {
-        auto @entry = @deserializeLeaderboardEntry(customEntries[i]);
-        state.m_CustomEntries.InsertLast(@entry);
+        auto @entry = @deserializeCustomTime(customTimeEntries[i]);
+        state.m_CustomTimeEntries.InsertLast(@entry);
+    }
+
+    // Custom positions
+    auto customPositionEntries = root["customPositionEntries"];
+    for (uint i = 0; i < customPositionEntries.Length; i++)
+    {
+        auto @entry = @deserializeCustomPostition(customPositionEntries[i]);
+        state.m_CustomPositionEntries.InsertLast(@entry);
     }
 }
 
@@ -167,7 +191,6 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
     entryObj["id"] = entry.m_Id;
     entryObj["scoreNumber"] = entry.m_ScoreNumber;
     entryObj["sessionNumber"] = entry.m_SessionNumber;
-    entryObj["type"] = entry.m_Type;
     entryObj["player"] = entry.m_PlayerName;
     entryObj["rank"] = entry.m_Rank;
     entryObj["time"] = entry.m_Time;
@@ -203,8 +226,7 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
     entry.m_Id = entryObj["id"];
     entry.m_ScoreNumber = entryObj["scoreNumber"];
     entry.m_SessionNumber = entryObj["sessionNumber"];
-    int typeValue = entryObj["type"];
-    entry.m_Type = LeaderboardEntryType(typeValue);
+    entry.m_Type = LeaderboardEntryType::Score;
     entry.m_PlayerName = entryObj["player"];
     entry.m_Rank = entryObj["rank"];
     entry.m_Time = entryObj["time"];
@@ -275,6 +297,44 @@ LapData @deserializeLapData(const Json::Value&in lapDataObj)
     return @lapData;
 }
 
+Json::Value @serializeCustomTime(const LeaderboardEntry&in entry)
+{
+    auto @entryObj = Json::Object();
+    entryObj["id"] = entry.m_Id;
+    entryObj["player"] = entry.m_PlayerName;
+    entryObj["time"] = entry.m_Time;
+    return @entryObj;
+}
+
+LeaderboardEntry @deserializeCustomTime(const Json::Value&in entryObj)
+{
+    auto @entry = LeaderboardEntry();
+    entry.m_Id = entryObj["id"];
+    entry.m_Type = LeaderboardEntryType::CustomTime;
+    entry.m_PlayerName = entryObj["player"];
+    entry.m_Time = entryObj["time"];
+    return @entry;
+}
+
+Json::Value @serializeCustomPosition(const LeaderboardEntry&in entry)
+{
+    auto @entryObj = Json::Object();
+    entryObj["id"] = entry.m_Id;
+    entryObj["player"] = entry.m_PlayerName;
+    entryObj["position"] = entry.m_GlobalPosition;
+    return @entryObj;
+}
+
+LeaderboardEntry @deserializeCustomPostition(const Json::Value&in entryObj)
+{
+    auto @entry = LeaderboardEntry();
+    entry.m_Id = entryObj["id"];
+    entry.m_Type = LeaderboardEntryType::CustomPosition;
+    entry.m_PlayerName = entryObj["player"];
+    entry.m_GlobalPosition = entryObj["position"];
+    return @entry;
+}
+
 Json::Value serializeSettings()
 {
     auto settingsObj = Json::Object();
@@ -325,9 +385,14 @@ Json::Value serializeColumnSettings(const TableColumn@ column)
         {
             auto @target = @timeDeltaColumn.m_ComparisonTarget;
             columnSettingsObj["target"] = target.GetName();
-            if (timeDeltaColumn.m_ComparisonTarget.GetType() == ComparisonTargetType::CustomEntry)
+            if (timeDeltaColumn.m_ComparisonTarget.GetType() == ComparisonTargetType::CustomTime)
             {
-                auto @customTarget = cast<CustomEntryComparisonTarget>(target);
+                auto @customTarget = cast<CustomTimeComparisonTarget>(target);
+                columnSettingsObj["targetEntryId"] = customTarget.m_CustomEntryId;
+            }
+            else if (timeDeltaColumn.m_ComparisonTarget.GetType() == ComparisonTargetType::CustomPosition)
+            {
+                auto @customTarget = cast<CustomPositionComparisonTarget>(target);
                 columnSettingsObj["targetEntryId"] = customTarget.m_CustomEntryId;
             }
         }
@@ -345,12 +410,20 @@ void deserializeColumnSettings(TableColumn@ column, const Json::Value&in columnS
         TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
         const string target = columnSettingsObj["target"];
         auto @comparisonTarget = @GetComparisonTarget(target);
-        @timeDeltaColumn.m_ComparisonTarget = @comparisonTarget;
-
-        if (comparisonTarget.GetType() == ComparisonTargetType::CustomEntry)
+        if (comparisonTarget !is null)
         {
-            auto @customTarget = cast<CustomEntryComparisonTarget>(comparisonTarget);
-            customTarget.m_CustomEntryId = columnSettingsObj["targetEntryId"];
+            @timeDeltaColumn.m_ComparisonTarget = @comparisonTarget;
+    
+            if (comparisonTarget.GetType() == ComparisonTargetType::CustomTime)
+            {
+                auto @customTarget = cast<CustomTimeComparisonTarget>(comparisonTarget);
+                customTarget.m_CustomEntryId = columnSettingsObj["targetEntryId"];
+            }
+            else if (comparisonTarget.GetType() == ComparisonTargetType::CustomPosition)
+            {
+                auto @customTarget = cast<CustomPositionComparisonTarget>(comparisonTarget);
+                customTarget.m_CustomEntryId = columnSettingsObj["targetEntryId"];
+            }
         }
     }
 }
