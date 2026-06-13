@@ -5,6 +5,7 @@ array<TableColumn @> g_AllTableColumns = {
     MedalColumn(),
     RankColumn(),
     GlobalPositionColumn(),
+    GlobalPercentageColumn(),
     PlayerColumn(),
     TimeColumn(),
     TimeDeltaColumn(),
@@ -23,6 +24,7 @@ enum TableColumnType
     MedalColumn,
     RankColumn,
     GlobalPositionColumn,
+    GlobalPercentageColumn,
     PlayerColumn,
     TimeColumn,
     TimeDeltaColumn,
@@ -150,6 +152,25 @@ class GlobalPositionColumn : TableColumn
             return "<" + (context.m_CurrentEntry.m_GlobalPosition / 1000) + "k";
         else
             return "" + context.m_CurrentEntry.m_GlobalPosition;
+    }
+}
+
+class GlobalPercentageColumn : TableColumn
+{
+    TableColumnType GetType() const override
+    {
+        return TableColumnType::GlobalPercentageColumn;
+    }
+    string GetName() const override
+    {
+        return "%";
+    }
+    string GetBodyValue(const TableRenderContext&in context) const override
+    {
+        if (g_State.m_NumberGlobalPositions <= 0 || context.m_CurrentEntry.m_GlobalPosition <= 0)
+            return "";
+        else
+            return Math::Round((float(context.m_CurrentEntry.m_GlobalPosition) / float(g_State.m_NumberGlobalPositions)) * 100.0f, 2) + "%";
     }
 }
 

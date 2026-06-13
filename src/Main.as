@@ -142,6 +142,7 @@ void OnMapLoad()
 
     InitRows();
 
+    GetNumberGlobalPositions();
     InitLiveDataAsync();
 }
 
@@ -284,6 +285,16 @@ void setMedal(LeaderboardEntry&inout entry)
     @entry.m_Medal = null;
 }
 
+void GetNumberGlobalPositions()
+{
+#if DEPENDENCY_MAPINFO
+    LogDebug("Using Map Info for determining number of players");
+    g_State.m_NumberGlobalPositions = MapInfo::GetCurrentMapInfo().NbPlayers;
+#else
+    LogDebug("No plugin for determining number of players");
+#endif
+}
+
 class State
 {
     /**
@@ -293,6 +304,8 @@ class State
     string m_CurrentMap = "";
     string m_CurrentMapName = "";
     string m_CurrentMapAuthor = "";
+
+    int m_NumberGlobalPositions = -1;
 
     bool m_IsPlayerFinishHandled = true;
     array<CheckpointData @> m_CurrentCheckpoints;
