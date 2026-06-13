@@ -271,7 +271,7 @@ class TimeDeltaColumn : TableColumn
 
         if (context.m_CurrentEntry is m_ComparisonTarget.GetComparisonTargetEntry())
         {
-            return Time::Format(context.m_CurrentEntry.GetDisplayTime());
+            return "";
         }
         else
         {
@@ -289,7 +289,7 @@ class TimeDeltaColumn : TableColumn
 
         if (context.m_CurrentEntry is m_ComparisonTarget.GetComparisonTargetEntry())
         {
-            renderText(context, Time::Format(context.m_CurrentEntry.GetDisplayTime()));
+            UI::Text("");
         }
         else
         {
