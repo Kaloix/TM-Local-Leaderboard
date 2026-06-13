@@ -371,12 +371,13 @@ class LeaderboardEntry
         switch (m_Type)
         {
             case LeaderboardEntryType::CustomPosition:
+                return Icons::Kenney::PodiumAlt;
             case LeaderboardEntryType::CustomTime:
                 return Icons::ClockO;
             case LeaderboardEntryType::Medal:
                 return Icons::Circle;
             case LeaderboardEntryType::Score:
-                return Icons::CircleO;
+                return Icons::User;
             case LeaderboardEntryType::ScoreBestCheckpoints:
             case LeaderboardEntryType::ScoreBestLaps:
                 return Icons::AngleDoubleUp;
