@@ -2,9 +2,46 @@
 
 A Trackmania plugin adding a local leaderboard.
 
-Plan
-- Create cool README
+## Fetures
+- Table containing your best overall and session times, not just your personal best
+- Support for common medals
+- Shows no respawn and best checkpoint times
+- Detailed comparison of checkpoints and laps
+- Entries for custom times and positions
+
+## Future Plans
+Here a some of my ideas for future release that might or might not be implemented:
+- Add screenshots to the README
 - Reduce serialized data
 - Add support for other regions
 - Read checkpoints for AT
 - Custom entries for setting CP times or lap times
+- Add support for multiple local players
+
+## License
+LocalLeaderboard is licensed under the [Apache-2.0 license](./LICENSE).
+
+## Dependencies
+The following plugins are required for using LocalLeaderboard:
+- [MLFeed](https://openplanet.dev/plugin/mlfeedracedata)
+
+Furhtermore these plugins can be installed for additional features:
+- [Champion Medals](https://openplanet.dev/plugin/championmedals) Adds an entry for the Champion medal
+- [Warrior Medals](https://openplanet.dev/plugin/warriormedals) Adds an entry for the Warrior medal
+- [Map Info](https://openplanet.dev/plugin/mapinfo) Enables the percentage of players
+
+## Credits
+
+The following awesome plugins helped me to find inspirations and implementations:
+- [ExtraLeaderboardPositons](https://openplanet.dev/plugin/extraleaderboardpositions) Inspiration for the general idea of the plugin
+- [UltimateMedalsExtended](https://openplanet.dev/plugin/ultimatemedalsextended) Idea of displaying copium times
+- [Best Checkpoints](https://openplanet.dev/plugin/bestcheckpoints) Idea for showing checkpoint/lap times
+
+## Development
+
+The [dev](./dev/) directory provides scripts to build and install the plugin on Windows and Linux.
+These can be used by running `./dev/build.[ps1|sh]` from the project's root directory.
+Currently the scripts assume that the Trackmania plugins are located at `~\OpenplanetNext\Plugins"` for Windows and at `~/.local/share/Steam/steamapps/compatdata/2225070/pfx/drive_c/users/steamuser/OpenplanetNext/Plugins"` on Linux machines.
+The installation can be disabled by using `--no-install`.
+
+The [.clang-format](./.clang-format) file provides code styles.
