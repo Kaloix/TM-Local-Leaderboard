@@ -114,7 +114,8 @@ void InitRows()
     {
         for (uint i = 0; i < g_State.m_CustomTimeEntries.Length; i++)
         {
-            g_TableRows.InsertLast(@g_State.m_CustomTimeEntries[i]);
+            if (g_State.m_CustomTimeEntries[i].m_Time > 0)
+                g_TableRows.InsertLast(@g_State.m_CustomTimeEntries[i]);
         }
     }
     if (settingDisplayLeaderboardCustomPositions)
