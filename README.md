@@ -14,7 +14,6 @@ Here a some of my ideas for future release that might or might not be implemente
 - Add screenshots to the README
 - Reduce serialized data
 - Add support for other regions
-- Read checkpoints for AT
 - Custom entries for setting CP times or lap times
 - Add support for multiple local players
 
@@ -29,6 +28,7 @@ Furhtermore these plugins can be installed for additional features:
 - [Champion Medals](https://openplanet.dev/plugin/championmedals) Adds an entry for the Champion medal
 - [Warrior Medals](https://openplanet.dev/plugin/warriormedals) Adds an entry for the Warrior medal
 - [Map Info](https://openplanet.dev/plugin/mapinfo) Enables the percentage of players
+- [MLHook](https://openplanet.dev/plugin/mlhook) Enables AT checkpoint times
 
 ## Credits
 
@@ -36,6 +36,7 @@ The following awesome plugins helped me to find inspirations and implementations
 - [ExtraLeaderboardPositons](https://openplanet.dev/plugin/extraleaderboardpositions) Inspiration for the general idea of the plugin
 - [UltimateMedalsExtended](https://openplanet.dev/plugin/ultimatemedalsextended) Idea of displaying copium times
 - [Best Checkpoints](https://openplanet.dev/plugin/bestcheckpoints) Idea for showing checkpoint/lap times
+- [Author Time Check](https://openplanet.dev/plugin/authortimecheck) Code for retrieving the author checkpoint times
 
 ## Development
 

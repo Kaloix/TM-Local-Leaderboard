@@ -35,6 +35,7 @@ void InitializeMedals()
 
 interface Medal
 {
+    MedalType GetType() const;
     string GetName() const;
     vec3 GetIconColor() const;
     int GetTime() const;
@@ -44,6 +45,10 @@ interface Medal
 #if DEPENDENCY_CHAMPIONMEDALS
 class ChampionMedal : Medal
 {
+    MedalType GetType() const override
+    {
+        return MedalType::Champion;
+    }
     string GetName() const override
     {
         return "Champion";
@@ -66,6 +71,10 @@ class ChampionMedal : Medal
 #if DEPENDENCY_WARRIORMEDALS
 class WarriorMedal : Medal
 {
+    MedalType GetType() const override
+    {
+        return MedalType::Warrior;
+    }
     string GetName() const override
     {
         return "Warrior";
@@ -87,6 +96,10 @@ class WarriorMedal : Medal
 
 class AuthorMedal : Medal
 {
+    MedalType GetType() const override
+    {
+        return MedalType::Author;
+    }
     string GetName() const override
     {
         return "Author";
@@ -108,6 +121,10 @@ class AuthorMedal : Medal
 
 class GoldMedal : Medal
 {
+    MedalType GetType() const override
+    {
+        return MedalType::Gold;
+    }
     string GetName() const override
     {
         return "Gold";
@@ -129,6 +146,10 @@ class GoldMedal : Medal
 
 class SilverMedal : Medal
 {
+    MedalType GetType() const override
+    {
+        return MedalType::Silver;
+    }
     string GetName() const override
     {
         return "Silver";
@@ -150,6 +171,10 @@ class SilverMedal : Medal
 
 class BronzeMedal : Medal
 {
+    MedalType GetType() const override
+    {
+        return MedalType::Bronze;
+    }
     string GetName() const override
     {
         return "Bronze";

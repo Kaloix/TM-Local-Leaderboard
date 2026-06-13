@@ -6,4 +6,4 @@ version = "0.1.0"
 
 [script]
 dependencies = ["MLFeedRaceData", "NadeoServices"]
-optional_dependencies =  [ "ChampionMedals", "WarriorMedals", "mapinfo"]
+optional_dependencies =  [ "ChampionMedals", "WarriorMedals", "mapinfo", "MLHook"]

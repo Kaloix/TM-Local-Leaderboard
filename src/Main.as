@@ -37,6 +37,8 @@ State g_State = State();
 void Init()
 {
     InitNadeoApi();
+    InitHooks();
+
     InitializeMedals();
     InitializeComparisonTarget();
     initializeTableColumns();
@@ -48,6 +50,7 @@ void Init()
 
 void Shutdown()
 {
+    UnloadHooks();
     LogDebug("Local Leaderboard plugin shutting down.");
 }
 
@@ -143,6 +146,7 @@ void OnMapLoad()
     InitRows();
 
     GetNumberGlobalPositions();
+    GetAtCpTimes();
     InitLiveDataAsync();
 }
 
@@ -175,20 +179,25 @@ void OnReachingCheckpoint(int checkpoint)
     cpData.m_TimeFromPreviousNoRespawn = time - player.TimeLostToRespawnByCp[checkpoint - 1];
     cpData.m_NumberRespawns = player.NbRespawnsByCp[checkpoint - 1];
 
-    // Add lap
-    if (checkpoint % (raceData.CpCount + 1) == 0)
+    AddLap(checkpoint, cpData, g_State.m_CurrentCheckpoints, g_State.m_CurrentLaps);
+}
+
+void AddLap(const int checkpointIndex, const CheckpointData&in currentCp, const array<CheckpointData@>&in checkpoints, array<LapData@>&inout laps)
+{
+    const auto @raceData = @MLFeed::GetRaceData_V4();
+    if (checkpointIndex % (raceData.CpCount + 1) == 0)
     {
         LapData @lapData = LapData();
-        lapData.m_TimeFromStart = cpData.m_TimeFromStart;
+        lapData.m_TimeFromStart = currentCp.m_TimeFromStart;
 
-        for (uint i = (raceData.CPCount + 1) * g_State.m_CurrentLaps.Length; i < g_State.m_CurrentCheckpoints.Length; ++i)
+        for (uint i = (raceData.CPCount + 1) * laps.Length; i < checkpoints.Length; ++i)
         {
-            lapData.m_TimeFromPrevious += g_State.m_CurrentCheckpoints[i].m_TimeFromPrevious;
-            lapData.m_TimeFromPreviousNoRespawn += g_State.m_CurrentCheckpoints[i].m_TimeFromPreviousNoRespawn;
-            lapData.m_NumberRespawns += g_State.m_CurrentCheckpoints[i].m_NumberRespawns;
+            lapData.m_TimeFromPrevious += checkpoints[i].m_TimeFromPrevious;
+            lapData.m_TimeFromPreviousNoRespawn += checkpoints[i].m_TimeFromPreviousNoRespawn;
+            lapData.m_NumberRespawns += checkpoints[i].m_NumberRespawns;
         }
 
-        g_State.m_CurrentLaps.InsertLast(lapData);
+        laps.InsertLast(lapData);
     }
 }
 
@@ -339,6 +348,16 @@ class State
         setMedals();
         InitRows();
         SaveLeaderboard(this);
+    }
+
+    LeaderboardEntry@ GetMedalEntry(MedalType medal)
+    {
+        for (uint i = 0; i < m_MedalEntries.Length; ++i)
+        {
+            if (m_MedalEntries[i].m_Medal.GetType() == medal)
+                return m_MedalEntries[i];
+        }
+        return null;
     }
 
     void AddCustomTimeEntry()
