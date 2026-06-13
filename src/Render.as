@@ -202,7 +202,9 @@ void Render()
     // Table header
     if (settingDisplayLeaderboardHeader)
     {
+        UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
         UI::TableHeadersRow();
+        UI::PopStyleColor();
     }
 
     // Table body
@@ -300,7 +302,9 @@ void RenderCheckpoints(const TableRenderContext&in context)
     UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed);
     UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed);
 
+    UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
     UI::TableHeadersRow();
+    UI::PopStyleColor();
 
     for (uint i = 0; i < context.m_CurrentEntry.m_Checkpoints.Length; i++)
     {
@@ -400,7 +404,9 @@ void RenderLaps(const TableRenderContext&in context)
     UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed);
     UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed);
 
+    UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
     UI::TableHeadersRow();
+    UI::PopStyleColor();
 
     for (uint i = 0; i < context.m_CurrentEntry.m_Laps.Length; i++)
     {

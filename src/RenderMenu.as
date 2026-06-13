@@ -39,13 +39,15 @@ void RenderCustomTimeEntries()
         g_State.AddCustomTimeEntry();
     }
 
-    UI::BeginTable("CustomTimeEntriesTable", 3);
+    UI::BeginTable("CustomTimeEntriesTable", 3, UI::TableFlags::SizingFixedFit);
 
-    UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed, 30);
-    UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed, 200);
-    UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed, 500);
+    UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed);
 
+    UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
     UI::TableHeadersRow();
+    UI::PopStyleColor();
 
     for (uint i = 0; i < g_State.m_CustomTimeEntries.Length ; i++)
     {
@@ -118,13 +120,16 @@ void RenderCustomPositionEntries()
         g_State.AddCustomPositionEntry();
     }
 
-    UI::BeginTable("CustomPositionEntriesTable", 3);
 
-    UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed, 30);
-    UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed, 200);
-    UI::TableSetupColumn("Pos", UI::TableColumnFlags::WidthFixed, 500);
+    UI::BeginTable("CustomPositionEntriesTable", 3, UI::TableFlags::SizingFixedFit);
 
+    UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Pos", UI::TableColumnFlags::WidthFixed);
+
+    UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
     UI::TableHeadersRow();
+    UI::PopStyleColor();
 
     for (uint i = 0; i < g_State.m_CustomPositionEntries.Length ; i++)
     {
@@ -165,13 +170,15 @@ void RenderCustomPositionEntries()
 void RenderTableColumnsMenu()
 {
 
-    UI::BeginTable("CustomEntriesTable", 3);
+    UI::BeginTable("CustomEntriesTable", 3, UI::TableFlags::SizingFixedFit);
 
-    UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed, 200);
-    UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed, 200);
-    UI::TableSetupColumn("##Other", UI::TableColumnFlags::WidthFixed, 300);
+    UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("##Other", UI::TableColumnFlags::WidthFixed);
 
+    UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
     UI::TableHeadersRow();
+    UI::PopStyleColor();
 
     for (uint i = 0; i < g_AllTableColumns.Length; ++i)
     {
