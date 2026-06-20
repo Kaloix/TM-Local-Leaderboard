@@ -437,7 +437,7 @@ class State
 
         m_CustomPositionEntries.InsertLast(newEntry);
 
-        SaveLeaderboard(this);
+        saveSettings();
 
         InitTimeForEntryAsync(@newEntry);
     }
@@ -465,7 +465,7 @@ class State
 
         m_CustomPositionEntries[index].m_PlayerName = newName;
 
-        SaveLeaderboard(this);
+        saveSettings();
     }
 
     void UpdateCustomPositionEntryPosition(uint index, int newPosition)
@@ -478,7 +478,7 @@ class State
 
         m_CustomPositionEntries[index].m_GlobalPosition = newPosition;
 
-        SaveLeaderboard(this);
+        saveSettings();
 
         InitTimeForEntryAsync(@m_CustomPositionEntries[index]);
     }
@@ -494,7 +494,7 @@ class State
         m_CustomPositionEntries.RemoveAt(index);
 
         InitRows();
-        SaveLeaderboard(this);
+        saveSettings();
     }
 
 }

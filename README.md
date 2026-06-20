@@ -2,7 +2,7 @@
 
 A Trackmania plugin adding a local leaderboard.
 
-## Fetures
+## Features
 - Table containing your best overall and session times, not just your personal best
 - Support for common medals
 - Shows no respawn and best checkpoint times
@@ -12,7 +12,8 @@ A Trackmania plugin adding a local leaderboard.
 ## Future Plans
 Here a some of my ideas for future release that might or might not be implemented:
 - Add screenshots to the README
-- Reduce serialized data
+- Delete single entries
+- Set maximum number of best and latest entries and separately
 - Add support for other regions
 - Custom entries for setting CP times or lap times
 - Add support for multiple local players
@@ -24,7 +25,7 @@ LocalLeaderboard is licensed under the [Apache-2.0 license](./LICENSE).
 The following plugins are required for using LocalLeaderboard:
 - [MLFeed](https://openplanet.dev/plugin/mlfeedracedata)
 
-Furhtermore these plugins can be installed for additional features:
+Furthermore these plugins can be installed for additional features:
 - [Champion Medals](https://openplanet.dev/plugin/championmedals) Adds an entry for the Champion medal
 - [Warrior Medals](https://openplanet.dev/plugin/warriormedals) Adds an entry for the Warrior medal
 - [Map Info](https://openplanet.dev/plugin/mapinfo) Enables the percentage of players
@@ -33,7 +34,7 @@ Furhtermore these plugins can be installed for additional features:
 ## Credits
 
 The following awesome plugins helped me to find inspirations and implementations:
-- [ExtraLeaderboardPositons](https://openplanet.dev/plugin/extraleaderboardpositions) Inspiration for the general idea of the plugin
+- [ExtraLeaderboardPositions](https://openplanet.dev/plugin/extraleaderboardpositions) Inspiration for the general idea of the plugin
 - [UltimateMedalsExtended](https://openplanet.dev/plugin/ultimatemedalsextended) Idea of displaying copium times
 - [Best Checkpoints](https://openplanet.dev/plugin/bestcheckpoints) Idea for showing checkpoint/lap times
 - [Author Time Check](https://openplanet.dev/plugin/authortimecheck) Code for retrieving the author checkpoint times

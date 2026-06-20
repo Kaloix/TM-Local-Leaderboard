@@ -64,11 +64,11 @@ void SaveLeaderboard(const State&in state)
 
     if (state.m_Leaderboard.m_FastestRun !is null)
     {
-        leaderboard["festestRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_FastestRun);
+        leaderboard["fastestRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_FastestRun);
     }
     if (state.m_Leaderboard.m_FastestCopiumRun !is null)
     {
-        leaderboard["festestCopiumRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_FastestCopiumRun);
+        leaderboard["fastestCopiumRun"] = serializeLeaderboardEntry(state.m_Leaderboard.m_FastestCopiumRun);
     }
     if (state.m_Leaderboard.m_BestCheckpointsRun !is null)
     {
@@ -86,24 +86,17 @@ void SaveLeaderboard(const State&in state)
     root["leaderboard"] = leaderboard;
 
     // Custom times
-    auto customTimeEntries = Json::Array();
-    for (uint i = 0; i < state.m_CustomTimeEntries.Length; i++)
+    if (state.m_CustomTimeEntries.Length > 0)
     {
-        const auto @entry = @state.m_CustomTimeEntries[i];
-        auto @entryObj = @serializeCustomTime(entry);
-        customTimeEntries.Add(entryObj);
+        auto customTimeEntries = Json::Array();
+        for (uint i = 0; i < state.m_CustomTimeEntries.Length; i++)
+        {
+            const auto @entry = @state.m_CustomTimeEntries[i];
+            auto @entryObj = @serializeCustomTime(entry);
+            customTimeEntries.Add(entryObj);
+        }
+        root["customTimeEntries"] = customTimeEntries;
     }
-    root["customTimeEntries"] = customTimeEntries;
-
-    // Custom positions
-    auto customPositionEntries = Json::Array();
-    for (uint i = 0; i < state.m_CustomPositionEntries.Length; i++)
-    {
-        const auto @entry = @state.m_CustomPositionEntries[i];
-        auto @entryObj = @serializeCustomPosition(entry);
-        customPositionEntries.Add(entryObj);
-    }
-    root["customPositionEntries"] = customPositionEntries;
 
     // Save file
     Json::ToFile(filePath, root);
@@ -133,13 +126,13 @@ void LoadLeaderboard(State&inout state)
     auto leaderboard = root["leaderboard"];
     auto entries = leaderboard["entries"];
 
-    if (leaderboard.HasKey("festestRun"))
+    if (leaderboard.HasKey("fastestRun"))
     {
-        @state.m_Leaderboard.m_FastestRun = @deserializeLeaderboardEntry(leaderboard["festestRun"]);
+        @state.m_Leaderboard.m_FastestRun = @deserializeLeaderboardEntry(leaderboard["fastestRun"]);
     }
-    if (leaderboard.HasKey("festestCopiumRun"))
+    if (leaderboard.HasKey("fastestCopiumRun"))
     {
-        @state.m_Leaderboard.m_FastestCopiumRun = @deserializeLeaderboardEntry(leaderboard["festestCopiumRun"]);
+        @state.m_Leaderboard.m_FastestCopiumRun = @deserializeLeaderboardEntry(leaderboard["fastestCopiumRun"]);
         state.m_Leaderboard.m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
     }
     if (leaderboard.HasKey("bestCheckpointsRun"))
@@ -169,45 +162,49 @@ void LoadLeaderboard(State&inout state)
     state.m_Leaderboard.m_TotalTime = leaderboard["totalTime"];
 
     // Custom times
-    auto customTimeEntries = root["customTimeEntries"];
-    for (uint i = 0; i < customTimeEntries.Length; i++)
+    if (root.HasKey("customTimeEntries"))
     {
-        auto @entry = @deserializeCustomTime(customTimeEntries[i]);
-        state.m_CustomTimeEntries.InsertLast(@entry);
-    }
-
-    // Custom positions
-    auto customPositionEntries = root["customPositionEntries"];
-    for (uint i = 0; i < customPositionEntries.Length; i++)
-    {
-        auto @entry = @deserializeCustomPostition(customPositionEntries[i]);
-        state.m_CustomPositionEntries.InsertLast(@entry);
+        auto customTimeEntries = root["customTimeEntries"];
+        for (uint i = 0; i < customTimeEntries.Length; i++)
+        {
+            auto @entry = @deserializeCustomTime(customTimeEntries[i]);
+            state.m_CustomTimeEntries.InsertLast(@entry);
+        }
     }
 }
 
 Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
 {
     auto entryObj = Json::Object();
-    entryObj["id"] = entry.m_Id;
-    entryObj["scoreNumber"] = entry.m_ScoreNumber;
-    entryObj["sessionNumber"] = entry.m_SessionNumber;
-    entryObj["player"] = entry.m_PlayerName;
-    entryObj["rank"] = entry.m_Rank;
-    entryObj["time"] = entry.m_Time;
-    entryObj["timeNoRespawn"] = entry.m_TimeNoRespawn;
-    entryObj["numberRespawns"] = entry.m_NumberRespawns;
-    entryObj["timestamp"] = entry.m_TimeStamp;
-    entryObj["timeInTotal"] = entry.m_TimeInTotal;
-    entryObj["timeInSession"] = entry.m_TimeInSession;
-    entryObj["wasPersonalBest"] = entry.m_WasPersonalBest;
-    entryObj["wasSessionBest"] = entry.m_WasSessionBest;
+    entryObj[IO_KEY::ID] = entry.m_Id;
+    if (entry.m_ScoreNumber > 0)
+        entryObj[IO_KEY::SCORE_NUMBER] = entry.m_ScoreNumber;
+    if (entry.m_SessionNumber > 0)
+        entryObj[IO_KEY::SESSION_NUMBER] = entry.m_SessionNumber;
+    entryObj[IO_KEY::PLAYER] = entry.m_PlayerName;
+    entryObj[IO_KEY::RANK] = entry.m_Rank;
+    entryObj[IO_KEY::TIME] = entry.m_Time;
+    if (entry.m_TimeNoRespawn != entry.m_Time)
+        entryObj[IO_KEY::TIME_NO_RESPAWN] = entry.m_TimeNoRespawn;
+    if (entry.m_NumberRespawns > 0)
+        entryObj[IO_KEY::NUMBER_RESPAWNS] = entry.m_NumberRespawns;
+    if (entry.m_TimeStamp > 0)
+        entryObj[IO_KEY::TIMESTAMP] = entry.m_TimeStamp;
+    if (entry.m_TimeInTotal > 0)
+        entryObj[IO_KEY::TIME_IN_TOTAL] = entry.m_TimeInTotal;
+    if (entry.m_TimeInSession > 0)
+        entryObj[IO_KEY::TIME_IN_SESSION] = entry.m_TimeInSession;
+    if (entry.m_WasPersonalBest)
+        entryObj[IO_KEY::WAS_PERSONAL_BEST] = entry.m_WasPersonalBest;
+    if (entry.m_WasSessionBest)
+        entryObj[IO_KEY::WAS_SESSION_BEST] = entry.m_WasSessionBest;
 
     auto checkpoints = Json::Array();
     for (uint i = 0; i < entry.m_Checkpoints.Length; i++)    {
         auto cpDataObj = serializeCheckpointData(entry.m_Checkpoints[i]);
         checkpoints.Add(cpDataObj);
     }
-    entryObj["checkpoints"] = checkpoints;
+    entryObj[IO_KEY::CHECKPOINTS] = checkpoints;
 
     auto laps = Json::Array();
     for (uint i = 0; i < entry.m_Laps.Length; ++i)
@@ -215,7 +212,7 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
         auto lapDataObj = serializeLapData(entry.m_Laps[i]);
         laps.Add(lapDataObj);
     }
-    entryObj["laps"] = laps;
+    entryObj[IO_KEY::LAPS] = laps;
 
     return entryObj;
 }
@@ -223,32 +220,50 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
 LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
 {
     auto @entry = LeaderboardEntry();
-    entry.m_Id = entryObj["id"];
-    entry.m_ScoreNumber = entryObj["scoreNumber"];
-    entry.m_SessionNumber = entryObj["sessionNumber"];
+    entry.m_Id = entryObj[IO_KEY::ID];
+    if (entryObj.HasKey(IO_KEY::SCORE_NUMBER))
+        entry.m_ScoreNumber = entryObj[IO_KEY::SCORE_NUMBER];
+    if (entryObj.HasKey(IO_KEY::SESSION_NUMBER))
+        entry.m_SessionNumber = entryObj[IO_KEY::SESSION_NUMBER];
     entry.m_Type = LeaderboardEntryType::Score;
-    entry.m_PlayerName = entryObj["player"];
-    entry.m_Rank = entryObj["rank"];
-    entry.m_Time = entryObj["time"];
-    entry.m_TimeNoRespawn = entryObj["timeNoRespawn"];
-    entry.m_NumberRespawns = entryObj["numberRespawns"];
-    entry.m_TimeStamp = entryObj["timestamp"];
-    entry.m_TimeInTotal = entryObj["timeInTotal"];
-    entry.m_TimeInSession = entryObj["timeInSession"];
-    entry.m_WasPersonalBest = entryObj["wasPersonalBest"];
-    entry.m_WasSessionBest = entryObj["wasSessionBest"];
+    entry.m_PlayerName = entryObj[IO_KEY::PLAYER];
+    entry.m_Rank = entryObj[IO_KEY::RANK];
+    entry.m_Time = entryObj[IO_KEY::TIME];
+    if (entryObj.HasKey(IO_KEY::TIME_NO_RESPAWN))
+        entry.m_TimeNoRespawn = entryObj[IO_KEY::TIME_NO_RESPAWN];
+    else
+        entry.m_TimeNoRespawn = entry.m_Time;
+    if (entryObj.HasKey(IO_KEY::NUMBER_RESPAWNS))
+        entry.m_NumberRespawns = entryObj[IO_KEY::NUMBER_RESPAWNS];
+    if (entryObj.HasKey(IO_KEY::TIMESTAMP))
+        entry.m_TimeStamp = entryObj[IO_KEY::TIMESTAMP];
+    if (entryObj.HasKey(IO_KEY::TIME_IN_TOTAL))
+        entry.m_TimeInTotal = entryObj[IO_KEY::TIME_IN_TOTAL];
+    if (entryObj.HasKey(IO_KEY::TIME_IN_SESSION))
+        entry.m_TimeInSession = entryObj[IO_KEY::TIME_IN_SESSION];
+    if (entryObj.HasKey(IO_KEY::WAS_PERSONAL_BEST))
+        entry.m_WasPersonalBest = entryObj[IO_KEY::WAS_PERSONAL_BEST];
+    if (entryObj.HasKey(IO_KEY::WAS_SESSION_BEST))
+        entry.m_WasSessionBest = entryObj[IO_KEY::WAS_SESSION_BEST];
 
-    for (uint i = 0; i < entryObj["checkpoints"].Length; i++)
+    
+    int timeFromStart = 0;
+    for (uint i = 0; i < entryObj[IO_KEY::CHECKPOINTS].Length; i++)
     {
-        auto cpDataObj = entryObj["checkpoints"][i];
+        auto cpDataObj = entryObj[IO_KEY::CHECKPOINTS][i];
         auto @cpData = @deserializeCheckpointData(cpDataObj);
+        timeFromStart += cpData.m_TimeFromPrevious;
+        cpData.m_TimeFromStart = timeFromStart;
         entry.m_Checkpoints.InsertLast(@cpData);
     }
 
-    for (uint i = 0; i < entryObj["laps"].Length; ++i)
+    timeFromStart = 0;
+    for (uint i = 0; i < entryObj[IO_KEY::LAPS].Length; ++i)
     {
-        auto lapDataObj = entryObj["laps"][i];
+        auto lapDataObj = entryObj[IO_KEY::LAPS][i];
         auto @lapData = @deserializeLapData(lapDataObj);
+        timeFromStart += lapData.m_TimeFromPrevious;
+        lapData.m_TimeFromStart = timeFromStart;
         entry.m_Laps.InsertLast(@lapData);
     }
 
@@ -258,93 +273,127 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
 Json::Value serializeCheckpointData(const CheckpointData&in cpData)
 {
     auto cpDataObj = Json::Object();
-    cpDataObj["timeFromStart"] = cpData.m_TimeFromStart;
-    cpDataObj["timeFromPrevious"] = cpData.m_TimeFromPrevious;
-    cpDataObj["timeFromPreviousNoRespawn"] = cpData.m_TimeFromPreviousNoRespawn;
-    cpDataObj["speed"] = cpData.m_Speed;
-    cpDataObj["numberRespawns"] = cpData.m_NumberRespawns;
+    cpDataObj[IO_KEY::TIME_FROM_PREVIOUS] = cpData.m_TimeFromPrevious;
+    if (cpData.m_TimeFromPreviousNoRespawn != cpData.m_TimeFromPrevious)
+        cpDataObj[IO_KEY::TIME_FROM_PREVIOUS_NO_RESPAWN] = cpData.m_TimeFromPreviousNoRespawn;
+    cpDataObj[IO_KEY::SPEED] = cpData.m_Speed;
+    if (cpData.m_NumberRespawns > 0)
+        cpDataObj[IO_KEY::NUMBER_RESPAWNS] = cpData.m_NumberRespawns;
     return cpDataObj;
 }
 
 CheckpointData @deserializeCheckpointData(const Json::Value&in cpDataObj)
 {
     auto @cpData = CheckpointData();
-    cpData.m_TimeFromStart = cpDataObj["timeFromStart"];
-    cpData.m_TimeFromPrevious = cpDataObj["timeFromPrevious"];
-    cpData.m_TimeFromPreviousNoRespawn = cpDataObj["timeFromPreviousNoRespawn"];
-    cpData.m_Speed = cpDataObj["speed"];
-    cpData.m_NumberRespawns = cpDataObj["numberRespawns"];
+    cpData.m_TimeFromPrevious = cpDataObj[IO_KEY::TIME_FROM_PREVIOUS];
+    if (cpDataObj.HasKey(IO_KEY::TIME_FROM_PREVIOUS_NO_RESPAWN))
+        cpData.m_TimeFromPreviousNoRespawn = cpDataObj[IO_KEY::TIME_FROM_PREVIOUS_NO_RESPAWN];
+    else 
+        cpData.m_TimeFromPreviousNoRespawn = cpData.m_TimeFromPrevious;
+    cpData.m_Speed = cpDataObj[IO_KEY::SPEED];
+    if (cpDataObj.HasKey(IO_KEY::NUMBER_RESPAWNS))
+        cpData.m_NumberRespawns = cpDataObj[IO_KEY::NUMBER_RESPAWNS];
     return @cpData;
 }
 
 Json::Value serializeLapData(const LapData&in lapData)
 {
     auto lapDataObj = Json::Object();
-    lapDataObj["timeFromStart"] = lapData.m_TimeFromStart;
-    lapDataObj["timeFromPrevious"] = lapData.m_TimeFromPrevious;
-    lapDataObj["timeFromPreviousNoRespawn"] = lapData.m_TimeFromPreviousNoRespawn;
-    lapDataObj["numberRespawns"] = lapData.m_NumberRespawns;
+    lapDataObj[IO_KEY::TIME_FROM_PREVIOUS] = lapData.m_TimeFromPrevious;
+    if (lapData.m_TimeFromPreviousNoRespawn != lapData.m_TimeFromPrevious)
+        lapDataObj[IO_KEY::TIME_FROM_PREVIOUS_NO_RESPAWN] = lapData.m_TimeFromPreviousNoRespawn;
+    if (lapData.m_NumberRespawns > 0)
+        lapDataObj[IO_KEY::NUMBER_RESPAWNS] = lapData.m_NumberRespawns;
     return lapDataObj;
 }
 
 LapData @deserializeLapData(const Json::Value&in lapDataObj)
 {
     auto @lapData = LapData();
-    lapData.m_TimeFromStart = lapDataObj["timeFromStart"];
-    lapData.m_TimeFromPrevious = lapDataObj["timeFromPrevious"];
-    lapData.m_TimeFromPreviousNoRespawn = lapDataObj["timeFromPreviousNoRespawn"];
-    lapData.m_NumberRespawns = lapDataObj["numberRespawns"];
+    lapData.m_TimeFromPrevious = lapDataObj[IO_KEY::TIME_FROM_PREVIOUS];
+    if (lapDataObj.HasKey(IO_KEY::TIME_FROM_PREVIOUS_NO_RESPAWN))
+        lapData.m_TimeFromPreviousNoRespawn = lapDataObj[IO_KEY::TIME_FROM_PREVIOUS_NO_RESPAWN];
+    else
+        lapData.m_TimeFromPreviousNoRespawn = lapData.m_TimeFromPrevious;
+    if (lapDataObj.HasKey(IO_KEY::NUMBER_RESPAWNS))
+        lapData.m_NumberRespawns = lapDataObj[IO_KEY::NUMBER_RESPAWNS];
     return @lapData;
 }
 
 Json::Value @serializeCustomTime(const LeaderboardEntry&in entry)
 {
     auto @entryObj = Json::Object();
-    entryObj["id"] = entry.m_Id;
-    entryObj["player"] = entry.m_PlayerName;
-    entryObj["time"] = entry.m_Time;
+    entryObj[IO_KEY::ID] = entry.m_Id;
+    entryObj[IO_KEY::PLAYER] = entry.m_PlayerName;
+    entryObj[IO_KEY::TIME] = entry.m_Time;
     return @entryObj;
 }
 
 LeaderboardEntry @deserializeCustomTime(const Json::Value&in entryObj)
 {
     auto @entry = LeaderboardEntry();
-    entry.m_Id = entryObj["id"];
+    entry.m_Id = entryObj[IO_KEY::ID];
     entry.m_Type = LeaderboardEntryType::CustomTime;
-    entry.m_PlayerName = entryObj["player"];
-    entry.m_Time = entryObj["time"];
+    entry.m_PlayerName = entryObj[IO_KEY::PLAYER];
+    entry.m_Time = entryObj[IO_KEY::TIME];
     return @entry;
 }
 
 Json::Value @serializeCustomPosition(const LeaderboardEntry&in entry)
 {
     auto @entryObj = Json::Object();
-    entryObj["id"] = entry.m_Id;
-    entryObj["player"] = entry.m_PlayerName;
-    entryObj["position"] = entry.m_GlobalPosition;
+    entryObj[IO_KEY::ID] = entry.m_Id;
+    entryObj[IO_KEY::PLAYER] = entry.m_PlayerName;
+    entryObj[IO_KEY::POSITION] = entry.m_GlobalPosition;
     return @entryObj;
 }
 
 LeaderboardEntry @deserializeCustomPostition(const Json::Value&in entryObj)
 {
     auto @entry = LeaderboardEntry();
-    entry.m_Id = entryObj["id"];
+    entry.m_Id = entryObj[IO_KEY::ID];
     entry.m_Type = LeaderboardEntryType::CustomPosition;
-    entry.m_PlayerName = entryObj["player"];
-    entry.m_GlobalPosition = entryObj["position"];
+    entry.m_PlayerName = entryObj[IO_KEY::PLAYER];
+    entry.m_GlobalPosition = entryObj[IO_KEY::POSITION];
     return @entry;
 }
 
 Json::Value serializeSettings()
 {
     auto settingsObj = Json::Object();
+
     settingsObj["tableSettings"] = serializeTableSettings();
+
+    // Custom positions
+    if (g_State.m_CustomPositionEntries.Length > 0)
+    {
+        auto customPositionEntries = Json::Array();
+        for (uint i = 0; i < g_State.m_CustomPositionEntries.Length; i++)
+        {
+            const auto @entry = @g_State.m_CustomPositionEntries[i];
+            auto @entryObj = @serializeCustomPosition(entry);
+            customPositionEntries.Add(entryObj);
+        }
+        settingsObj["customPositionEntries"] = customPositionEntries;
+    }
+
     return settingsObj;
 }
 
 void deserializeSettings(const Json::Value&in settingsObj)
 {
     deserializeTableSettings(settingsObj["tableSettings"]);
+
+    // Custom positions
+    if (settingsObj.HasKey("customPositionEntries"))
+    {
+        auto customPositionEntries = settingsObj["customPositionEntries"];
+        for (uint i = 0; i < customPositionEntries.Length; i++)
+        {
+            auto @entry = @deserializeCustomPostition(customPositionEntries[i]);
+            g_State.m_CustomPositionEntries.InsertLast(@entry);
+        }
+    }
 }
 
 Json::Value serializeTableSettings()
@@ -377,7 +426,7 @@ Json::Value serializeColumnSettings(const TableColumn@ column)
     auto columnSettingsObj = Json::Object();
     columnSettingsObj["type"] = column.GetType();
     columnSettingsObj["show"] = column.m_Show;
-    columnSettingsObj["pos"] = column.m_Pos;
+    columnSettingsObj[IO_KEY::POSITION] = column.m_Pos;
 
     if (column.GetType() == TableColumnType::TimeDeltaColumn) {
         const TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
@@ -404,7 +453,7 @@ Json::Value serializeColumnSettings(const TableColumn@ column)
 void deserializeColumnSettings(TableColumn@ column, const Json::Value&in columnSettingsObj)
 {
     column.m_Show = columnSettingsObj["show"];
-    column.m_Pos = columnSettingsObj["pos"];
+    column.m_Pos = columnSettingsObj[IO_KEY::POSITION];
 
     if (column.GetType() == TableColumnType::TimeDeltaColumn) {
         TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
@@ -437,5 +486,30 @@ string buildFilePath(const string&in mapId)
 {
     return IO::FromStorageFolder("/leaderboards/" + mapId + ".json");
 }
+
+
+namespace IO_KEY {
+const string CHECKPOINTS = "cps";
+const string ID = "id";
+const string LAPS = "l";
+const string NUMBER_RESPAWNS = "nr";
+const string PLAYER = "p";
+const string POSITION = "pos";
+const string RANK = "r";
+const string SCORE_NUMBER = "scn";
+const string SESSION_NUMBER = "sen";
+const string SPEED = "s";
+const string TIME = "t";
+const string TIME_FROM_START = "tfs";
+const string TIME_FROM_PREVIOUS = "tfp";
+const string TIME_FROM_PREVIOUS_NO_RESPAWN = "tfpnr";
+const string TIME_IN_SESSION = "tis";
+const string TIME_IN_TOTAL = "tit";
+const string TIME_NO_RESPAWN = "tnr";
+const string TIMESTAMP = "ts";
+const string WAS_PERSONAL_BEST = "wpb";
+const string WAS_SESSION_BEST = "wsb";
+}
+
 
 }
