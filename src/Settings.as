@@ -43,6 +43,9 @@ bool settingFilterSessionBests = false;
 [Setting name="Filter Current Session" description="Show only times of the current session in the leaderboard" category="UI"]
 bool settingFilterSessionCurrent = false;
 
+[Setting name="Number ranks" description="The number of displayed entries for each player" category="UI"]
+uint settingDisplayLeaderboardNumberRanks = 3;
+
 [Setting name="Display Newest Copium" description="Show the player's copium time of the last run in the leaderboard" category="UI"]
 bool settingDisplayLeaderboardCopiumNewest = false;
 

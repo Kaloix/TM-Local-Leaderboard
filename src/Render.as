@@ -98,6 +98,8 @@ void InitRows()
 
         if (@g_State.m_Leaderboard.m_NewestRun is @g_State.m_Leaderboard.m_Entries[i])
             continue;
+        if (g_State.m_Leaderboard.m_Entries[i].m_Rank > settingDisplayLeaderboardNumberRanks)
+            continue;
         g_TableRows.InsertLast(@g_State.m_Leaderboard.m_Entries[i]);
     }
 
