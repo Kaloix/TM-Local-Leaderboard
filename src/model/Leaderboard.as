@@ -110,6 +110,7 @@ class Leaderboard
                 m_SessionFastestRun.m_WasSessionBest = false;
             entry.m_WasSessionBest = true;
             @m_SessionFastestRun = @entry;
+            InitPositionForEntryAsync(m_SessionFastestRun);
 
             if (m_SessionFastestCopiumRun !is null && m_SessionFastestRun.m_Time <= m_SessionFastestCopiumRun.m_TimeNoRespawn)
             {
@@ -129,6 +130,7 @@ class Leaderboard
             @m_SessionFastestCopiumRun = LeaderboardEntry(entry);
             m_SessionFastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
             setMedal(m_SessionFastestCopiumRun);
+            InitPositionForEntryAsync(m_SessionFastestCopiumRun);
         }
     }
 

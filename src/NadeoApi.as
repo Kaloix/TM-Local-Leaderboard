@@ -23,9 +23,12 @@ void InitNadeoApi()
 awaitable@ g_InitPb = null;
 void InitPersonalBestAsync()
 {
-    if (g_InitPb !is null && g_InitPb.IsRunning())
+    if (g_State.m_Leaderboard.m_FastestRun is null)
         return;
-    @g_InitPb = @startnew(InitPersonalBest);
+    InitPositionForEntryAsync(@g_State.m_Leaderboard.m_FastestRun);
+    // if (g_InitPb !is null && g_InitPb.IsRunning())
+    //     return;
+    // @g_InitPb = @startnew(InitPersonalBest);
 }
 
 void InitPersonalBest()
@@ -45,12 +48,12 @@ void InitLiveDataAsync()
 }
 
 awaitable@ g_InitPositionForEntryAsync = null;
-LeaderboardEntry@ g_InitPositionForEntryAsyncData = null;
+array<LeaderboardEntry @> g_InitPositionForEntryAsyncQueue;
 void InitPositionForEntryAsync(LeaderboardEntry@ entry)
 {
+    g_InitPositionForEntryAsyncQueue.InsertLast(@entry);
     if (g_InitPositionForEntryAsync !is null && g_InitPositionForEntryAsync.IsRunning())
         return;
-    @g_InitPositionForEntryAsyncData = @entry;
     @g_InitPositionForEntryAsync = @startnew(InitPositionForEntryData);
 }
 
@@ -78,7 +81,14 @@ void InitLiveData()
 
 void InitPositionForEntryData()
 {
-    InitPositionForEntry(@g_InitPositionForEntryAsyncData);
+    while (true)
+    {
+        if (g_InitPositionForEntryAsyncQueue.Length == 0)
+            break;
+        LeaderboardEntry@ entry = @g_InitPositionForEntryAsyncQueue[0];
+        g_InitPositionForEntryAsyncQueue.RemoveAt(0);
+        InitPositionForEntry(@entry);
+    }
 }
 
 void InitPositionForEntry(LeaderboardEntry@ entry)
@@ -198,6 +208,10 @@ int FetchPersonalBest()
 
 array<int> FetchForTimes(const array<int>&in time)
 {
+    const auto @raceData = @MLFeed::GetRaceData_V4();
+    const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
+
+
     // Initialize positions
     array<int> positions;
     for (uint i = 0; i < time.Length; ++i)
@@ -212,7 +226,7 @@ array<int> FetchForTimes(const array<int>&in time)
         // Skip times slower than PB because API does not return results for these
         if (time[i] <= 0)
             continue;
-        if (g_State.m_Leaderboard.m_FastestRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time <= time[i])
+        if (player.BestTime < time[i])
             continue;
 
         auto map = Json::Object();
