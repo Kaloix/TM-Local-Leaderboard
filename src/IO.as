@@ -25,7 +25,8 @@ void loadSettings() {
     }
 
     auto root = Json::FromFile(filePath);
-    deserializeSettings(root["settings"]);
+    if (root.HasKey("settings"))
+        deserializeSettings(root["settings"]);
 
     LogInfo("Loaded settings from " + filePath);
 }
@@ -88,7 +89,7 @@ void SaveLeaderboard(const State&in state)
         for (uint i = 0; i < state.m_CustomTimeEntries.Length; i++)
         {
             const auto @entry = @state.m_CustomTimeEntries[i];
-            auto @entryObj = @serializeCustomTime(entry);
+            auto entryObj = serializeCustomTime(entry);
             customTimeEntries.Add(entryObj);
         }
         root["customTimeEntries"] = customTimeEntries;
@@ -119,38 +120,47 @@ void LoadLeaderboard(State&inout state)
 
     // Deserialize the leaderboard data from the file
     auto root = Json::FromFile(filePath);
-    auto leaderboard = root["leaderboard"];
-    auto entries = leaderboard["entries"];
+    if (root.HasKey("leaderboard"))
+    {
+        auto leaderboard = root["leaderboard"];
 
-    if (leaderboard.HasKey("fastestCopiumRun"))
-    {
-        @state.m_Leaderboard.m_FastestCopiumRun = @deserializeLeaderboardEntry(leaderboard["fastestCopiumRun"]);
-        state.m_Leaderboard.m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
-    }
-    if (leaderboard.HasKey("bestCheckpointsRun"))
-    {
-        @state.m_Leaderboard.m_BestCheckpointsRun = @deserializeLeaderboardEntry(leaderboard["bestCheckpointsRun"]);
-        state.m_Leaderboard.m_BestCheckpointsRun.m_Type = LeaderboardEntryType::ScoreBestCheckpoints;
-    }
-    if (leaderboard.HasKey("bestLapsRun"))
-    {
-        @state.m_Leaderboard.m_BestLapsRun = @deserializeLeaderboardEntry(leaderboard["bestLapsRun"]);
-        state.m_Leaderboard.m_BestLapsRun.m_Type = LeaderboardEntryType::ScoreBestLaps;
-    }
+        if (leaderboard.HasKey("fastestCopiumRun"))
+        {
+            @state.m_Leaderboard.m_FastestCopiumRun = @deserializeLeaderboardEntry(leaderboard["fastestCopiumRun"]);
+            state.m_Leaderboard.m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
+        }
+        if (leaderboard.HasKey("bestCheckpointsRun"))
+        {
+            @state.m_Leaderboard.m_BestCheckpointsRun = @deserializeLeaderboardEntry(leaderboard["bestCheckpointsRun"]);
+            state.m_Leaderboard.m_BestCheckpointsRun.m_Type = LeaderboardEntryType::ScoreBestCheckpoints;
+        }
+        if (leaderboard.HasKey("bestLapsRun"))
+        {
+            @state.m_Leaderboard.m_BestLapsRun = @deserializeLeaderboardEntry(leaderboard["bestLapsRun"]);
+            state.m_Leaderboard.m_BestLapsRun.m_Type = LeaderboardEntryType::ScoreBestLaps;
+        }
 
-    for (uint i = 0; i < entries.Length; i++)
-    {
-        auto @entry = @deserializeLeaderboardEntry(entries[i]);
-        state.m_Leaderboard.AddEntry(@entry);
-    }
-    if (state.m_Leaderboard.m_Entries.Length > 0)
-    {
-        @state.m_Leaderboard.m_FastestRun = @state.m_Leaderboard.m_Entries[0];
-    }
+        if (leaderboard.HasKey("totalNumberFinishes"))
+            state.m_Leaderboard.m_TotalNumberFinishes = leaderboard["totalNumberFinishes"];
+        if (leaderboard.HasKey("totalNumberSessions"))
+            state.m_Leaderboard.m_TotalNumberSessions = leaderboard["totalNumberSessions"];
+        if (leaderboard.HasKey("totalTime"))
+            state.m_Leaderboard.m_TotalTime = leaderboard["totalTime"];
 
-    state.m_Leaderboard.m_TotalNumberFinishes = leaderboard["totalNumberFinishes"];
-    state.m_Leaderboard.m_TotalNumberSessions = leaderboard["totalNumberSessions"];
-    state.m_Leaderboard.m_TotalTime = leaderboard["totalTime"];
+        if (leaderboard.HasKey("entries"))
+        {
+            auto entries = leaderboard["entries"];
+            for (uint i = 0; i < entries.Length; i++)
+            {
+                auto @entry = @deserializeLeaderboardEntry(entries[i]);
+                state.m_Leaderboard.AddEntry(@entry);
+            }
+            if (state.m_Leaderboard.m_Entries.Length > 0)
+            {
+                @state.m_Leaderboard.m_FastestRun = @state.m_Leaderboard.m_Entries[0];
+            }
+        }
+    }
 
     // Custom times
     if (root.HasKey("customTimeEntries"))
@@ -311,13 +321,13 @@ LapData @deserializeLapData(const Json::Value&in lapDataObj)
     return @lapData;
 }
 
-Json::Value @serializeCustomTime(const LeaderboardEntry&in entry)
+Json::Value serializeCustomTime(const LeaderboardEntry&in entry)
 {
-    auto @entryObj = Json::Object();
+    auto entryObj = Json::Object();
     entryObj[IO_KEY::ID] = entry.m_Id;
     entryObj[IO_KEY::PLAYER] = entry.m_PlayerName;
     entryObj[IO_KEY::TIME] = entry.m_Time;
-    return @entryObj;
+    return entryObj;
 }
 
 LeaderboardEntry @deserializeCustomTime(const Json::Value&in entryObj)
@@ -330,13 +340,13 @@ LeaderboardEntry @deserializeCustomTime(const Json::Value&in entryObj)
     return @entry;
 }
 
-Json::Value @serializeCustomPosition(const LeaderboardEntry&in entry)
+Json::Value serializeCustomPosition(const LeaderboardEntry&in entry)
 {
-    auto @entryObj = Json::Object();
+    auto entryObj = Json::Object();
     entryObj[IO_KEY::ID] = entry.m_Id;
     entryObj[IO_KEY::PLAYER] = entry.m_PlayerName;
     entryObj[IO_KEY::POSITION] = entry.m_GlobalPosition;
-    return @entryObj;
+    return entryObj;
 }
 
 LeaderboardEntry @deserializeCustomPostition(const Json::Value&in entryObj)
@@ -362,7 +372,7 @@ Json::Value serializeSettings()
         for (uint i = 0; i < g_State.m_CustomPositionEntries.Length; i++)
         {
             const auto @entry = @g_State.m_CustomPositionEntries[i];
-            auto @entryObj = @serializeCustomPosition(entry);
+            auto entryObj = serializeCustomPosition(entry);
             customPositionEntries.Add(entryObj);
         }
         settingsObj["customPositionEntries"] = customPositionEntries;
@@ -373,7 +383,8 @@ Json::Value serializeSettings()
 
 void deserializeSettings(const Json::Value&in settingsObj)
 {
-    deserializeTableSettings(settingsObj["tableSettings"]);
+    if (settingsObj.HasKey("tableSettings"))
+        deserializeTableSettings(settingsObj["tableSettings"]);
 
     // Custom positions
     if (settingsObj.HasKey("customPositionEntries"))
@@ -401,8 +412,10 @@ Json::Value serializeTableSettings()
     return tableSettingsObj;
 }
 
-void deserializeTableSettings(const Json::Value&in tableSettingsObj)
+ void deserializeTableSettings(const Json::Value&in tableSettingsObj)
 {
+    if (!tableSettingsObj.HasKey("columns"))
+        return;
     auto columnSettingsObj = tableSettingsObj["columns"];
 
     for (uint i = 0; i < columnSettingsObj.Length; ++i)
