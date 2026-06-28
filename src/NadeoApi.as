@@ -273,7 +273,7 @@ array<int> FetchForTimes(const array<int>&in time)
         if (!response.HasKey("zones"))
             continue;
 
-        for (uint z = 0; i < response["zones"].Length; ++z)
+        for (uint z = 0; z < response["zones"].Length; ++z)
         {
             const auto zone = response["zones"][z];
             if (zone["zoneName"] == "World")
