@@ -58,17 +58,20 @@ void InitRows()
     // Add rows to display
     g_TableRows.RemoveRange(0, g_TableRows.Length);
 
-    // Sum of best checkpoints overall and of the current session
-    if (settingDisplayLeaderboardBestCheckpointsRun && g_State.m_Leaderboard.m_BestCheckpointsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_BestCheckpointsRun.m_Time)
-        g_TableRows.InsertLast(g_State.m_Leaderboard.m_BestCheckpointsRun);
-    if (settingDisplayLeaderboardSessionBestCheckpointsRun && g_State.m_Leaderboard.m_SessionBestCheckpointsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_SessionBestCheckpointsRun.m_Time)
-        g_TableRows.InsertLast(g_State.m_Leaderboard.m_SessionBestCheckpointsRun);
+    if (g_State.m_Leaderboard.m_FastestRun !is null)
+    {
+        // Sum of best checkpoints overall and of the current session
+        if (settingDisplayLeaderboardBestCheckpointsRun && g_State.m_Leaderboard.m_BestCheckpointsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_BestCheckpointsRun.m_Time)
+            g_TableRows.InsertLast(g_State.m_Leaderboard.m_BestCheckpointsRun);
+        if (settingDisplayLeaderboardSessionBestCheckpointsRun && g_State.m_Leaderboard.m_SessionBestCheckpointsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_SessionBestCheckpointsRun.m_Time)
+            g_TableRows.InsertLast(g_State.m_Leaderboard.m_SessionBestCheckpointsRun);
 
-    // Sum of best laps overall and of the current session
-    if (settingDisplayLeaderboardBestLapsRun && g_State.m_Leaderboard.m_BestLapsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_BestLapsRun.m_Time)
-        g_TableRows.InsertLast(g_State.m_Leaderboard.m_BestLapsRun);
-    if (settingDisplayLeaderboardSessionBestLapsRun && g_State.m_Leaderboard.m_SessionBestLapsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_SessionBestLapsRun.m_Time)
-        g_TableRows.InsertLast(g_State.m_Leaderboard.m_SessionBestLapsRun);
+        // Sum of best laps overall and of the current session
+        if (settingDisplayLeaderboardBestLapsRun && g_State.m_Leaderboard.m_BestLapsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_BestLapsRun.m_Time)
+            g_TableRows.InsertLast(g_State.m_Leaderboard.m_BestLapsRun);
+        if (settingDisplayLeaderboardSessionBestLapsRun && g_State.m_Leaderboard.m_SessionBestLapsRun !is null && g_State.m_Leaderboard.m_FastestRun.m_Time > g_State.m_Leaderboard.m_SessionBestLapsRun.m_Time)
+            g_TableRows.InsertLast(g_State.m_Leaderboard.m_SessionBestLapsRun);
+    }
 
     bool addedNewestCopium = false;
     bool addedFastestCopium = false;

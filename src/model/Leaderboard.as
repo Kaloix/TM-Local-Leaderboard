@@ -118,14 +118,14 @@ class Leaderboard
             }
         }
 
-        if (entry.m_NumberRespawns > 0 && entry.m_TimeNoRespawn < m_FastestRun.m_Time && (m_FastestCopiumRun is null || entry.m_TimeNoRespawn < m_FastestCopiumRun.m_TimeNoRespawn))
+        if (entry.m_NumberRespawns > 0 && m_FastestRun !is null && entry.m_TimeNoRespawn < m_FastestRun.m_Time && (m_FastestCopiumRun is null || entry.m_TimeNoRespawn < m_FastestCopiumRun.m_TimeNoRespawn))
         {
             @m_FastestCopiumRun = LeaderboardEntry(entry);
             m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
             setMedal(m_FastestCopiumRun);
             InitPositionForEntryAsync(m_FastestCopiumRun);
         }
-        if (entry.m_NumberRespawns > 0 && entry.m_TimeNoRespawn < m_SessionFastestRun.m_Time && (m_SessionFastestCopiumRun is null || entry.m_TimeNoRespawn < m_SessionFastestCopiumRun.m_TimeNoRespawn))
+        if (entry.m_NumberRespawns > 0 && m_SessionFastestRun !is null && entry.m_TimeNoRespawn < m_SessionFastestRun.m_Time && (m_SessionFastestCopiumRun is null || entry.m_TimeNoRespawn < m_SessionFastestCopiumRun.m_TimeNoRespawn))
         {
             @m_SessionFastestCopiumRun = LeaderboardEntry(entry);
             m_SessionFastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
