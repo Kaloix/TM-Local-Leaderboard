@@ -65,7 +65,7 @@ class _ATWaypointTimesFeed : MLHook::HookMLEventsByType
             authorEntry.m_Checkpoints.InsertLast(cpData);
 
             cpData.m_TimeFromStart = CPTimesAT[i];
-            cpData.m_TimeFromPrevious = i == 0 ? 0 : CPTimesAT[i] - CPTimesAT[i - 1];
+            cpData.m_TimeFromPrevious = i == 0 ? CPTimesAT[0] : CPTimesAT[i] - CPTimesAT[i - 1];
 
             AddLap(i + 1, cpData, authorEntry.m_Checkpoints, authorEntry.m_Laps);
         }
