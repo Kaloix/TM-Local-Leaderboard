@@ -226,7 +226,7 @@ array<int> FetchForTimes(const array<int>&in time)
         // Skip times slower than PB because API does not return results for these
         if (time[i] <= 0)
             continue;
-        if (player.BestTime < time[i])
+        if (player.BestTime > 0 && player.BestTime < time[i])
             continue;
 
         auto map = Json::Object();
