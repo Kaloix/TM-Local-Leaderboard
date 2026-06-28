@@ -24,11 +24,6 @@ class Leaderboard
     uint64 m_TotalTime = 0;
     uint64 m_LastUpdated = Time::get_Now();
 
-    LeaderboardEntry @getLastPlayerEntry()
-    {
-        return @m_Entries[m_Entries.Length];
-    }
-
     LeaderboardEntry @createNewEntry(const MLFeed::PlayerCpInfo_V4 @player) const
     {
         auto @entry = LeaderboardEntry();
