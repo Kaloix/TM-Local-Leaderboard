@@ -288,8 +288,8 @@ void PrepareRenderContext(TableRenderContext&inout context, uint i)
     context.m_IsPlayerSessionBestCopium = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionFastestCopiumRun;
     context.m_IsPlayerBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_BestCheckpointsRun;
     context.m_IsPlayerSessionBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionBestCheckpointsRun;
-    context.m_IsPlayerBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_BestLapsRun;
-    context.m_IsPlayerSessionBestCheckpoints = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionBestLapsRun;
+    context.m_IsPlayerBestLaps = context.m_CurrentEntry is g_State.m_Leaderboard.m_BestLapsRun;
+    context.m_IsPlayerSessionBestLaps = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionBestLapsRun;
 }
 
 void RenderCheckpoints(const TableRenderContext&in context)
