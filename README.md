@@ -2,16 +2,17 @@
 
 A Trackmania plugin adding a local leaderboard.
 
-## Features
-- Table containing your best overall and session times, not just your personal best
-- Support for common medals
-- Shows no respawn and best checkpoint times
-- Detailed comparison of checkpoints and laps
-- Entries for custom times and positions
+![Screenshot of the leaderboard](./img/leaderboard.png)
+
+## Main Features
+- **Record History**: A table containing your previous and best times, not just your personal best.
+- **Medals**: Support for all common medals.
+- **Your Potential**: Integration of no-respawn and best-checkpoint times. Shows the potential global position.
+- **Comparisons**: Detailed comparison of checkpoints and laps. Available for your own records and the AT.
+- **Customization**: Displaying exactly the information you want. Filtering and sorting of rows and columns. Creation of custom times and positions.
 
 ## Future Plans
 Here a some of my ideas for future release that might or might not be implemented:
-- Add screenshots to the README
 - Delete single entries
 - Set maximum number of best and latest entries and separately
 - Add support for other regions
