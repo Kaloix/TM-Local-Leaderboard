@@ -84,6 +84,14 @@ class TableColumn
 
     int m_Pos = 0;
 
+    TableColumn()
+    {
+        m_Show = GetDefaultShow();
+    }
+    bool GetDefaultShow()
+    {
+        return true;
+    }
     TableColumnType GetType() const
     {
         return TableColumnType::MedalColumn;
@@ -235,6 +243,10 @@ class TimeColumn : TableColumn
 
 class PlayerColumn : TableColumn
 {
+    bool GetDefaultShow() override
+    {
+        return false;
+    }
     TableColumnType GetType() const override
     {
         return TableColumnType::PlayerColumn;
@@ -300,6 +312,10 @@ class TimeDeltaColumn : TableColumn
 
 class TimeNoRespawnColumn : TableColumn
 {
+    bool GetDefaultShow() override
+    {
+        return false;
+    }
     TableColumnType GetType() const override
     {
         return TableColumnType::TimeNoRespawnColumn;
@@ -318,6 +334,10 @@ class TimeNoRespawnColumn : TableColumn
 
 class NumberRespawnsColumn : TableColumn
 {
+    bool GetDefaultShow() override
+    {
+        return false;
+    }
     TableColumnType GetType() const override
     {
         return TableColumnType::NumberRespawnsColumn;
@@ -341,6 +361,10 @@ class NumberRespawnsColumn : TableColumn
 
 class ScoreNumberColumn : TableColumn
 {
+    bool GetDefaultShow() override
+    {
+        return false;
+    }
     TableColumnType GetType() const override
     {
         return TableColumnType::ScoreNumberColumn;
@@ -364,6 +388,10 @@ class ScoreNumberColumn : TableColumn
 
 class SessionNumberColumn : TableColumn
 {
+    bool GetDefaultShow() override
+    {
+        return false;
+    }
     TableColumnType GetType() const override
     {
         return TableColumnType::SessionNumberColumn;
@@ -387,6 +415,10 @@ class SessionNumberColumn : TableColumn
 
 class TimestampColumn : TableColumn
 {
+    bool GetDefaultShow() override
+    {
+        return false;
+    }
     TableColumnType GetType() const override
     {
         return TableColumnType::TimestampColumn;
@@ -409,6 +441,10 @@ class TimestampColumn : TableColumn
 
 class TotalTimeColumn : TimeColumn
 {
+    bool GetDefaultShow() override
+    {
+        return false;
+    }
     TableColumnType GetType() const override
     {
         return TableColumnType::TotalTimeColumn;
@@ -429,6 +465,10 @@ class TotalTimeColumn : TimeColumn
 
 class SessionTimeColumn : TimeColumn
 {
+    bool GetDefaultShow() override
+    {
+        return false;
+    }
     TableColumnType GetType() const override
     {
         return TableColumnType::SessionTimeColumn;
@@ -449,6 +489,10 @@ class SessionTimeColumn : TimeColumn
 
 class TimeSinceColumn : TimeColumn
 {
+    bool GetDefaultShow() override
+    {
+        return false;
+    }
     TableColumnType GetType() const override
     {
         return TableColumnType::TimeSinceColumn;
