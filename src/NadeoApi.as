@@ -149,6 +149,11 @@ Json::Value@ DoRequest(Net::HttpRequest@ request)
     {
         return Json::Object();
     }
+    if (!Permissions::ViewRecords())
+    {
+        LogDebug("Not allowed to view records, skipping request to " + request.Url);
+        return Json::Object();
+    }
 
     LogDebug("Doing request to " + request.Url);
     // Apply rate limit

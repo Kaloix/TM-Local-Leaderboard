@@ -46,6 +46,12 @@ void Init()
     loadSettings();
     InitRender();
     LogDebug("Local Leaderboard plugin initializing.");
+
+    if (!Permissions::ViewRecords())
+    {
+        UI::ShowNotification(Icons::ExclamationTriangle + "Local Leaderboard", "Not allowed to view records, Global records are disabled.", vec4(1.0, 0.6, 0.0, 1.0));
+    }
+
 }
 
 void Shutdown()
