@@ -196,7 +196,7 @@ void AddLap(const int checkpointIndex, const CheckpointData&in currentCp, const 
         LapData @lapData = LapData();
         lapData.m_TimeFromStart = currentCp.m_TimeFromStart;
 
-        for (uint i = (raceData.CPCount + 1) * laps.Length; i < checkpoints.Length; ++i)
+        for (uint i = (raceData.CpCount + 1) * laps.Length; i < checkpoints.Length; ++i)
         {
             lapData.m_TimeFromPrevious += checkpoints[i].m_TimeFromPrevious;
             lapData.m_TimeFromPreviousNoRespawn += checkpoints[i].m_TimeFromPreviousNoRespawn;

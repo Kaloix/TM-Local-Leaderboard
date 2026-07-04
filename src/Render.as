@@ -198,6 +198,13 @@ void Render()
         UI::TextDisabled("By " + mapAuthor);
     }
 
+    if (g_TableColumns.Length == 0)
+    {
+        UI::Text("No columns configured to display.");
+        UI::End();
+        return;
+    }
+
     UI::BeginTable("LeaderboardTable", g_TableColumns.Length, UI::TableFlags::SizingFixedFit);
 
     // Setup columns
@@ -318,7 +325,7 @@ void RenderCheckpoints(const TableRenderContext&in context)
         UI::TableNextRow();
 
         const auto @raceData = @MLFeed::GetRaceData_V4();
-        if (raceData.LapCount > 1 && i % (raceData.CPCount + 1) == 0)
+        if (raceData.LapCount > 1 && i % (raceData.CpCount + 1) == 0)
         {
             UI::TableSetColumnIndex(1);
             UI::Text("Lap " + (i / (raceData.CpCount + 1) + 1));
@@ -331,7 +338,7 @@ void RenderCheckpoints(const TableRenderContext&in context)
         LeaderboardEntry @pb = g_State.m_Leaderboard.m_FastestRun;
 
         bool pushedColor = false;
-        if (bestCheckpointsRun !is null && bestCheckpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn == cpData.m_TimeFromPreviousNoRespawn)
+        if (bestCheckpointsRun !is null && bestCheckpointsRun.m_Checkpoints.Length > i && bestCheckpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn == cpData.m_TimeFromPreviousNoRespawn)
         {
             UI::PushStyleColor(UI::Col::Text, vec4(0xDD / 255.0f, 0xBB / 255.0f, 0x44 / 255.0f, 1));
             pushedColor = true;
@@ -357,7 +364,7 @@ void RenderCheckpoints(const TableRenderContext&in context)
         UI::Text("" + cpData.m_NumberRespawns);
 
         UI::TableNextColumn();
-        if (bestCheckpointsRun !is null)
+        if (bestCheckpointsRun !is null && bestCheckpointsRun.m_Checkpoints.Length > i)
         {
             int delta = cpData.m_TimeFromPreviousNoRespawn - bestCheckpointsRun.m_Checkpoints[i].m_TimeFromPreviousNoRespawn;
             renderDelta(delta);
@@ -426,7 +433,7 @@ void RenderLaps(const TableRenderContext&in context)
 
         bool pushedColor = false;
 
-        if (bestLapsRun !is null && bestLapsRun.m_Laps[i].m_TimeFromPrevious == lapData.m_TimeFromPrevious)
+        if (bestLapsRun !is null && bestLapsRun.m_Laps.Length > i && bestLapsRun.m_Laps[i].m_TimeFromPrevious == lapData.m_TimeFromPrevious)
         {
             UI::PushStyleColor(UI::Col::Text, vec4(0xDD / 255.0f, 0xBB / 255.0f, 0x44 / 255.0f, 1));
             pushedColor = true;
@@ -448,7 +455,7 @@ void RenderLaps(const TableRenderContext&in context)
         UI::Text("" + lapData.m_NumberRespawns);
 
         UI::TableNextColumn();
-        if (bestLapsRun !is null)
+        if (bestLapsRun !is null && bestLapsRun.m_Laps.Length > i)
         {
             int delta = lapData.m_TimeFromPrevious - bestLapsRun.m_Laps[i].m_TimeFromPrevious;
             renderDelta(delta);

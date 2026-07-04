@@ -249,23 +249,31 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
 
     
     int timeFromStart = 0;
-    for (uint i = 0; i < entryObj[IO_KEY::CHECKPOINTS].Length; i++)
+    if (entryObj.HasKey(IO_KEY::CHECKPOINTS))
     {
-        auto cpDataObj = entryObj[IO_KEY::CHECKPOINTS][i];
-        auto @cpData = @deserializeCheckpointData(cpDataObj);
-        timeFromStart += cpData.m_TimeFromPrevious;
-        cpData.m_TimeFromStart = timeFromStart;
-        entry.m_Checkpoints.InsertLast(@cpData);
+        auto checkpointArray = entryObj[IO_KEY::CHECKPOINTS];
+        for (uint i = 0; i < checkpointArray.Length; i++)
+        {
+            auto cpDataObj = checkpointArray[i];
+            auto @cpData = @deserializeCheckpointData(cpDataObj);
+            timeFromStart += cpData.m_TimeFromPrevious;
+            cpData.m_TimeFromStart = timeFromStart;
+            entry.m_Checkpoints.InsertLast(@cpData);
+        }
     }
 
     timeFromStart = 0;
-    for (uint i = 0; i < entryObj[IO_KEY::LAPS].Length; ++i)
+    if (entryObj.HasKey(IO_KEY::LAPS))
     {
-        auto lapDataObj = entryObj[IO_KEY::LAPS][i];
-        auto @lapData = @deserializeLapData(lapDataObj);
-        timeFromStart += lapData.m_TimeFromPrevious;
-        lapData.m_TimeFromStart = timeFromStart;
-        entry.m_Laps.InsertLast(@lapData);
+        auto lapArray = entryObj[IO_KEY::LAPS];
+        for (uint i = 0; i < lapArray.Length; ++i)
+        {
+            auto lapDataObj = lapArray[i];
+            auto @lapData = @deserializeLapData(lapDataObj);
+            timeFromStart += lapData.m_TimeFromPrevious;
+            lapData.m_TimeFromStart = timeFromStart;
+            entry.m_Laps.InsertLast(@lapData);
+        }
     }
 
     return @entry;

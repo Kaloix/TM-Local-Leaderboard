@@ -102,18 +102,28 @@ void InitPositionForEntry(LeaderboardEntry@ entry)
 }
 
 awaitable@ g_InitTimeForEntryAsync = null;
-LeaderboardEntry@ g_InitTimeForEntryAsyncData = null;
+array<LeaderboardEntry @> g_InitTimeForEntryAsyncQueue;
+
 void InitTimeForEntryAsync(LeaderboardEntry@ entry)
 {
+    if (entry is null)
+        return;
+
+    g_InitTimeForEntryAsyncQueue.InsertLast(@entry);
     if (g_InitTimeForEntryAsync !is null && g_InitTimeForEntryAsync.IsRunning())
         return;
-    @g_InitTimeForEntryAsyncData = @entry;
+
     @g_InitTimeForEntryAsync = @startnew(InitTimeForEntryData);
 }
 
 void InitTimeForEntryData()
 {
-    InitTimeForEntry(@g_InitTimeForEntryAsyncData);
+    while (g_InitTimeForEntryAsyncQueue.Length > 0)
+    {
+        LeaderboardEntry@ entry = @g_InitTimeForEntryAsyncQueue[0];
+        g_InitTimeForEntryAsyncQueue.RemoveAt(0);
+        InitTimeForEntry(@entry);
+    }
 }
 
 void InitTimeForEntry(LeaderboardEntry@ entry)
@@ -239,7 +249,7 @@ array<int> FetchForTimes(const array<int>&in time)
         map["groupUid"] = "Personal_Best";
         maps.Add(map);
 
-        if (i > 0)
+        if (params.Length > 1)
         {
             params += "&";
         }
@@ -255,7 +265,7 @@ array<int> FetchForTimes(const array<int>&in time)
 
     const auto @results = PostToNadeoApi("/api/token/leaderboard/group/map" + params, Json::Write(body));
 
-    if (results.GetType() != Json::Type::Array)
+    if (results is null || results.GetType() != Json::Type::Array)
         return positions;
 
     for (uint i = 0; i < results.Length; ++i)

@@ -102,7 +102,8 @@ class ComparisonTarget
     }
     int GetTime() const
     {
-        return GetComparisonTargetEntry().GetDisplayTime();
+        auto @entry = GetComparisonTargetEntry();
+        return entry is null ? 0 : entry.GetDisplayTime();
     }
 
     bool IsAvailable() const

@@ -39,8 +39,27 @@ class Leaderboard
         entry.m_TimeInTotal = m_TotalTime;
         entry.m_TimeInSession = g_State.GetSessionTime();
 
-        entry.m_Checkpoints = g_State.m_CurrentCheckpoints;
-        entry.m_Laps = g_State.m_CurrentLaps;
+        // Deep copy checkpoint and lap data so the stored run stays immutable when the current run updates.
+        for (uint i = 0; i < g_State.m_CurrentCheckpoints.Length; ++i)
+        {
+            CheckpointData @cpData = CheckpointData();
+            cpData.m_TimeFromStart = g_State.m_CurrentCheckpoints[i].m_TimeFromStart;
+            cpData.m_TimeFromPrevious = g_State.m_CurrentCheckpoints[i].m_TimeFromPrevious;
+            cpData.m_TimeFromPreviousNoRespawn = g_State.m_CurrentCheckpoints[i].m_TimeFromPreviousNoRespawn;
+            cpData.m_Speed = g_State.m_CurrentCheckpoints[i].m_Speed;
+            cpData.m_NumberRespawns = g_State.m_CurrentCheckpoints[i].m_NumberRespawns;
+            entry.m_Checkpoints.InsertLast(@cpData);
+        }
+
+        for (uint i = 0; i < g_State.m_CurrentLaps.Length; ++i)
+        {
+            LapData @lapData = LapData();
+            lapData.m_TimeFromStart = g_State.m_CurrentLaps[i].m_TimeFromStart;
+            lapData.m_TimeFromPrevious = g_State.m_CurrentLaps[i].m_TimeFromPrevious;
+            lapData.m_TimeFromPreviousNoRespawn = g_State.m_CurrentLaps[i].m_TimeFromPreviousNoRespawn;
+            lapData.m_NumberRespawns = g_State.m_CurrentLaps[i].m_NumberRespawns;
+            entry.m_Laps.InsertLast(@lapData);
+        }
 
         setMedal(entry);
 
@@ -393,7 +412,7 @@ class LeaderboardEntry
             case LeaderboardEntryType::CustomTime:
                 return m_Time;
             case LeaderboardEntryType::Medal:
-                return m_Medal.GetTime();
+                return m_Medal is null ? 0 : m_Medal.GetTime();
             case LeaderboardEntryType::Score:
             case LeaderboardEntryType::ScoreBestCheckpoints:
             case LeaderboardEntryType::ScoreBestLaps:
@@ -413,7 +432,7 @@ class LeaderboardEntry
             case LeaderboardEntryType::CustomTime:
                 return m_PlayerName;
             case LeaderboardEntryType::Medal:
-                return m_Medal.GetName();
+                return m_Medal is null ? "Unknown Medal" : m_Medal.GetName();
             case LeaderboardEntryType::Score:
                 return m_PlayerName;
             case LeaderboardEntryType::ScoreBestCheckpoints:
