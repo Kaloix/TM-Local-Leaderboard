@@ -60,4 +60,4 @@ jobs:
           tag: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           body: ${{ steps.changelog.outputs.release_notes }}
-          files: ${{ steps.asset.outputs.asset_path }}
+          artifacts: ${{ steps.asset.outputs.asset_path }}
