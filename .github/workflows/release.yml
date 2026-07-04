@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build project
         run: ./dev/build.sh --no-install
@@ -50,24 +50,14 @@ jobs:
             release_notes=$(cat CHANGELOG.md)
           fi
           echo "release_notes<<EOF" >> $GITHUB_OUTPUT
-          printf '%s
-' "$release_notes" >> $GITHUB_OUTPUT
+          printf '%s\n' "$release_notes" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub release
+      - name: Create GitHub release and upload asset
         id: create_release
-        uses: actions/create-release@v1
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
+          tag: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           body: ${{ steps.changelog.outputs.release_notes }}
-          draft: false
-          prerelease: false
-
-      - name: Upload release asset
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.asset.outputs.asset_path }}
-          asset_name: ${{ steps.asset.outputs.asset_name }}
-          asset_content_type: application/octet-stream
+          files: ${{ steps.asset.outputs.asset_path }}
