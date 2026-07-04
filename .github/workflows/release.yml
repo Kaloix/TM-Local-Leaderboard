@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build and publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build project
+        run: ./dev/build.sh --no-install
+
+      - name: Locate release asset
+        id: asset
+        run: |
+          asset_path=$(find build -maxdepth 1 -type f -name '*.op' | head -n 1)
+          if [ -z "$asset_path" ]; then
+            echo "No .op build artifact found in build/" >&2
+            exit 1
+          fi
+          echo "asset_path=$asset_path" >> $GITHUB_OUTPUT
+          echo "asset_name=$(basename "$asset_path")" >> $GITHUB_OUTPUT
+
+      - name: Read release notes from CHANGELOG
+        id: changelog
+        run: |
+          set -e
+          tag=${GITHUB_REF_NAME}
+          section=$(grep -nE "^## \[?${tag}\]?" CHANGELOG.md | cut -d: -f1 | head -n1 || true)
+          if [ -n "$section" ]; then
+            start=$((section + 1))
+            next_section_line=$(tail -n +$start CHANGELOG.md | grep -nE '^## ' | head -n1 | cut -d: -f1 || true)
+            if [ -n "$next_section_line" ]; then
+              end=$((start + next_section_line - 2))
+            else
+              end=$(wc -l < CHANGELOG.md)
+            fi
+            release_notes=$(sed -n "${start},${end}p" CHANGELOG.md)
+          else
+            release_notes=$(cat CHANGELOG.md)
+          fi
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          printf '%s
+' "$release_notes" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.release_notes }}
+          draft: false
+          prerelease: false
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.asset.outputs.asset_path }}
+          asset_name: ${{ steps.asset.outputs.asset_name }}
+          asset_content_type: application/octet-stream
