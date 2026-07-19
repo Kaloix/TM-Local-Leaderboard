@@ -1,4 +1,4 @@
-namespace LocalLeaderboard
+namespace LocalRecords
 {
 
 #if DEPENDENCY_MLHOOK
@@ -8,20 +8,20 @@ namespace LocalLeaderboard
 void GetAtCpTimes()
 {
     // Request ML via MLHook for the AT CP Times. Will write it to `CPTimesAT`
-    MLHook::Queue_MessageManialinkPlayground("LocalLeaderboard", "Hook_LocalLeaderboard");
+    MLHook::Queue_MessageManialinkPlayground("LocalRecords", "Hook_LocalRecords");
 }
 
 const string script = """
 main() {
     declare metadata Integer[] Race_AuthorRaceWaypointTimes for Map;
-    declare Text[][] MLHook_Inbound_LocalLeaderboard for ClientUI;
+    declare Text[][] MLHook_Inbound_LocalRecords for ClientUI;
     while (True) {
         yield;
-        foreach (Event in MLHook_Inbound_LocalLeaderboard) {
-            if (Event[0] == "Hook_LocalLeaderboard")
-                SendCustomEvent("MLHook_Event_LocalLeaderboard", [Race_AuthorRaceWaypointTimes.tojson()]);
+        foreach (Event in MLHook_Inbound_LocalRecords) {
+            if (Event[0] == "Hook_LocalRecords")
+                SendCustomEvent("MLHook_Event_LocalRecords", [Race_AuthorRaceWaypointTimes.tojson()]);
         }
-        MLHook_Inbound_LocalLeaderboard = [];
+        MLHook_Inbound_LocalRecords = [];
     }
 }
 """;
@@ -30,7 +30,7 @@ void InitHooks() {
     LogDebug("MLHook found. Setting up hooks...");
     MLHook::RequireVersionApi("0.5.2");
     MLHook::RegisterMLHook(ATWaypointTimesFeed, ATWaypointTimesFeed.type);
-    MLHook::InjectManialinkToPlayground("Hook_LocalLeaderboard", script, true);
+    MLHook::InjectManialinkToPlayground("Hook_LocalRecords", script, true);
 }
 
 void UnloadHooks()
@@ -42,7 +42,7 @@ _ATWaypointTimesFeed@ ATWaypointTimesFeed = _ATWaypointTimesFeed();
 
 class _ATWaypointTimesFeed : MLHook::HookMLEventsByType
 {
-    _ATWaypointTimesFeed() { super("LocalLeaderboard"); }
+    _ATWaypointTimesFeed() { super("LocalRecords"); }
 
     void OnEvent(MLHook::PendingEvent@ event) override {
         Json::Value parsed = Json::Parse(event.data[0]);

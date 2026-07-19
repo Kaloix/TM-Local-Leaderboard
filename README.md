@@ -1,6 +1,6 @@
-# Local Leaderboard
+# Local Records
 
-A Trackmania plugin adding a local leaderboard.
+A Trackmania plugin adding a leaderboard for local records.
 
 ![Screenshot of the leaderboard](./img/leaderboard.png)
 
@@ -20,7 +20,7 @@ Here a some of my ideas for future release that might or might not be implemente
 - Add support for multiple local players
 
 ## License
-LocalLeaderboard is licensed under the [Apache-2.0 license](./LICENSE).
+LocalRecords is licensed under the [Apache-2.0 license](./LICENSE).
 
 ## Dependencies
 The following plugins are required for using LocalRecords:

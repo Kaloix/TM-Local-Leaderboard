@@ -5,7 +5,7 @@ void Render()
         return; // Don't render the leaderboard if the setting is disabled
     }
 
-    LocalLeaderboard::Render();
+    LocalRecords::Render();
 }
 
 enum LeaderboardSortType
@@ -20,7 +20,7 @@ enum LeaderboardSortDirection
     Descending,
 }
 
-namespace LocalLeaderboard
+namespace LocalRecords
 {
 int windowFlags = 0;
 
@@ -184,7 +184,7 @@ void Render()
     }
 
     bool open = true;
-    UI::Begin("Local Leaderboard", open, windowFlags);
+    UI::Begin("Local Records", open, windowFlags);
 
     if (settingDisplayLeaderboardMapName)
     {

@@ -1,4 +1,4 @@
-namespace LocalLeaderboard
+namespace LocalRecords
 {
 
 void LogDebug(const string&in message)

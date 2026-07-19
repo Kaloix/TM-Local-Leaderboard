@@ -33,7 +33,7 @@ enum ComparisonTargetType
     BronzeMedal,
 }
 
-namespace LocalLeaderboard
+namespace LocalRecords
 {
 
 array<ComparisonTarget@> g_ComparisonTargets;

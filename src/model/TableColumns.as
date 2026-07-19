@@ -1,4 +1,4 @@
-namespace LocalLeaderboard
+namespace LocalRecords
 {
 
 array<TableColumn @> g_AllTableColumns = {

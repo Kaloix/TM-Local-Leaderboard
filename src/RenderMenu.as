@@ -1,27 +1,27 @@
 void RenderMenu()
 {
-    if (UI::BeginMenu(Icons::ListUl + " Local Leaderboard"))
+    if (UI::BeginMenu(Icons::ListUl + " Local Records"))
     {
-        if (UI::MenuItem(Icons::Trash + " Reset Leaderboard", "", false, LocalLeaderboard::g_State.m_CurrentMap != ""))
+        if (UI::MenuItem(Icons::Trash + " Reset Records", "", false, LocalRecords::g_State.m_CurrentMap != ""))
         {
-            LocalLeaderboard::g_State.ResetData();
+            LocalRecords::g_State.ResetData();
         }
 
         if (UI::BeginMenu(Icons::ClockO + " Edit Custom Times"))
         {
-            LocalLeaderboard::RenderCustomTimeEntries();
+            LocalRecords::RenderCustomTimeEntries();
             UI::EndMenu();
         }
 
         if (UI::BeginMenu(Icons::ClockO + " Edit Custom Positions"))
         {
-            LocalLeaderboard::RenderCustomPositionEntries();
+            LocalRecords::RenderCustomPositionEntries();
             UI::EndMenu();
         }
 
         if (UI::BeginMenu(Icons::ClockO + " Edit Table Columns"))
         {
-            LocalLeaderboard::RenderTableColumnsMenu();
+            LocalRecords::RenderTableColumnsMenu();
             UI::EndMenu();
         }
 
@@ -29,7 +29,7 @@ void RenderMenu()
     }
 }
 
-namespace LocalLeaderboard
+namespace LocalRecords
 {
 
 void RenderCustomTimeEntries()

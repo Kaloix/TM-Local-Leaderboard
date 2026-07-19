@@ -1,35 +1,35 @@
 
 void Main()
 {
-    LocalLeaderboard::Init();
+    LocalRecords::Init();
 }
 
 void OnEnabled()
 {
-    LocalLeaderboard::Init();
+    LocalRecords::Init();
 }
 
 void OnDisabled()
 {
-    LocalLeaderboard::Shutdown();
+    LocalRecords::Shutdown();
 }
 
 void OnDestroyed()
 {
-    LocalLeaderboard::Shutdown();
+    LocalRecords::Shutdown();
 }
 
 void Update(float dt)
 {
-    LocalLeaderboard::Update(dt);
+    LocalRecords::Update(dt);
 }
 
 void OnSettingsChanged()
 {
-    LocalLeaderboard::OnSettingsChanged();
+    LocalRecords::OnSettingsChanged();
 }
 
-namespace LocalLeaderboard
+namespace LocalRecords
 {
 
 State g_State = State();
@@ -45,11 +45,11 @@ void Init()
 
     loadSettings();
     InitRender();
-    LogDebug("Local Leaderboard plugin initializing.");
+    LogDebug("Local Records plugin initializing.");
 
     if (!Permissions::ViewRecords())
     {
-        UI::ShowNotification(Icons::ExclamationTriangle + "Local Leaderboard", "Not allowed to view records, Global records are disabled.", vec4(1.0, 0.6, 0.0, 1.0));
+        UI::ShowNotification(Icons::ExclamationTriangle + "Local Records", "Not allowed to view records, Global records are disabled.", vec4(1.0, 0.6, 0.0, 1.0));
     }
 
 }
@@ -57,7 +57,7 @@ void Init()
 void Shutdown()
 {
     UnloadHooks();
-    LogDebug("Local Leaderboard plugin shutting down.");
+    LogDebug("Local Records plugin shutting down.");
 }
 
 void OnSettingsChanged()
