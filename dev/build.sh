@@ -76,11 +76,13 @@ rm -f "$zip_file_path"
 
 # Install the plugin in the local TM installation
 if [[ $install -eq 1 ]]; then
+  install_dir_name="$project_name"
   destination_dir="${HOME}/.local/share/Steam/steamapps/compatdata/2225070/pfx/drive_c/users/steamuser/OpenplanetNext/Plugins"
+  install_target_dir="$destination_dir/$install_dir_name"
   mkdir -p "$destination_dir"
-  echo "Copying directory $(basename "$target_dir") to $destination_dir..."
-  rm -rf "$destination_dir/$(basename "$target_dir")"
-  cp -a "$target_dir" "$destination_dir/"
+  echo "Copying directory $install_dir_name to $destination_dir..."
+  rm -rf "$install_target_dir"
+  cp -a "$target_dir" "$install_target_dir"
 fi
 
 # Delete the target directory after creating the zip file

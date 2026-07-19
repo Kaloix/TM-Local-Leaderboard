@@ -64,8 +64,15 @@ Compress-Archive -Path "$targetDir\*" -DestinationPath $zipFilePath
 # Install the plugin in the local TM installation
 if ($Install) {
     $destinationDir = "$HOME\OpenplanetNext\Plugins"
-    Write-Host "Copying directory $($targetDir.Name) to $destinationDir..."
-    Copy-Item -Path $targetDir -Destination $destinationDir -Recurse -Force
+    $installDirName = $projectName
+    $installTargetDir = Join-Path $destinationDir $installDirName
+
+    Write-Host "Copying directory $installDirName to $destinationDir..."
+    if (Test-Path $installTargetDir) {
+        Remove-Item -Path $installTargetDir -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $installTargetDir | Out-Null
+    Copy-Item -Path "$targetDir\*" -Destination $installTargetDir -Recurse -Force
 }
 
 # Delete the target directory after creating the zip file
