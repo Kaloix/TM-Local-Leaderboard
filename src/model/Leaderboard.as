@@ -20,6 +20,7 @@ class Leaderboard
 
     uint m_TotalNumberFinishes = 0;
     uint m_TotalNumberSessions = 0;
+    uint m_TotalNumberSessionFinishes = 0;
 
     uint64 m_TotalTime = 0;
     uint64 m_LastUpdated = Time::get_Now();
@@ -68,8 +69,6 @@ class Leaderboard
 
     void addNewestRun(const MLFeed::PlayerCpInfo_V4 @player)
     {
-        updateTime();
-
         @m_NewestRun = @createNewEntry(player);
         if (m_NewestRun.m_NumberRespawns > 0)
         {

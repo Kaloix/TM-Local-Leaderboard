@@ -154,12 +154,7 @@ class GlobalPositionColumn : TableColumn
     }
     string GetBodyValue(const TableRenderContext&in context) const override
     {
-        if (context.m_CurrentEntry.m_GlobalPosition <= 0)
-            return "";
-        if (context.m_CurrentEntry.m_GlobalPosition >= 100000)
-            return "<" + (context.m_CurrentEntry.m_GlobalPosition / 1000) + "k";
-        else
-            return "" + context.m_CurrentEntry.m_GlobalPosition;
+        return formatPosition(context.m_CurrentEntry.m_GlobalPosition);
     }
 }
 

@@ -108,6 +108,9 @@ void Update(float dt)
         }
     }
 
+    // Update leaderboard time
+    g_State.m_Leaderboard.updateTime();
+
     // Events for reaching checkpoints and finish
     const auto currentCp = player.CpCount;
     if (player.IsSpawned && currentCp != int(g_State.m_CurrentCheckpoints.Length))
@@ -218,6 +221,7 @@ void OnPlayerFinish()
     }
 
     g_State.m_Leaderboard.m_TotalNumberFinishes++;
+    g_State.m_Leaderboard.m_TotalNumberSessionFinishes++;
     addNewRecord(player);
 }
 

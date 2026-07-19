@@ -19,6 +19,9 @@ bool settingDisplayLeaderboardMapName = true;
 [Setting name="Display Map Author" description="Show the map author in the leaderboard UI" category="UI"]
 bool settingDisplayLeaderboardMapAuthor = true;
 
+[Setting name="Display Statistics" description="Show the statistics section in the leaderboard UI" category="UI"]
+bool settingDisplayLeaderboardStatistics = true;
+
 [Setting name="Display Leaderboard" description="Show the leaderboard UI" category="UI"]
 bool settingDisplayLeaderboard = true;
 

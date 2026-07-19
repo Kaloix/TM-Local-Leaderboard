@@ -198,6 +198,28 @@ void Render()
         UI::TextDisabled("By " + mapAuthor);
     }
 
+    if (settingDisplayLeaderboardStatistics)
+    {
+        UI::Text(Icons::ClockO + " " + Time::Format(g_State.GetSessionTime(), false) + " / " + Time::Format(g_State.m_Leaderboard.m_TotalTime, false));
+
+        if (UI::IsItemHovered())
+        {
+            UI::BeginTooltip();
+            UI::Text("Time in session / Time in total");
+            UI::EndTooltip();
+        }
+
+        UI::SameLine();
+        UI::Text(Icons::Flag + " " + formatPosition(g_State.m_Leaderboard.m_TotalNumberSessionFinishes, "0") + formatPosition(g_State.m_Leaderboard.m_TotalNumberFinishes, "0") + " / " + " / " + formatPosition(g_State.m_NumberGlobalPositions, "0"));
+
+        if (UI::IsItemHovered())
+        {
+            UI::BeginTooltip();
+            UI::Text("Session Finishes / Total Finishes / Global Positions");
+            UI::EndTooltip();
+        }
+    }
+
     if (g_TableColumns.Length == 0)
     {
         UI::Text("No columns configured to display.");
@@ -567,6 +589,16 @@ void renderDeltaSpeed(int delta)
     UI::PushStyleColor(UI::Col::Text, deltaColor);
     UI::Text(deltaStr);
     UI::PopStyleColor();
+}
+
+string formatPosition(const uint position, const string&in defaultValue = "")
+{
+    if (position == 0)
+        return defaultValue;
+    if (position >= 100000)
+        return "<" + (position / 1000) + "k";
+    else
+        return "" + position;
 }
 
 }
