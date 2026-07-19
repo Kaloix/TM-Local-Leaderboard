@@ -47,4 +47,6 @@ These can be used by running `./dev/build.[ps1|sh]` from the project's root dire
 Currently the scripts assume that the Trackmania plugins are located at `~\OpenplanetNext\Plugins"` for Windows and at `~/.local/share/Steam/steamapps/compatdata/2225070/pfx/drive_c/users/steamuser/OpenplanetNext/Plugins"` on Linux machines.
 The installation can be disabled by using `--no-install`.
 
+For testing migrations, backups can be created and restored by adding the flags `--backup-data` or `--restore-data` respectively.
+
 The [.clang-format](./.clang-format) file provides code styles.

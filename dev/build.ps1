@@ -1,6 +1,12 @@
 param(
     [bool]
-    $Install = 1
+    $Install = 1,
+
+    [switch]
+    $BackupData,
+
+    [switch]
+    $RestoreData
 )
 
 # Define the path to the info.toml file
@@ -27,6 +33,43 @@ if (-Not $projectName -or -Not $projectVersion) {
 $projectName = $projectName -replace "\s", ""
 $projectVersion = $projectVersion -replace "\s", ""
 $fileName = "$projectName-v$projectVersion"
+
+$dataStorageRoot = "$HOME\OpenplanetNext\PluginStorage"
+$projectDataDir = Join-Path $dataStorageRoot $projectName
+$backupDir = "backup-data"
+$backupFilePath = Join-Path $backupDir "$fileName-data.zip"
+
+# Create a versioned snapshot of this plugin's PluginStorage folder in a repo-local, gitignored directory.
+if ($BackupData) {
+    if (-Not (Test-Path $backupDir)) {
+        New-Item -ItemType Directory -Path $backupDir | Out-Null
+    }
+    if (-Not (Test-Path $projectDataDir)) {
+        Write-Host "Project data directory not found: $projectDataDir"
+        exit 1
+    }
+    if (Test-Path $backupFilePath) {
+        Remove-Item -Path $backupFilePath -Force
+    }
+    Compress-Archive -Path $projectDataDir -DestinationPath $backupFilePath
+    Write-Host "Created data backup: $backupFilePath"
+}
+
+# Restore the versioned snapshot into PluginStorage, replacing the current project data directory.
+if ($RestoreData) {
+    if (-Not (Test-Path $backupFilePath)) {
+        Write-Host "Backup file not found: $backupFilePath"
+        exit 1
+    }
+    if (-Not (Test-Path $dataStorageRoot)) {
+        New-Item -ItemType Directory -Path $dataStorageRoot | Out-Null
+    }
+    if (Test-Path $projectDataDir) {
+        Remove-Item -Path $projectDataDir -Recurse -Force
+    }
+    Expand-Archive -Path $backupFilePath -DestinationPath $dataStorageRoot -Force
+    Write-Host "Restored data backup from: $backupFilePath"
+}
 
 # Define the build directory and the target directory
 $buildDir = "build"
