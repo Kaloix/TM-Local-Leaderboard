@@ -362,6 +362,8 @@ class LeaderboardEntry
     bool m_WasPersonalBest = false;
     bool m_WasSessionBest = false;
 
+    array<GlobalPositionData @> m_GlobalPositionHistory;
+
     string GetDisplayRank() const
     {
         switch (m_Type)
@@ -444,6 +446,36 @@ class LeaderboardEntry
                 return "";
         }
     }
+
+    void AddGlobalPositionData(uint globalPosition)
+    {
+        // Update the current value
+        m_GlobalPosition = globalPosition;
+
+        // Update the history
+        GlobalPositionData @existingEntry = null;
+        if (m_GlobalPositionHistory.Length > 0)
+        {
+            auto @lastEntry = m_GlobalPositionHistory[m_GlobalPositionHistory.Length - 1];
+            if (lastEntry.m_IsCurrentSession)
+            {
+                @existingEntry = @lastEntry;
+            }
+        }
+
+        if (existingEntry is null)
+        {
+            // Add a new entry to the history
+            @existingEntry = GlobalPositionData();
+            existingEntry.m_IsCurrentSession = true;
+            m_GlobalPositionHistory.InsertLast(@existingEntry);
+        }
+
+        existingEntry.m_GlobalPosition = globalPosition;
+        existingEntry.m_GlobalPositionTotalPlayers = g_State.m_NumberGlobalPositions;
+        existingEntry.m_GlobalPositionPercentile = g_State.m_NumberGlobalPositions > 0 ? float(globalPosition) / float(g_State.m_NumberGlobalPositions) : 0.0f;
+        existingEntry.m_TimeStamp = Time::get_Stamp();
+    }
 }
 
 class CheckpointData
@@ -472,6 +504,16 @@ enum LeaderboardEntryType
     ScoreBestCheckpoints,
     ScoreBestLaps,
     ScoreCopium,
+}
+
+class GlobalPositionData
+{
+    uint m_GlobalPosition = 0;
+    float m_GlobalPositionPercentile = 0.0f;
+    uint m_GlobalPositionTotalPlayers = 0;
+    int64 m_TimeStamp = 0;
+
+    bool m_IsCurrentSession = false;
 }
 
 }

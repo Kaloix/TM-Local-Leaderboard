@@ -203,6 +203,7 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
     if (entry.m_WasSessionBest)
         entryObj[IO_KEY::WAS_SESSION_BEST] = entry.m_WasSessionBest;
 
+    // Checkpoints
     auto checkpoints = Json::Array();
     for (uint i = 0; i < entry.m_Checkpoints.Length; i++)    {
         auto cpDataObj = serializeCheckpointData(entry.m_Checkpoints[i]);
@@ -210,6 +211,7 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
     }
     entryObj[IO_KEY::CHECKPOINTS] = checkpoints;
 
+    // Laps
     auto laps = Json::Array();
     for (uint i = 0; i < entry.m_Laps.Length; ++i)
     {
@@ -217,6 +219,15 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
         laps.Add(lapDataObj);
     }
     entryObj[IO_KEY::LAPS] = laps;
+
+    // Global position history
+    auto globalPositionHistory = Json::Array();
+    for (uint i = 0; i < entry.m_GlobalPositionHistory.Length; ++i)
+    {
+        auto positionDataObj = serializeGlobalPositionData(entry.m_GlobalPositionHistory[i]);
+        globalPositionHistory.Add(positionDataObj);
+    }
+    entryObj[IO_KEY::GLOBAL_POSITION_HISTORY] = globalPositionHistory;
 
     return entryObj;
 }
@@ -276,6 +287,17 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
             timeFromStart += lapData.m_TimeFromPrevious;
             lapData.m_TimeFromStart = timeFromStart;
             entry.m_Laps.InsertLast(@lapData);
+        }
+    }
+
+    if (entryObj.HasKey(IO_KEY::GLOBAL_POSITION_HISTORY))
+    {
+        auto positionHistoryArray = entryObj[IO_KEY::GLOBAL_POSITION_HISTORY];
+        for (uint i = 0; i < positionHistoryArray.Length; ++i)
+        {
+            auto positionDataObj = positionHistoryArray[i];
+            auto @positionData = @deserializeGlobalPositionData(positionDataObj);
+            entry.m_GlobalPositionHistory.InsertLast(@positionData);
         }
     }
 
@@ -368,6 +390,25 @@ LeaderboardEntry @deserializeCustomPostition(const Json::Value&in entryObj)
     entry.m_PlayerName = entryObj[IO_KEY::PLAYER];
     entry.m_GlobalPosition = entryObj[IO_KEY::POSITION];
     return @entry;
+}
+
+Json::Value serializeGlobalPositionData(const GlobalPositionData&in positionData)
+{
+    auto positionDataObj = Json::Object();
+    positionDataObj[IO_KEY::POSITION] = positionData.m_GlobalPosition;
+    positionDataObj[IO_KEY::GLOBAL_NUMBER_PLAYERS] = positionData.m_GlobalPositionTotalPlayers;
+    positionDataObj[IO_KEY::TIMESTAMP] = positionData.m_TimeStamp;
+    return positionDataObj;
+}
+
+GlobalPositionData @deserializeGlobalPositionData(const Json::Value&in positionDataObj)
+{
+    auto @positionData = GlobalPositionData();
+    positionData.m_GlobalPosition = positionDataObj[IO_KEY::POSITION];
+    positionData.m_GlobalPositionTotalPlayers = positionDataObj[IO_KEY::GLOBAL_NUMBER_PLAYERS];
+    positionData.m_GlobalPositionPercentile = positionData.m_GlobalPositionTotalPlayers > 0 ? float(positionData.m_GlobalPosition) / float(positionData.m_GlobalPositionTotalPlayers) : 0.0f;
+    positionData.m_TimeStamp = positionDataObj[IO_KEY::TIMESTAMP];
+    return @positionData;
 }
 
 Json::Value serializeSettings()
@@ -506,6 +547,8 @@ string buildFilePath(const string&in mapId)
 
 namespace IO_KEY {
 const string CHECKPOINTS = "cps";
+const string GLOBAL_NUMBER_PLAYERS = "gnp";
+const string GLOBAL_POSITION_HISTORY = "gph";
 const string ID = "id";
 const string LAPS = "l";
 const string NUMBER_RESPAWNS = "nr";

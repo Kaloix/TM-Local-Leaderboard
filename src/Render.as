@@ -318,6 +318,8 @@ void Render()
                 RenderCheckpoints(context);
             if (context.m_CurrentEntry.m_Laps.Length > 1)
                 RenderLaps(context);
+            if (context.m_CurrentEntry.m_GlobalPositionHistory.Length > 0)
+                RenderGlobalPositionHistory(context);
 
             UI::EndTooltip();
         }
@@ -546,6 +548,41 @@ void RenderLaps(const TableRenderContext&in context)
     UI::EndTable();
 }
 
+void RenderGlobalPositionHistory(const TableRenderContext&in context)
+{
+    UI::BeginTable("GlobalPositionHistory" + context.m_CurrentRow, 4, UI::TableFlags::SizingFixedFit);
+
+    UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Position", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Total Players", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Percentile", UI::TableColumnFlags::WidthFixed);
+
+    UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    UI::TableHeadersRow();
+    UI::PopStyleColor();
+
+    for (uint i = 0; i < context.m_CurrentEntry.m_GlobalPositionHistory.Length; i++)
+    {
+        auto @data = @context.m_CurrentEntry.m_GlobalPositionHistory[i];
+
+        UI::TableNextRow();
+
+        UI::TableNextColumn();
+        UI::Text(formatTimestamp(data.m_TimeStamp));
+
+        UI::TableNextColumn();
+        UI::Text(formatPosition(data.m_GlobalPosition));
+
+        UI::TableNextColumn();
+        UI::Text(formatPosition(data.m_GlobalPositionTotalPlayers));
+
+        UI::TableNextColumn();
+        UI::Text(formatPercentile(float(context.m_CurrentEntry.m_Rank) / float(g_State.m_Leaderboard.m_TotalNumberFinishes)));
+    }
+
+    UI::EndTable();
+}
+
 void renderText(const TableRenderContext&in context, const string&in text)
 {
     if (text.Length == 0)
@@ -637,6 +674,25 @@ string formatPosition(const uint position, const string&in defaultValue = "")
         return "<" + (position / 1000) + "k";
     else
         return "" + position;
+}
+
+string formatPercentile(const float percentile, const string&in defaultValue = "")
+{
+    if (percentile <= 0.0f)
+        return defaultValue;
+    else
+        return Math::Round(percentile * 100.0f, 2) + "%";
+}
+
+string formatTimestamp(const int64 timestamp)
+{
+    if (timestamp == 0)
+    {
+        return "";
+    }
+
+    auto time = Time::Parse(timestamp);
+    return time.Year + "-" + Text::Format("%02d", time.Month) + "-" + Text::Format("%02d", time.Day) + " " + Text::Format("%02d", time.Hour) + ":" + Text::Format("%02d", time.Minute) + ":" + Text::Format("%02d", time.Second);
 }
 
 }

@@ -36,7 +36,7 @@ void InitPersonalBest()
     if (g_State.m_Leaderboard.m_FastestRun is null)
         return;
     const int position = FetchPersonalBest();
-    g_State.m_Leaderboard.m_FastestRun.m_GlobalPosition = position;
+    g_State.m_Leaderboard.m_FastestRun.AddGlobalPositionData(position);
 }
 
 awaitable@ g_InitLiveData = null;
@@ -98,7 +98,7 @@ void InitPositionForEntry(LeaderboardEntry@ entry)
 
     array<int> times = {entry.GetDisplayTime()};
     const auto positions = FetchForTimes(times);
-    entry.m_GlobalPosition = positions[0];
+    entry.AddGlobalPositionData(positions[0]);
 }
 
 awaitable@ g_InitTimeForEntryAsync = null;

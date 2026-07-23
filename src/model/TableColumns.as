@@ -226,7 +226,7 @@ class LocalPercentageColumn : TableColumn
         if (g_State.m_Leaderboard.m_TotalNumberFinishes <= 0 || context.m_CurrentEntry.m_Rank <= 0)
             return "";
         else
-            return Math::Round((float(context.m_CurrentEntry.m_Rank) / float(g_State.m_Leaderboard.m_TotalNumberFinishes)) * 100.0f, 2) + "%";
+            return formatPercentile(float(context.m_CurrentEntry.m_Rank) / float(g_State.m_Leaderboard.m_TotalNumberFinishes));
     }
 }
 
@@ -245,7 +245,7 @@ class GlobalPercentageColumn : TableColumn
         if (g_State.m_NumberGlobalPositions <= 0 || context.m_CurrentEntry.m_GlobalPosition <= 0)
             return "";
         else
-            return Math::Round((float(context.m_CurrentEntry.m_GlobalPosition) / float(g_State.m_NumberGlobalPositions)) * 100.0f, 2) + "%";
+            return formatPercentile(float(context.m_CurrentEntry.m_GlobalPosition) / float(g_State.m_NumberGlobalPositions));
     }
 }
 
@@ -496,13 +496,7 @@ class TimestampColumn : TableColumn
     }
     string GetBodyValue(const TableRenderContext&in context) const override
     {
-        if (context.m_CurrentEntry.m_TimeStamp == 0)
-        {
-            return "";
-        }
-
-        auto time = Time::Parse(context.m_CurrentEntry.m_TimeStamp);
-        return time.Year + "-" + Text::Format("%02d", time.Month) + "-" + Text::Format("%02d", time.Day) + " " + Text::Format("%02d", time.Hour) + ":" + Text::Format("%02d", time.Minute) + ":" + Text::Format("%02d", time.Second);
+        return formatTimestamp(context.m_CurrentEntry.m_TimeStamp);
     }
 }
 
