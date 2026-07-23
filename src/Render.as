@@ -26,6 +26,7 @@ int windowFlags = 0;
 
 array<LeaderboardEntry @> g_TableRows;
 array<TableColumn @> g_TableColumns;
+array<TableColumn @> g_DetailColumns;
 
 void InitRender()
 {
@@ -39,10 +40,12 @@ void InitRender()
         {
             g_TableColumns.InsertLast(@g_AllTableColumns[i]);
         }
+        g_DetailColumns.InsertLast(@g_AllTableColumns[i]);
     }
 
     // Order columns
     g_TableColumns.Sort(columnSort);
+    g_DetailColumns.Sort(columnSort);
 
     // Setup window flags
     windowFlags = UI::GetDefaultWindowFlags() | UI::WindowFlags::AlwaysAutoResize;
@@ -300,13 +303,13 @@ void Render()
             UI::BeginTooltip();
             UI::BeginTable("Tooltip" + i, 2);
 
-            for (uint c = 0; c < g_AllTableColumns.Length; c++)
+            for (uint c = 0; c < g_DetailColumns.Length; c++)
             {
                 UI::TableNextRow();
                 UI::TableNextColumn();
-                g_AllTableColumns[c].renderHeader();
+                g_DetailColumns[c].renderHeader();
                 UI::TableNextColumn();
-                g_AllTableColumns[c].renderBody(context);
+                g_DetailColumns[c].renderBody(context);
             }
 
             UI::EndTable();
