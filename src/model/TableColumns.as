@@ -2,6 +2,7 @@ namespace LocalRecords
 {
 
 array<TableColumn @> g_AllTableColumns = {
+    // version 0.1.0
     MedalColumn(),
     RankColumn(),
     GlobalPositionColumn(),
@@ -16,11 +17,14 @@ array<TableColumn @> g_AllTableColumns = {
     TimestampColumn(),
     TotalTimeColumn(),
     SessionTimeColumn(),
-    TimeSinceColumn()
+    TimeSinceColumn(),
+    // version 0.2.0
+    LocalPercentageColumn(),
 };
 
 enum TableColumnType
 {
+    // version 0.1.0
     MedalColumn,
     RankColumn,
     GlobalPositionColumn,
@@ -36,6 +40,55 @@ enum TableColumnType
     TotalTimeColumn,
     SessionTimeColumn,
     TimeSinceColumn,
+    // version 0.2.0
+    LocalPercentageColumn,
+}
+
+string TableColumnTypeToString(const TableColumnType type)
+{
+    switch (type)
+    {
+        case TableColumnType::MedalColumn:           return "MedalColumn";
+        case TableColumnType::RankColumn:            return "RankColumn";
+        case TableColumnType::GlobalPositionColumn:  return "GlobalPositionColumn";
+        case TableColumnType::LocalPercentageColumn: return "LocalPercentageColumn";
+        case TableColumnType::GlobalPercentageColumn:return "GlobalPercentageColumn";
+        case TableColumnType::PlayerColumn:          return "PlayerColumn";
+        case TableColumnType::TimeColumn:            return "TimeColumn";
+        case TableColumnType::TimeDeltaColumn:       return "TimeDeltaColumn";
+        case TableColumnType::TimeNoRespawnColumn:   return "TimeNoRespawnColumn";
+        case TableColumnType::NumberRespawnsColumn:  return "NumberRespawnsColumn";
+        case TableColumnType::ScoreNumberColumn:     return "ScoreNumberColumn";
+        case TableColumnType::SessionNumberColumn:   return "SessionNumberColumn";
+        case TableColumnType::TimestampColumn:       return "TimestampColumn";
+        case TableColumnType::TotalTimeColumn:       return "TotalTimeColumn";
+        case TableColumnType::SessionTimeColumn:     return "SessionTimeColumn";
+        case TableColumnType::TimeSinceColumn:       return "TimeSinceColumn";
+    }
+    return "";
+}
+
+TableColumnType StringToTableColumnType(const string&in value)
+{
+    if (value == "MedalColumn")            return TableColumnType::MedalColumn;
+    if (value == "RankColumn")             return TableColumnType::RankColumn;
+    if (value == "GlobalPositionColumn")   return TableColumnType::GlobalPositionColumn;
+    if (value == "LocalPercentageColumn")  return TableColumnType::LocalPercentageColumn;
+    if (value == "GlobalPercentageColumn") return TableColumnType::GlobalPercentageColumn;
+    if (value == "PlayerColumn")           return TableColumnType::PlayerColumn;
+    if (value == "TimeColumn")             return TableColumnType::TimeColumn;
+    if (value == "TimeDeltaColumn")        return TableColumnType::TimeDeltaColumn;
+    if (value == "TimeNoRespawnColumn")    return TableColumnType::TimeNoRespawnColumn;
+    if (value == "NumberRespawnsColumn")   return TableColumnType::NumberRespawnsColumn;
+    if (value == "ScoreNumberColumn")      return TableColumnType::ScoreNumberColumn;
+    if (value == "SessionNumberColumn")    return TableColumnType::SessionNumberColumn;
+    if (value == "TimestampColumn")        return TableColumnType::TimestampColumn;
+    if (value == "TotalTimeColumn")        return TableColumnType::TotalTimeColumn;
+    if (value == "SessionTimeColumn")      return TableColumnType::SessionTimeColumn;
+    if (value == "TimeSinceColumn")        return TableColumnType::TimeSinceColumn;
+
+    LogWarning("Unknown TableColumnType string: " + value);
+    return TableColumnType::MedalColumn;
 }
 
 void initializeTableColumns()
@@ -158,6 +211,25 @@ class GlobalPositionColumn : TableColumn
     }
 }
 
+class LocalPercentageColumn : TableColumn
+{
+    TableColumnType GetType() const override
+    {
+        return TableColumnType::LocalPercentageColumn;
+    }
+    string GetName() const override
+    {
+        return Icons::Desktop + " %";
+    }
+    string GetBodyValue(const TableRenderContext&in context) const override
+    {
+        if (g_State.m_Leaderboard.m_TotalNumberFinishes <= 0 || context.m_CurrentEntry.m_Rank <= 0)
+            return "";
+        else
+            return Math::Round((float(context.m_CurrentEntry.m_Rank) / float(g_State.m_Leaderboard.m_TotalNumberFinishes)) * 100.0f, 2) + "%";
+    }
+}
+
 class GlobalPercentageColumn : TableColumn
 {
     TableColumnType GetType() const override
@@ -166,7 +238,7 @@ class GlobalPercentageColumn : TableColumn
     }
     string GetName() const override
     {
-        return "%";
+        return Icons::Globe + " %";
     }
     string GetBodyValue(const TableRenderContext&in context) const override
     {

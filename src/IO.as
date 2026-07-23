@@ -26,7 +26,10 @@ void loadSettings() {
 
     auto root = Json::FromFile(filePath);
     if (root.HasKey("settings"))
+    {
+        Migration::migrateSettings(root);
         deserializeSettings(root["settings"]);
+    }
 
     LogInfo("Loaded settings from " + filePath);
 }
@@ -428,7 +431,8 @@ Json::Value serializeTableSettings()
 
     for (uint i = 0; i < columnSettingsObj.Length; ++i)
     {
-        auto @columnSettings = @g_AllTableColumns[i];
+        const TableColumnType columnType = StringToTableColumnType(columnSettingsObj[i]["type"]);
+        auto @columnSettings = @GetTableColumnByType(columnType);
         deserializeColumnSettings(columnSettings, columnSettingsObj[i]);
     }
 }
@@ -436,7 +440,7 @@ Json::Value serializeTableSettings()
 Json::Value serializeColumnSettings(const TableColumn@ column)
 {
     auto columnSettingsObj = Json::Object();
-    columnSettingsObj["type"] = column.GetType();
+    columnSettingsObj["type"] = TableColumnTypeToString(column.GetType());
     columnSettingsObj["show"] = column.m_Show;
     columnSettingsObj[IO_KEY::POSITION] = column.m_Pos;
 
@@ -521,6 +525,64 @@ const string TIME_NO_RESPAWN = "tnr";
 const string TIMESTAMP = "ts";
 const string WAS_PERSONAL_BEST = "wpb";
 const string WAS_SESSION_BEST = "wsb";
+}
+
+namespace Migration
+{
+    // v1.0.0 column type integer-to-string mapping.
+    // LocalPercentageColumn did not exist yet, so indices >= 3 are shifted.
+    const array<string> V100_COLUMN_TYPES = {
+        "MedalColumn",            // 0
+        "RankColumn",             // 1
+        "GlobalPositionColumn",   // 2
+        "GlobalPercentageColumn", // 3 (now index 4 due to LocalPercentageColumn)
+        "PlayerColumn",           // 4
+        "TimeColumn",             // 5
+        "TimeDeltaColumn",        // 6
+        "TimeNoRespawnColumn",    // 7
+        "NumberRespawnsColumn",   // 8
+        "ScoreNumberColumn",      // 9
+        "SessionNumberColumn",    // 10
+        "TimestampColumn",        // 11
+        "TotalTimeColumn",        // 12
+        "SessionTimeColumn",      // 13
+        "TimeSinceColumn"         // 14
+    };
+
+    void migrateSettings(Json::Value&inout root)
+    {
+        if (!root.HasKey("version") || !root.HasKey("settings"))
+            return;
+
+        const string version = root["version"];
+
+        if (version == "0.1.0")
+        {
+            LogInfo("Migrating settings from version 0.1.0 to 0.2.0");
+            migrateColumnTypesToStrings(root["settings"]);
+        }
+    }
+
+    void migrateColumnTypesToStrings(Json::Value&inout settingsObj)
+    {
+        if (!settingsObj.HasKey("tableSettings"))
+            return;
+        if (!settingsObj["tableSettings"].HasKey("columns"))
+            return;
+
+        auto columns = settingsObj["tableSettings"]["columns"];
+        for (uint i = 0; i < columns.Length; ++i)
+        {
+            if (columns[i]["type"].GetType() == Json::Type::Number)
+            {
+                int typeInt = columns[i]["type"];
+                if (typeInt >= 0 && typeInt < int(V100_COLUMN_TYPES.Length))
+                    columns[i]["type"] = V100_COLUMN_TYPES[typeInt];
+                else
+                    LogWarning("Unknown column type integer during migration: " + typeInt);
+            }
+        }
+    }
 }
 
 
