@@ -94,6 +94,12 @@ bool settingDisplayLeaderboardMedalChampion = true;
 [Setting name="Display Medal Warrior" description="Show the warrior medal time in the leaderboard if the WarriorMedal Plugin is installed" category="UI"]
 bool settingDisplayLeaderboardMedalWarrior = true;
 
+[Setting name="Number of Beaten Medals" description="The number of beaten medals listed in the leaderboard." category="UI" min=0 max=6]
+uint settingNumberBeatenMedals = 6;
+
+[Setting name="Number of Unbeaten Medals" description="The number of unbeaten medals listed in the leaderboard." category="UI" min=0 max=6]
+uint settingNumberUnbeatenMedals = 6;
+
 [Setting name="Color Delta Better" description="Color for deltas that are better than the comparison time" color category="UI"]
 vec3 settingColorDeltaBetter = vec3(0.47f, 0.47f, 1.0f);
 

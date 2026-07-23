@@ -32,6 +32,8 @@ void OnSettingsChanged()
 namespace LocalRecords
 {
 
+int MAX_INT = 2147483647;
+
 State g_State = State();
 
 void Init()

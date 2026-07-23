@@ -108,11 +108,35 @@ void InitRows()
     }
 
     // Add medal entries
+    array<LeaderboardEntry @> beatenMedals;
+    array<LeaderboardEntry @> unbeatenMedals;
+    int pbTime = g_State.m_Leaderboard.m_FastestRun !is null ? g_State.m_Leaderboard.m_FastestRun.m_Time : MAX_INT;
     for (uint i = 0; i < g_State.m_MedalEntries.Length; i++)
     {
         auto @entry = @g_State.m_MedalEntries[i];
         if (entry.m_Medal.IsVisible())
-            g_TableRows.InsertLast(entry);
+        {
+            if (entry.m_Medal.GetTime() >= pbTime)
+                beatenMedals.InsertLast(entry);
+            else
+                unbeatenMedals.InsertLast(entry);
+        }
+    }
+    if (beatenMedals.Length > 0)
+    {
+        beatenMedals.Sort(timeSortDesc);
+        for (uint i = 0; i < settingNumberBeatenMedals && i < beatenMedals.Length; i++)
+        {
+            g_TableRows.InsertLast(beatenMedals[i]);
+        }
+    }
+    if (unbeatenMedals.Length > 0)
+    {
+        unbeatenMedals.Sort(timeSortAsc);
+        for (uint i = 0; i < settingNumberUnbeatenMedals && i < unbeatenMedals.Length; i++)
+        {
+            g_TableRows.InsertLast(unbeatenMedals[i]);
+        }
     }
 
     // Add custom entries
@@ -150,13 +174,24 @@ bool timeSort(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ cons
     switch (settingLeaderboardSortDirection)
     {
         case LeaderboardSortDirection::Ascending:
-            return a.GetDisplayTime() < b.GetDisplayTime();
+            return timeSortDesc(a, b);
         case LeaderboardSortDirection::Descending:
-            return a.GetDisplayTime() > b.GetDisplayTime();
+            return timeSortAsc(a, b);
         default:
             return false;
     }
 }
+
+bool timeSortAsc(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ const&in b)
+{
+    return a.GetDisplayTime() > b.GetDisplayTime();
+}
+
+bool timeSortDesc(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ const&in b)
+{
+    return a.GetDisplayTime() < b.GetDisplayTime();
+}
+
 
 bool chronologicalSort(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ const&in b)
 {
