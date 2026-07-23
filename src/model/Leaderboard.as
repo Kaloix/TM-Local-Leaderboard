@@ -397,7 +397,7 @@ class LeaderboardEntry
             case LeaderboardEntryType::ScoreBestLaps:
                 return Icons::AngleDoubleUp;
             case LeaderboardEntryType::ScoreCopium:
-                return Icons::ArrowCircleOUp;
+                return Icons::ArrowCircleUp;
             default:
                 return "";
         }
