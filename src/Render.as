@@ -245,7 +245,7 @@ void Render()
         }
 
         UI::SameLine();
-        UI::Text(Icons::Flag + " " + formatPosition(g_State.m_Leaderboard.m_TotalNumberSessionFinishes, "0") + formatPosition(g_State.m_Leaderboard.m_TotalNumberFinishes, "0") + " / " + " / " + formatPosition(g_State.m_NumberGlobalPositions, "0"));
+        UI::Text(Icons::Flag + " " + formatPosition(g_State.m_Leaderboard.m_TotalNumberSessionFinishes, "0") + " / " + formatPosition(g_State.m_Leaderboard.m_TotalNumberFinishes, "0") + " / " + formatPosition(g_State.m_NumberGlobalPositions, "0"));
 
         if (UI::IsItemHovered())
         {
