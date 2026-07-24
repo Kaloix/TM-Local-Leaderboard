@@ -32,6 +32,7 @@ void InitRender()
 {
     // Clear existing columns
     g_TableColumns.RemoveRange(0, g_TableColumns.Length);
+    g_DetailColumns.RemoveRange(0, g_DetailColumns.Length);
 
     // Add all columns that are active
     for (uint i = 0; i < g_AllTableColumns.Length; ++i)
