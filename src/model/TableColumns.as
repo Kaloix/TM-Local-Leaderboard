@@ -295,6 +295,8 @@ class TimeColumn : TableColumn
         const auto time = GetTime(context);
         if (time > 0)
             return Time::Format(GetTime(context), ShowFractions());
+        else if (time < 0)
+            return Icons::EyeSlash;
         else
             return "";
     }
