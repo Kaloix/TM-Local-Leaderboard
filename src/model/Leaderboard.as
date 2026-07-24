@@ -457,6 +457,12 @@ class LeaderboardEntry
         if (m_GlobalPositionHistory.Length > 0)
         {
             auto @lastEntry = m_GlobalPositionHistory[m_GlobalPositionHistory.Length - 1];
+
+            if (lastEntry.m_GlobalPosition == globalPosition && lastEntry.m_GlobalPositionTotalPlayers == g_State.m_NumberGlobalPositions)
+            {
+                return;
+            }
+
             if (lastEntry.m_IsCurrentSession)
             {
                 @existingEntry = @lastEntry;
