@@ -575,7 +575,7 @@ class TimeSinceColumn : TimeColumn
             return 0;
         }
 
-        return (context.m_CurrentTime - context.m_CurrentEntry.m_TimeStamp) * 1000;
+        return (g_State.m_Leaderboard.m_TotalTime - context.m_CurrentEntry.m_TimeInTotal);
     }
     bool ShowFractions() override
     {
