@@ -659,7 +659,7 @@ void renderDelta(int delta)
 
 void renderDeltaSpeed(int delta)
 {
-    auto deltaColor = delta < 0 ? vec4(settingColorDeltaBetter, 1) : (delta > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
+    auto deltaColor = delta < 0 ? vec4(settingColorDeltaWorse, 1) : (delta > 0 ? vec4(settingColorDeltaBetter, 1) : vec4(settingColorDeltaEqual, 1));
     string deltaStr = (delta > 0 ? "+" : (delta < 0 ? "" : "±")) + delta;
 
     UI::PushStyleColor(UI::Col::Text, deltaColor);
