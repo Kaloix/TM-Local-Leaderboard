@@ -95,6 +95,8 @@ void InitPositionForEntry(LeaderboardEntry@ entry)
 {
     if (entry is null)
         return;
+    if (g_State.m_CurrentMap == "")
+        return;
 
     array<int> times = {entry.GetDisplayTime()};
     const auto positions = FetchForTimes(times);
@@ -107,6 +109,8 @@ array<LeaderboardEntry @> g_InitTimeForEntryAsyncQueue;
 void InitTimeForEntryAsync(LeaderboardEntry@ entry)
 {
     if (entry is null)
+        return;
+    if (g_State.m_CurrentMap == "")
         return;
 
     g_InitTimeForEntryAsyncQueue.InsertLast(@entry);
