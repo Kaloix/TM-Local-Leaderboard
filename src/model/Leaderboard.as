@@ -449,6 +449,9 @@ class LeaderboardEntry
 
     void AddGlobalPositionData(uint globalPosition)
     {
+        if (globalPosition == 0)
+            return;
+
         // Update the current value
         m_GlobalPosition = globalPosition;
 
