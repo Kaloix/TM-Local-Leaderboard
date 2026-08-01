@@ -16,8 +16,11 @@ bool settingDisplayLeaderboardWindow = true;
 [Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardTitleBar = false;
 
-[Setting name="Background transparency" description="Transparency of the leaderboard background" category="Leaderboard - Window" min=0.0f max=1.0f]
+[Setting name="Background Transparency" description="Transparency of the leaderboard background" category="Leaderboard - Window" min=0.0f max=1.0f]
 float settingLeaderboardBackgroundTransparency = 1.0f;
+
+[Setting name="Font Size" description="Font size for the leaderboard and current run info" category="Leaderboard - Window" min=1 max=64]
+int settingLeaderboardFontSize = 16;
 
 [Setting name="Display Map Name" description="Show the map name in the leaderboard UI" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardMapName = true;
@@ -133,8 +136,11 @@ bool settingShowCurrentRun = true;
 [Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="Current Run - Window"]
 bool settingCurrentRunDisplayTitleBar = false;
 
-[Setting name="Background transparency" description="Transparency of the current run info" category="Current Run - Window" min=0.0f max=1.0f]
+[Setting name="Background Transparency" description="Transparency of the current run info" category="Current Run - Window" min=0.0f max=1.0f]
 float settingCurrentRunBackgroundTransparency = 1.0f;
+
+[Setting name="Font Size" description="Font size for the leaderboard and current run info" category="Current Run - Window" min=1 max=64]
+int settingCurrentRunFontSize = 16;
 
 // Category Debug
 [Setting name="Log Debug Info" description="Log debug information in the console" category="Debug"]

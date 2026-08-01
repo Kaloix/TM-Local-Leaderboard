@@ -21,6 +21,7 @@ void renderCurrentRun()
         return; // Don't render if no map is loaded
     }
 
+    UI::PushFontSize(settingCurrentRunFontSize);
     UI::SetNextWindowBgAlpha(settingCurrentRunBackgroundTransparency);
 
     bool open = true;
@@ -29,6 +30,8 @@ void renderCurrentRun()
     renderCurrentRunInfo();
 
     UI::End();
+
+    UI::PopFontSize();
 }
 
 void renderCurrentRunInfo()

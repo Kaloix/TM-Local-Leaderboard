@@ -229,6 +229,7 @@ void Render()
         return; // Don't render if no map is loaded
     }
 
+    UI::PushFontSize(settingLeaderboardFontSize);
     UI::SetNextWindowBgAlpha(settingLeaderboardBackgroundTransparency);
 
     bool open = true;
@@ -341,6 +342,8 @@ void Render()
     }
 
     UI::End();
+
+    UI::PopFontSize();
 }
 
 class TableRenderContext
