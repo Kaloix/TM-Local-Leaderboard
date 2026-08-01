@@ -1,11 +1,16 @@
 void Render()
 {
-    if (!settingDisplayLeaderboard)
+    if (settingDisplayLeaderboard)
     {
-        return; // Don't render the leaderboard if the setting is disabled
+        // Don't render the leaderboard if the setting is disabled
+        LocalRecords::Render();
+    }
+    
+    if (settingShowCurrentRun)
+    {
+        LocalRecords::CurrentRun::renderCurrentRun();
     }
 
-    LocalRecords::Render();
 }
 
 enum LeaderboardSortType
@@ -30,6 +35,8 @@ array<TableColumn @> g_DetailColumns;
 
 void InitRender()
 {
+    CurrentRun::InitRender();
+
     // Clear existing columns
     g_TableColumns.RemoveRange(0, g_TableColumns.Length);
     g_DetailColumns.RemoveRange(0, g_DetailColumns.Length);
@@ -387,11 +394,10 @@ void RenderCheckpoints(const TableRenderContext&in context)
     {
         UI::TableNextRow();
 
-        const auto @raceData = @MLFeed::GetRaceData_V4();
-        if (raceData.LapCount > 1 && i % (raceData.CpCount + 1) == 0)
+        if (g_State.m_CurrentMapLapCount > 1 && i % (g_State.m_CurrentMapCpCount + 1) == 0)
         {
             UI::TableSetColumnIndex(1);
-            UI::Text("Lap " + (i / (raceData.CpCount + 1) + 1));
+            UI::Text("Lap " + (i / (g_State.m_CurrentMapCpCount + 1) + 1));
             UI::TableNextRow();
         }
 
@@ -660,6 +666,16 @@ void renderDelta(int delta)
 void renderDeltaSpeed(int delta)
 {
     auto deltaColor = delta < 0 ? vec4(settingColorDeltaWorse, 1) : (delta > 0 ? vec4(settingColorDeltaBetter, 1) : vec4(settingColorDeltaEqual, 1));
+    string deltaStr = (delta > 0 ? "+" : (delta < 0 ? "" : "±")) + delta;
+
+    UI::PushStyleColor(UI::Col::Text, deltaColor);
+    UI::Text(deltaStr);
+    UI::PopStyleColor();
+}
+
+void renderDeltaRespawns(int delta)
+{
+    auto deltaColor = delta < 0 ? vec4(settingColorDeltaBetter, 1) : (delta > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
     string deltaStr = (delta > 0 ? "+" : (delta < 0 ? "" : "±")) + delta;
 
     UI::PushStyleColor(UI::Col::Text, deltaColor);

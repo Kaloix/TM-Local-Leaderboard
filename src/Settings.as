@@ -118,6 +118,14 @@ vec3 settingColorTimeSessionBest = vec3(0.25f, 0.75f, 0.75f);
 [Setting name="Color Time Last" description="Color for the player's last time in the leaderboard" color category="UI"]
 vec3 settingColorTimeLast = vec3(0.5f, 1.0f, 0.0f);
 
+// Category Current Run
+[Setting name="Show Current Run" description="Show information about the current run" category="Current Run"]
+bool settingShowCurrentRun = true;
+
+[Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="Current Run"]
+bool settingCurrentRunDisplayTitleBar = false;
+
+
 // Category Debug
-[Setting name="Show Debug Info" description="Show debug information in the console" category="Debug"]
+[Setting name="Log Debug Info" description="Log debug information in the console" category="Debug"]
 bool settingShowDebugInfo = false;

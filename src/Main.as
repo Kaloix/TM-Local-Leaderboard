@@ -113,14 +113,30 @@ void Update(float dt)
     // Update leaderboard time
     g_State.m_Leaderboard.updateTime();
 
-    // Events for reaching checkpoints and finish
-    const auto currentCp = player.CpCount;
-    if (player.IsSpawned && currentCp != int(g_State.m_CurrentCheckpoints.Length))
+    // Events for starting a new run
+    const auto startTime = player.StartTime;
+    if (startTime != g_State.m_CurrentStartTime)
     {
-        if (currentCp == 0)
-            OnRespawn();
-        else
-            OnReachingCheckpoint(currentCp);
+        g_State.m_CurrentStartTime = startTime;
+        g_State.m_LastStartTime = Time::get_Now() - player.CurrentRaceTimeRaw;
+        g_State.m_LastCpReached = Time::get_Now() - player.CurrentRaceTimeRaw;
+        g_State.m_LastRespawn = Time::get_Now() - player.CurrentRaceTimeRaw;
+        OnStart();
+    }
+
+    // Events for respawning
+    const auto respawnTime = player.LastRespawnRaceTime;
+    if (respawnTime != g_State.m_CurrentRespawnTime)
+    {
+        g_State.m_CurrentRespawnTime = respawnTime;
+        g_State.m_LastRespawn = g_State.m_LastCpReached + player.TimeLostToRespawnByCp[player.CpCount];
+    }
+
+    // Events for reaching checkpoints, starting is not handled here
+    const auto currentCp = player.CpCount;
+    if (player.IsSpawned && currentCp != int(g_State.m_CurrentCheckpoints.Length) && currentCp != 0)
+    {
+        OnReachingCheckpoint(currentCp);
     }
 
     // Events for player finishing
@@ -139,10 +155,13 @@ void OnMapLoad()
 {
     CGameCtnApp @app = GetApp();
     auto @map = @app.RootMap;
+    const auto @raceData = @MLFeed::GetRaceData_V4();
 
     g_State.m_CurrentMap = map.IdName;
     g_State.m_CurrentMapName = map.MapName;
     g_State.m_CurrentMapAuthor = map.AuthorNickName;
+    g_State.m_CurrentMapCpCount = raceData.CpCount;
+    g_State.m_CurrentMapLapCount = raceData.LapCount;
 
     LoadLeaderboard(g_State);
 
@@ -167,16 +186,22 @@ void OnMapUnload()
     g_State = State();
 }
 
-void OnRespawn()
+void OnStart()
 {
     g_State.m_CurrentCheckpoints.RemoveRange(0, g_State.m_CurrentCheckpoints.Length);
     g_State.m_CurrentLaps.RemoveRange(0, g_State.m_CurrentLaps.Length);
+
+    const LeaderboardEntry @comparisonTarget = @(cast<TimeDeltaColumn>(GetTableColumnByType(TableColumnType::TimeDeltaColumn))).m_ComparisonTarget.GetComparisonTargetEntry();
+    g_State.m_CurrentRunComparisonCheckpoints = comparisonTarget !is null ? comparisonTarget.m_Checkpoints : array<CheckpointData@>();
 }
 
 void OnReachingCheckpoint(int checkpoint)
 {
     const auto @raceData = @MLFeed::GetRaceData_V4();
     const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
+
+    g_State.m_LastCpReached = Time::get_Now(); 
+    g_State.m_LastRespawn = g_State.m_LastCpReached;
 
     // Add CP
     auto time = player.cpTimes[checkpoint] - player.cpTimes[checkpoint - 1];
@@ -195,13 +220,12 @@ void OnReachingCheckpoint(int checkpoint)
 
 void AddLap(const int checkpointIndex, const CheckpointData&in currentCp, const array<CheckpointData@>&in checkpoints, array<LapData@>&inout laps)
 {
-    const auto @raceData = @MLFeed::GetRaceData_V4();
-    if (checkpointIndex % (raceData.CpCount + 1) == 0)
+    if (checkpointIndex % (g_State.m_CurrentMapCpCount + 1) == 0)
     {
         LapData @lapData = LapData();
         lapData.m_TimeFromStart = currentCp.m_TimeFromStart;
 
-        for (uint i = (raceData.CpCount + 1) * laps.Length; i < checkpoints.Length; ++i)
+        for (uint i = (g_State.m_CurrentMapCpCount + 1) * laps.Length; i < checkpoints.Length; ++i)
         {
             lapData.m_TimeFromPrevious += checkpoints[i].m_TimeFromPrevious;
             lapData.m_TimeFromPreviousNoRespawn += checkpoints[i].m_TimeFromPreviousNoRespawn;
@@ -325,12 +349,22 @@ class State
     string m_CurrentMap = "";
     string m_CurrentMapName = "";
     string m_CurrentMapAuthor = "";
+    uint m_CurrentMapCpCount = 0;
+    uint m_CurrentMapLapCount = 0;
 
     int m_NumberGlobalPositions = -1;
 
     bool m_IsPlayerFinishHandled = true;
     array<CheckpointData @> m_CurrentCheckpoints;
     array<LapData @> m_CurrentLaps;
+    uint64 m_CurrentStartTime = 0;
+    uint64 m_CurrentRespawnTime = 0;
+    uint64 m_LastStartTime = 0;
+    uint64 m_LastCpReached = 0;
+    uint64 m_LastRespawn = 0;
+
+    // Cache the comparison checkpoints for the current run to prevent overwriting after the run is finished and the leaderboard is updated
+    array<CheckpointData @> m_CurrentRunComparisonCheckpoints;
 
     uint64 m_SessionStartTime = Time::get_Now();
 
