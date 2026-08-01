@@ -1,6 +1,6 @@
 void Render()
 {
-    if (settingDisplayLeaderboard)
+    if (settingDisplayLeaderboardWindow)
     {
         // Don't render the leaderboard if the setting is disabled
         LocalRecords::Render();
@@ -266,74 +266,77 @@ void Render()
         }
     }
 
-    if (g_TableColumns.Length == 0)
+    if (settingDisplayLeaderboard)
     {
-        UI::Text("No columns configured to display.");
-        UI::End();
-        return;
-    }
-
-    UI::BeginTable("LeaderboardTable", g_TableColumns.Length, UI::TableFlags::SizingFixedFit);
-
-    // Setup columns
-    for (uint i = 0; i < g_TableColumns.Length; i++)
-    {
-        g_TableColumns[i].setup(i);
-    }
-
-    // Table header
-    if (settingDisplayLeaderboardHeader)
-    {
-        UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-        UI::TableHeadersRow();
-        UI::PopStyleColor();
-    }
-
-    // Table body
-    auto context = TableRenderContext();
-    for (uint i = 0; i < g_TableRows.Length; i++)
-    {
-        PrepareRenderContext(context, i);
-
-        UI::TableNextRow();
-
-        bool isRowHovered = false;
-        for (uint col = 0; col < g_TableColumns.Length; col++)
+        if (g_TableColumns.Length == 0)
         {
-            UI::TableNextColumn();
-            g_TableColumns[col].renderBody(context);
-
-            isRowHovered = isRowHovered || UI::IsItemHovered();
+            UI::Text("No columns configured to display.");
+            UI::End();
+            return;
         }
 
-        if (settingDisplayLeaderboardTooltips && isRowHovered)
-        {
-            UI::BeginTooltip();
-            UI::BeginTable("Tooltip" + i, 2);
+        UI::BeginTable("LeaderboardTable", g_TableColumns.Length, UI::TableFlags::SizingFixedFit);
 
-            for (uint c = 0; c < g_DetailColumns.Length; c++)
+        // Setup columns
+        for (uint i = 0; i < g_TableColumns.Length; i++)
+        {
+            g_TableColumns[i].setup(i);
+        }
+
+        // Table header
+        if (settingDisplayLeaderboardHeader)
+        {
+            UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            UI::TableHeadersRow();
+            UI::PopStyleColor();
+        }
+
+        // Table body
+        auto context = TableRenderContext();
+        for (uint i = 0; i < g_TableRows.Length; i++)
+        {
+            PrepareRenderContext(context, i);
+
+            UI::TableNextRow();
+
+            bool isRowHovered = false;
+            for (uint col = 0; col < g_TableColumns.Length; col++)
             {
-                UI::TableNextRow();
                 UI::TableNextColumn();
-                g_DetailColumns[c].renderHeader();
-                UI::TableNextColumn();
-                g_DetailColumns[c].renderBody(context);
+                g_TableColumns[col].renderBody(context);
+
+                isRowHovered = isRowHovered || UI::IsItemHovered();
             }
 
-            UI::EndTable();
+            if (settingDisplayLeaderboardTooltips && isRowHovered)
+            {
+                UI::BeginTooltip();
+                UI::BeginTable("Tooltip" + i, 2);
 
-            if (context.m_CurrentEntry.m_Checkpoints.Length > 1)
-                RenderCheckpoints(context);
-            if (context.m_CurrentEntry.m_Laps.Length > 1)
-                RenderLaps(context);
-            if (context.m_CurrentEntry.m_GlobalPositionHistory.Length > 0)
-                RenderGlobalPositionHistory(context);
+                for (uint c = 0; c < g_DetailColumns.Length; c++)
+                {
+                    UI::TableNextRow();
+                    UI::TableNextColumn();
+                    g_DetailColumns[c].renderHeader();
+                    UI::TableNextColumn();
+                    g_DetailColumns[c].renderBody(context);
+                }
 
-            UI::EndTooltip();
+                UI::EndTable();
+
+                if (context.m_CurrentEntry.m_Checkpoints.Length > 1)
+                    RenderCheckpoints(context);
+                if (context.m_CurrentEntry.m_Laps.Length > 1)
+                    RenderLaps(context);
+                if (context.m_CurrentEntry.m_GlobalPositionHistory.Length > 0)
+                    RenderGlobalPositionHistory(context);
+
+                UI::EndTooltip();
+            }
         }
-    }
 
-    UI::EndTable();
+        UI::EndTable();
+    }
 
     UI::End();
 }

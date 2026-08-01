@@ -10,6 +10,9 @@ bool settingDataAddPb = true;
 bool settingUseNadeoApi = true;
 
 // Category Leaderboard - Window
+[Setting name="Display Leaderboard Window" description="Show the leaderboard UI" category="Leaderboard - Window"]
+bool settingDisplayLeaderboardWindow = true;
+
 [Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardTitleBar = false;
 
