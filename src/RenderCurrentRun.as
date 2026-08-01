@@ -23,6 +23,7 @@ void renderCurrentRun()
 
     UI::PushFontSize(settingCurrentRunFontSize);
     UI::SetNextWindowBgAlpha(settingCurrentRunBackgroundTransparency);
+    UI::SetNextWindowSizeConstraints(-1, 0, -1, settingDisplayLeaderboardMaxSize);
 
     bool open = true;
     UI::Begin("LocalRecords current run", open, windowFlags);

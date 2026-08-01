@@ -231,6 +231,7 @@ void Render()
 
     UI::PushFontSize(settingLeaderboardFontSize);
     UI::SetNextWindowBgAlpha(settingLeaderboardBackgroundTransparency);
+    UI::SetNextWindowSizeConstraints(-1, 0, -1, settingDisplayLeaderboardMaxSize);
 
     bool open = true;
     UI::Begin("Local Records", open, windowFlags);
