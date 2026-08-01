@@ -16,6 +16,9 @@ bool settingDisplayLeaderboardWindow = true;
 [Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardTitleBar = false;
 
+[Setting name="Background transparency" description="Transparency of the leaderboard background" category="Leaderboard - Window" min=0.0f max=1.0f]
+float settingLeaderboardBackgroundTransparency = 1.0f;
+
 [Setting name="Display Map Name" description="Show the map name in the leaderboard UI" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardMapName = true;
 
@@ -124,11 +127,14 @@ vec3 settingColorTimeSessionBest = vec3(0.25f, 0.75f, 0.75f);
 vec3 settingColorTimeLast = vec3(0.5f, 1.0f, 0.0f);
 
 // Category Current Run
-[Setting name="Show Current Run" description="Show information about the current run" category="Current Run"]
+[Setting name="Show Current Run" description="Show information about the current run" category="Current Run - Window"]
 bool settingShowCurrentRun = true;
 
-[Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="Current Run"]
+[Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="Current Run - Window"]
 bool settingCurrentRunDisplayTitleBar = false;
+
+[Setting name="Background transparency" description="Transparency of the current run info" category="Current Run - Window" min=0.0f max=1.0f]
+float settingCurrentRunBackgroundTransparency = 1.0f;
 
 // Category Debug
 [Setting name="Log Debug Info" description="Log debug information in the console" category="Debug"]

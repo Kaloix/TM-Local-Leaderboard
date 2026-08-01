@@ -21,6 +21,8 @@ void renderCurrentRun()
         return; // Don't render if no map is loaded
     }
 
+    UI::SetNextWindowBgAlpha(settingCurrentRunBackgroundTransparency);
+
     bool open = true;
     UI::Begin("LocalRecords current run", open, windowFlags);
 

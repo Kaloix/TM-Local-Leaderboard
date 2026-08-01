@@ -229,6 +229,8 @@ void Render()
         return; // Don't render if no map is loaded
     }
 
+    UI::SetNextWindowBgAlpha(settingLeaderboardBackgroundTransparency);
+
     bool open = true;
     UI::Begin("Local Records", open, windowFlags);
 
