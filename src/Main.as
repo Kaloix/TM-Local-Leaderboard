@@ -352,7 +352,7 @@ class State
     uint m_CurrentMapCpCount = 0;
     uint m_CurrentMapLapCount = 0;
 
-    int m_NumberGlobalPositions = -1;
+    uint m_NumberGlobalPositions = 0;
 
     bool m_IsPlayerFinishHandled = true;
     array<CheckpointData @> m_CurrentCheckpoints;

@@ -242,7 +242,7 @@ class GlobalPercentageColumn : TableColumn
     }
     string GetBodyValue(const TableRenderContext&in context) const override
     {
-        if (g_State.m_NumberGlobalPositions <= 0 || context.m_CurrentEntry.m_GlobalPosition <= 0)
+        if (g_State.m_NumberGlobalPositions == 0 || context.m_CurrentEntry.m_GlobalPosition <= 0)
             return "";
         else
             return formatPercentile(float(context.m_CurrentEntry.m_GlobalPosition) / float(g_State.m_NumberGlobalPositions));
