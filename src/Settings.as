@@ -113,6 +113,9 @@ uint settingNumberBeatenMedals = 6;
 [Setting name="Number of Unbeaten Medals" description="The number of unbeaten medals listed in the leaderboard." category="Leaderboard - Table" min=0 max=6]
 uint settingNumberUnbeatenMedals = 6;
 
+[Setting name="Show Past Global Position" description="Show the past global position in the leaderboard for times slower than the PB" category="Leaderboard - Table"]
+bool settingLeaderboardPastGlobalPosition = true;
+
 // Category Colors
 [Setting name="Color Delta Better" description="Color for deltas that are better than the comparison time" color category="Colors"]
 vec3 settingColorDeltaBetter = vec3(0.47f, 0.47f, 1.0f);

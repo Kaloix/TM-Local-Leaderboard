@@ -447,6 +447,15 @@ class LeaderboardEntry
         }
     }
 
+    uint GetLatestGlobalPosition() const
+    {
+        if (m_GlobalPosition > 0)
+            return m_GlobalPosition;
+        if (settingLeaderboardPastGlobalPosition && m_GlobalPositionHistory.Length > 0)
+            return m_GlobalPositionHistory[m_GlobalPositionHistory.Length - 1].m_GlobalPosition;
+        return 0;
+    }
+
     void AddGlobalPositionData(uint globalPosition)
     {
         if (globalPosition == 0)
