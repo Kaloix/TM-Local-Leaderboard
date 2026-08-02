@@ -25,6 +25,8 @@ class Leaderboard
     uint64 m_TotalTime = 0;
     uint64 m_LastUpdated = Time::get_Now();
 
+    array<LeaderboardEntry @> m_ForRemoval;
+
     LeaderboardEntry @createNewEntry(const MLFeed::PlayerCpInfo_V4 @player) const
     {
         auto @entry = LeaderboardEntry();
@@ -107,44 +109,14 @@ class Leaderboard
         AddEntry(@entry);
 
         if (m_FastestRun is null || entry.m_Time < m_FastestRun.m_Time)
-        {
-            entry.m_WasPersonalBest = true;
-            @m_FastestRun = @entry;
-            InitPersonalBestAsync();
-
-            if (m_FastestCopiumRun !is null && m_FastestRun.m_Time <= m_FastestCopiumRun.m_TimeNoRespawn)
-            {
-                @m_FastestCopiumRun = null;
-            }
-        }
+            SetFastestRun(@entry);
         if (m_SessionFastestRun is null || entry.m_Time < m_SessionFastestRun.m_Time)
-        {
-            if (m_SessionFastestRun !is null)
-                m_SessionFastestRun.m_WasSessionBest = false;
-            entry.m_WasSessionBest = true;
-            @m_SessionFastestRun = @entry;
-            InitPositionForEntryAsync(m_SessionFastestRun);
-
-            if (m_SessionFastestCopiumRun !is null && m_SessionFastestRun.m_Time <= m_SessionFastestCopiumRun.m_TimeNoRespawn)
-            {
-                @m_SessionFastestCopiumRun = null;
-            }
-        }
+            SetSessionFastestRun(@entry);
 
         if (entry.m_NumberRespawns > 0 && m_FastestRun !is null && entry.m_TimeNoRespawn < m_FastestRun.m_Time && (m_FastestCopiumRun is null || entry.m_TimeNoRespawn < m_FastestCopiumRun.m_TimeNoRespawn))
-        {
-            @m_FastestCopiumRun = LeaderboardEntry(entry);
-            m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
-            setMedal(m_FastestCopiumRun);
-            InitPositionForEntryAsync(m_FastestCopiumRun);
-        }
+            SetFastestCopiumRun(@entry);
         if (entry.m_NumberRespawns > 0 && m_SessionFastestRun !is null && entry.m_TimeNoRespawn < m_SessionFastestRun.m_Time && (m_SessionFastestCopiumRun is null || entry.m_TimeNoRespawn < m_SessionFastestCopiumRun.m_TimeNoRespawn))
-        {
-            @m_SessionFastestCopiumRun = LeaderboardEntry(entry);
-            m_SessionFastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
-            setMedal(m_SessionFastestCopiumRun);
-            InitPositionForEntryAsync(m_SessionFastestCopiumRun);
-        }
+            SetSessionFastestCopiumRun(@entry);
     }
 
     void AddEntry(LeaderboardEntry @entry)
@@ -179,9 +151,165 @@ class Leaderboard
         }
     }
 
+    void MarkForRemoval(LeaderboardEntry @entry)
+    {
+        if (entry is null)
+            return;
+
+        m_ForRemoval.InsertLast(@entry);
+    }
+
+    void Clean()
+    {
+        if (m_ForRemoval.Length == 0)
+            return;
+
+        for (uint i = 0; i < m_ForRemoval.Length; i++)
+        {
+            RemoveEntry(m_ForRemoval[i]);
+        }
+        m_ForRemoval.RemoveRange(0, m_ForRemoval.Length);
+        InitRows();
+        SaveLeaderboard();
+    }
+
+    void RemoveEntry(LeaderboardEntry @entry)
+    {
+        if (entry is null)
+            return;
+
+        // Update best runs, these are separate entries not contained in the m_Entries array.
+        if (m_BestCheckpointsRun is entry)
+        {
+            @m_BestCheckpointsRun = null;
+            return;
+        }
+        if (m_SessionBestCheckpointsRun is entry)
+        {
+            @m_SessionBestCheckpointsRun = null;
+            return;
+        }
+        if (m_BestLapsRun is entry)
+        {
+            @m_BestLapsRun = null;
+            return;
+        }
+        if (m_SessionBestLapsRun is entry)
+        {
+            @m_SessionBestLapsRun = null;
+            return;
+        }
+
+        // Remove the entry from the leaderboard
+        for (uint i = 0; i < m_Entries.Length; i++)
+        {
+            if (m_Entries[i].m_Id == entry.m_Id)
+            {
+                m_Entries.RemoveAt(i);
+                break;
+            }
+        }
+
+        // Update newest run
+        if (m_NewestRun is entry)
+            m_NewestRun = null;
+        
+
+        // Update PB
+        if (m_FastestRun is entry)
+        {
+            @m_FastestRun = null;
+            if (m_Entries.Length > 0)
+                SetFastestRun(@m_Entries[0]);
+        }
+
+        // Update session PB
+        if (m_SessionFastestRun is entry)
+        {
+            @m_SessionFastestRun = null;
+            for (uint i = 0; i < m_Entries.Length; i++)
+            {
+                if (m_Entries[i].m_SessionNumber == entry.m_SessionNumber)
+                {
+                    SetSessionFastestRun(@m_Entries[i]);
+                    break;
+                }
+            }
+        }
+
+        // Update newest copium
+        if (m_NewestCopiumRun is entry)
+            @m_NewestCopiumRun = null;
+
+        // Update copium
+        if (m_FastestCopiumRun is entry)
+        {
+            @m_FastestCopiumRun = null;
+            for (uint i = 0; i < m_Entries.Length; i++)
+            {
+                if (m_Entries[i].m_NumberRespawns > 0 && (m_FastestCopiumRun is null || m_Entries[i].m_TimeNoRespawn < m_FastestCopiumRun.m_TimeNoRespawn))
+                    SetFastestCopiumRun(@m_Entries[i]);
+            }
+        }
+
+        // Update session copium
+        if (m_SessionFastestCopiumRun is entry)
+        {
+            @m_SessionFastestCopiumRun = null;
+            for (uint i = 0; i < m_Entries.Length; i++)
+            {
+                if (m_Entries[i].m_SessionNumber == entry.m_SessionNumber && m_Entries[i].m_NumberRespawns > 0 && (m_SessionFastestCopiumRun is null || m_Entries[i].m_TimeNoRespawn < m_SessionFastestCopiumRun.m_TimeNoRespawn))
+                    SetSessionFastestCopiumRun(@m_Entries[i]);
+            }
+        }
+
+    }
+
     void RemoveLastPlayerEntry()
     {
         m_Entries.RemoveLast();
+    }
+    
+    void SetFastestRun(LeaderboardEntry @entry)
+    {
+        @m_FastestRun = LeaderboardEntry(entry);
+        m_FastestRun.m_WasPersonalBest = true;
+        InitPositionForEntryAsync(@m_FastestRun);
+
+        if (m_FastestCopiumRun !is null && m_FastestRun.m_Time <= m_FastestCopiumRun.m_TimeNoRespawn)
+        {
+            @m_FastestCopiumRun = null;
+        }
+    }
+
+    void SetSessionFastestRun(LeaderboardEntry @entry)
+    {
+        if (m_SessionFastestRun !is null)
+            m_SessionFastestRun.m_WasSessionBest = false;
+
+        @m_SessionFastestRun = LeaderboardEntry(entry);
+        m_SessionFastestRun.m_WasSessionBest = true;
+
+        if (m_SessionFastestCopiumRun !is null && m_SessionFastestRun.m_Time <= m_SessionFastestCopiumRun.m_TimeNoRespawn)
+        {
+            @m_SessionFastestCopiumRun = null;
+        }
+    }
+
+    void SetFastestCopiumRun(LeaderboardEntry @entry)
+    {
+        @m_FastestCopiumRun = LeaderboardEntry(entry);
+        m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
+        setMedal(m_FastestCopiumRun);
+        InitPositionForEntryAsync(@m_FastestCopiumRun);
+    }
+
+    void SetSessionFastestCopiumRun(LeaderboardEntry @entry)
+    {
+        @m_SessionFastestCopiumRun = LeaderboardEntry(entry);
+        m_SessionFastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
+        setMedal(m_SessionFastestCopiumRun);
+        InitPositionForEntryAsync(@m_SessionFastestCopiumRun);
     }
 
     void updateTime()

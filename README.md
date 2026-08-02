@@ -13,7 +13,6 @@ A Trackmania plugin adding a leaderboard for local records.
 
 ## Future Plans
 Here a some of my ideas for future release that might or might not be implemented:
-- Delete single entries
 - Set maximum number of best and latest entries and separately
 - Add support for other regions
 - Custom entries for setting CP times or lap times

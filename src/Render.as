@@ -315,26 +315,7 @@ void Render()
             if (settingDisplayLeaderboardTooltips && isRowHovered)
             {
                 UI::BeginTooltip();
-                UI::BeginTable("Tooltip" + i, 2);
-
-                for (uint c = 0; c < g_DetailColumns.Length; c++)
-                {
-                    UI::TableNextRow();
-                    UI::TableNextColumn();
-                    g_DetailColumns[c].renderHeader();
-                    UI::TableNextColumn();
-                    g_DetailColumns[c].renderBody(context);
-                }
-
-                UI::EndTable();
-
-                if (context.m_CurrentEntry.m_Checkpoints.Length > 1)
-                    RenderCheckpoints(context);
-                if (context.m_CurrentEntry.m_Laps.Length > 1)
-                    RenderLaps(context);
-                if (context.m_CurrentEntry.m_GlobalPositionHistory.Length > 0)
-                    RenderGlobalPositionHistory(context);
-
+                RenderDetail(context);
                 UI::EndTooltip();
             }
         }
@@ -345,6 +326,40 @@ void Render()
     UI::End();
 
     UI::PopFontSize();
+
+    g_State.m_Leaderboard.Clean();
+}
+
+void RenderDetail(const TableRenderContext&in context)
+{
+    // Actions
+    if (UI::Button(Icons::Trash))
+        g_State.m_Leaderboard.MarkForRemoval(@context.m_CurrentEntry);
+    if (UI::Button(Icons::Star))
+    {
+
+    }
+
+    // Table
+    UI::BeginTable("DetailTable" + context.m_CurrentRow, 2, UI::TableFlags::SizingFixedFit);
+
+    for (uint c = 0; c < g_DetailColumns.Length; c++)
+    {
+        UI::TableNextRow();
+        UI::TableNextColumn();
+        g_DetailColumns[c].renderHeader();
+        UI::TableNextColumn();
+        g_DetailColumns[c].renderBody(context);
+    }
+
+    UI::EndTable();
+
+    if (context.m_CurrentEntry.m_Checkpoints.Length > 1)
+        RenderCheckpoints(context);
+    if (context.m_CurrentEntry.m_Laps.Length > 1)
+        RenderLaps(context);
+    if (context.m_CurrentEntry.m_GlobalPositionHistory.Length > 0)
+        RenderGlobalPositionHistory(context);
 }
 
 class TableRenderContext
