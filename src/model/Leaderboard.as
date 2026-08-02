@@ -170,13 +170,24 @@ class Leaderboard
         }
         m_ForRemoval.RemoveRange(0, m_ForRemoval.Length);
         InitRows();
-        SaveLeaderboard();
+        SaveLeaderboard(g_State);
     }
 
     void RemoveEntry(LeaderboardEntry @entry)
     {
         if (entry is null)
             return;
+
+        if (entry.m_Type == LeaderboardEntryType::CustomPosition)
+        {
+            g_State.RemoveCustomPositionEntryById(entry.m_Id);
+            return;
+        }
+        if (entry.m_Type == LeaderboardEntryType::CustomTime)
+        {
+            g_State.RemoveCustomTimeEntryById(entry.m_Id);
+            return;
+        }
 
         // Update best runs, these are separate entries not contained in the m_Entries array.
         if (m_BestCheckpointsRun is entry)
@@ -212,7 +223,7 @@ class Leaderboard
 
         // Update newest run
         if (m_NewestRun is entry)
-            m_NewestRun = null;
+            @m_NewestRun = null;
         
 
         // Update PB
@@ -489,6 +500,7 @@ class LeaderboardEntry
 
     bool m_WasPersonalBest = false;
     bool m_WasSessionBest = false;
+    bool m_IsStarred = false;
 
     array<GlobalPositionData @> m_GlobalPositionHistory;
 
@@ -553,7 +565,7 @@ class LeaderboardEntry
         }
     }
 
-    string GetDisplayName() const
+    string GetPlayerDisplayName() const
     {
         switch (m_Type)
         {
@@ -570,6 +582,32 @@ class LeaderboardEntry
                 return m_PlayerName + " (Best Laps)";
             case LeaderboardEntryType::ScoreCopium:
                 return m_PlayerName + " (Copium)";
+            default:
+                return "";
+        }
+    }
+
+    string GetDisplayName() const
+    {
+        switch (m_Type)
+        {
+            case LeaderboardEntryType::CustomPosition:
+            case LeaderboardEntryType::CustomTime:
+                return m_PlayerName;
+            case LeaderboardEntryType::Medal:
+                return m_Medal is null ? "Unknown Medal" : m_Medal.GetName() + " Medal";
+            case LeaderboardEntryType::Score:
+            {
+                if (g_State.m_Leaderboard.m_FastestRun is this)
+                    return "PB";
+                return "Run #" + m_ScoreNumber;
+            }
+            case LeaderboardEntryType::ScoreBestCheckpoints:
+                return "Best Checkpoints";
+            case LeaderboardEntryType::ScoreBestLaps:
+                return "Best Laps";
+            case LeaderboardEntryType::ScoreCopium:
+                return "Copium";
             default:
                 return "";
         }

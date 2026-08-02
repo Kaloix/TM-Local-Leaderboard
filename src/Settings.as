@@ -89,6 +89,9 @@ bool settingDisplayLeaderboardCustomTimes = true;
 [Setting name="Display Custom Positions" description="Show custom positions in the leaderboard UI" category="Leaderboard - Table"]
 bool settingDisplayLeaderboardCustomPositions = true;
 
+[Setting name="Display Starred" description="Show starred runs in the leaderboard" category="Leaderboard - Table"]
+bool settingDisplayLeaderboardStarred = true;
+
 [Setting name="Display Medal Author" description="Show the author of medal times in the leaderboard" category="Leaderboard - Table"]
 bool settingDisplayLeaderboardMedalAuthor = true;
 

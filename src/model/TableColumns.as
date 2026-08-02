@@ -20,6 +20,7 @@ array<TableColumn @> g_AllTableColumns = {
     TimeSinceColumn(),
     // version 0.2.0
     LocalPercentageColumn(),
+    DisplayNameColumn(),
 };
 
 enum TableColumnType
@@ -42,6 +43,7 @@ enum TableColumnType
     TimeSinceColumn,
     // version 0.2.0
     LocalPercentageColumn,
+    DisplayNameColumn,
 }
 
 string TableColumnTypeToString(const TableColumnType type)
@@ -51,7 +53,6 @@ string TableColumnTypeToString(const TableColumnType type)
         case TableColumnType::MedalColumn:           return "MedalColumn";
         case TableColumnType::RankColumn:            return "RankColumn";
         case TableColumnType::GlobalPositionColumn:  return "GlobalPositionColumn";
-        case TableColumnType::LocalPercentageColumn: return "LocalPercentageColumn";
         case TableColumnType::GlobalPercentageColumn:return "GlobalPercentageColumn";
         case TableColumnType::PlayerColumn:          return "PlayerColumn";
         case TableColumnType::TimeColumn:            return "TimeColumn";
@@ -64,6 +65,8 @@ string TableColumnTypeToString(const TableColumnType type)
         case TableColumnType::TotalTimeColumn:       return "TotalTimeColumn";
         case TableColumnType::SessionTimeColumn:     return "SessionTimeColumn";
         case TableColumnType::TimeSinceColumn:       return "TimeSinceColumn";
+        case TableColumnType::LocalPercentageColumn: return "LocalPercentageColumn";
+        case TableColumnType::DisplayNameColumn:     return "DisplayNameColumn";
     }
     return "";
 }
@@ -73,7 +76,6 @@ TableColumnType StringToTableColumnType(const string&in value)
     if (value == "MedalColumn")            return TableColumnType::MedalColumn;
     if (value == "RankColumn")             return TableColumnType::RankColumn;
     if (value == "GlobalPositionColumn")   return TableColumnType::GlobalPositionColumn;
-    if (value == "LocalPercentageColumn")  return TableColumnType::LocalPercentageColumn;
     if (value == "GlobalPercentageColumn") return TableColumnType::GlobalPercentageColumn;
     if (value == "PlayerColumn")           return TableColumnType::PlayerColumn;
     if (value == "TimeColumn")             return TableColumnType::TimeColumn;
@@ -86,6 +88,8 @@ TableColumnType StringToTableColumnType(const string&in value)
     if (value == "TotalTimeColumn")        return TableColumnType::TotalTimeColumn;
     if (value == "SessionTimeColumn")      return TableColumnType::SessionTimeColumn;
     if (value == "TimeSinceColumn")        return TableColumnType::TimeSinceColumn;
+    if (value == "LocalPercentageColumn")  return TableColumnType::LocalPercentageColumn;
+    if (value == "DisplayNameColumn")      return TableColumnType::DisplayNameColumn;
 
     LogWarning("Unknown TableColumnType string: " + value);
     return TableColumnType::MedalColumn;
@@ -131,6 +135,33 @@ TableColumn@ GetTableColumnByType(const TableColumnType type)
     return null;
 }
 
+void SetColumnPosition(TableColumn@ column, const int newPos)
+{
+    if (column is null)
+        return;
+
+    auto currentPos = column.m_Pos;
+    if (currentPos == newPos)
+        return;
+
+    if (currentPos < newPos)
+    {
+        for (uint i = currentPos; i < g_AllTableColumns.Length && i < newPos; ++i)
+            SwapColumnPositions(column, GetTableColumn(i + 1));
+    }
+    else
+    {
+        for (uint i = currentPos; i > 0 && i > newPos; --i)
+            SwapColumnPositions(GetTableColumn(i - 1), column);
+    }
+}
+
+void SwapColumnPositions(TableColumn@ columnFirst, TableColumn@ columnSecond)
+{
+    columnFirst.m_Pos += 1;
+    columnSecond.m_Pos -= 1;
+}
+
 class TableColumn
 {
     bool m_Show = true;
@@ -169,10 +200,6 @@ class TableColumn
     {
         UI::TableSetupColumn(GetHeaderValue() + "##" + index, UI::TableColumnFlags::WidthFixed);
     }
-    void renderHeader() const
-    {
-        UI::Text(GetHeaderValue());
-    }
     void renderBody(TableRenderContext &inout context) const
     {
         renderText(context, GetBodyValue(context));
@@ -187,7 +214,11 @@ class RankColumn : TableColumn
     }
     string GetName() const override
     {
-        return "Rank";
+        return "Local Rank (#)";
+    }
+    string GetHeaderValue() const override
+    {
+        return Icons::Desktop;
     }
     string GetBodyValue(const TableRenderContext&in context) const override
     {
@@ -203,7 +234,11 @@ class GlobalPositionColumn : TableColumn
     }
     string GetName() const override
     {
-        return "Pos";
+        return "Global Position (#)";
+    }
+    string GetHeaderValue() const override
+    {
+        return Icons::Globe;
     }
     string GetBodyValue(const TableRenderContext&in context) const override
     {
@@ -218,6 +253,10 @@ class LocalPercentageColumn : TableColumn
         return TableColumnType::LocalPercentageColumn;
     }
     string GetName() const override
+    {
+        return "Local Rank (%)";
+    }
+    string GetHeaderValue() const override
     {
         return Icons::Desktop + " %";
     }
@@ -237,6 +276,10 @@ class GlobalPercentageColumn : TableColumn
         return TableColumnType::GlobalPercentageColumn;
     }
     string GetName() const override
+    {
+        return "Global Position (%)";
+    }
+    string GetHeaderValue() const override
     {
         return Icons::Globe + " %";
     }
@@ -326,7 +369,7 @@ class PlayerColumn : TableColumn
     }
     string GetBodyValue(const TableRenderContext&in context) const override
     {
-        return context.m_CurrentEntry.GetDisplayName();
+        return context.m_CurrentEntry.GetPlayerDisplayName();
     }
 }
 
@@ -580,6 +623,26 @@ class TimeSinceColumn : TimeColumn
     bool ShowFractions() override
     {
         return false;
+    }
+}
+
+class DisplayNameColumn : TableColumn
+{
+    bool GetDefaultShow() override
+    {
+        return false;
+    }
+    TableColumnType GetType() const override
+    {
+        return TableColumnType::DisplayNameColumn;
+    }
+    string GetName() const override
+    {
+        return "Display Name";
+    }
+    string GetBodyValue(const TableRenderContext&in context) const override
+    {
+        return context.m_CurrentEntry.GetDisplayName();
     }
 }
 

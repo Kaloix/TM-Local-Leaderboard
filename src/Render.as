@@ -4,6 +4,7 @@ void Render()
     {
         // Don't render the leaderboard if the setting is disabled
         LocalRecords::Render();
+        LocalRecords::RenderDetailsWindow();
     }
     
     if (settingShowCurrentRun)
@@ -28,10 +29,13 @@ enum LeaderboardSortDirection
 namespace LocalRecords
 {
 int windowFlags = 0;
+int g_DetailsWindowFlags = 0;
 
 array<LeaderboardEntry @> g_TableRows;
 array<TableColumn @> g_TableColumns;
 array<TableColumn @> g_DetailColumns;
+
+LeaderboardEntry @g_DetailsWindowEntry = null;
 
 void InitRender()
 {
@@ -59,6 +63,7 @@ void InitRender()
     windowFlags = UI::GetDefaultWindowFlags() | UI::WindowFlags::AlwaysAutoResize;
     if (!settingDisplayLeaderboardTitleBar)
         windowFlags |= UI::WindowFlags::NoTitleBar;
+    g_DetailsWindowFlags = UI::GetDefaultWindowFlags() | UI::WindowFlags::AlwaysAutoResize;
 }
 
 void InitRows()
@@ -104,6 +109,13 @@ void InitRows()
         g_TableRows.InsertLast(@g_State.m_Leaderboard.m_NewestRun);
     for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
     {
+        // Always add starred runs
+        if (settingDisplayLeaderboardStarred && g_State.m_Leaderboard.m_Entries[i].m_IsStarred)
+        {
+            g_TableRows.InsertLast(@g_State.m_Leaderboard.m_Entries[i]);
+            continue;
+        }
+
         if (settingFilterPersonalBests && !g_State.m_Leaderboard.m_Entries[i].m_WasPersonalBest)
             continue;
         if (settingFilterSessionBests && !g_State.m_Leaderboard.m_Entries[i].m_WasSessionBest)
@@ -304,15 +316,22 @@ void Render()
             UI::TableNextRow();
 
             bool isRowHovered = false;
+            bool isRowClicked = false;
             for (uint col = 0; col < g_TableColumns.Length; col++)
             {
                 UI::TableNextColumn();
                 g_TableColumns[col].renderBody(context);
 
                 isRowHovered = isRowHovered || UI::IsItemHovered();
+                isRowClicked = isRowClicked || UI::IsItemClicked();
             }
 
-            if (settingDisplayLeaderboardTooltips && isRowHovered)
+            if (isRowClicked)
+            {
+                @g_DetailsWindowEntry = @context.m_CurrentEntry;
+            }
+
+            if (settingDisplayLeaderboardTooltips && isRowHovered && g_DetailsWindowEntry !is context.m_CurrentEntry)
             {
                 UI::BeginTooltip();
                 RenderDetail(context);
@@ -321,45 +340,122 @@ void Render()
         }
 
         UI::EndTable();
+
+        if (context.m_ShouldUpdateRows)
+            InitRows();
+        g_State.m_Leaderboard.Clean();
     }
 
     UI::End();
 
     UI::PopFontSize();
-
-    g_State.m_Leaderboard.Clean();
 }
 
-void RenderDetail(const TableRenderContext&in context)
+void RenderDetail(TableRenderContext&inout context)
 {
     // Actions
+    UI::BeginDisabled(context.m_CurrentEntry.m_Type == LeaderboardEntryType::Medal);
     if (UI::Button(Icons::Trash))
         g_State.m_Leaderboard.MarkForRemoval(@context.m_CurrentEntry);
-    if (UI::Button(Icons::Star))
-    {
+    UI::EndDisabled();
 
+    UI::SameLine();
+
+    UI::BeginDisabled(context.m_CurrentEntry.m_Type != LeaderboardEntryType::Score);
+    if (context.m_CurrentEntry.m_IsStarred) {
+        if (UI::Button(Icons::Star))
+        {
+            context.m_CurrentEntry.m_IsStarred = false;
+            context.m_ShouldUpdateRows = true;
+        }
     }
+    else {
+        if (UI::Button(Icons::StarO))
+        {
+            context.m_CurrentEntry.m_IsStarred = true;
+            context.m_ShouldUpdateRows = true;
+        }
+    }
+    UI::EndDisabled();
 
     // Table
     UI::BeginTable("DetailTable" + context.m_CurrentRow, 2, UI::TableFlags::SizingFixedFit);
+
+    UI::TableSetupColumn("#Property", UI::TableColumnFlags::WidthFixed, 200.0f);
+    UI::TableSetupColumn("#Value", UI::TableColumnFlags::WidthStretch);
 
     for (uint c = 0; c < g_DetailColumns.Length; c++)
     {
         UI::TableNextRow();
         UI::TableNextColumn();
-        g_DetailColumns[c].renderHeader();
+        UI::Text(g_DetailColumns[c].GetName());
         UI::TableNextColumn();
         g_DetailColumns[c].renderBody(context);
     }
 
     UI::EndTable();
 
+    UI::Separator();
+    UI::Text("Checkpoints");
     if (context.m_CurrentEntry.m_Checkpoints.Length > 1)
         RenderCheckpoints(context);
+    else
+    {
+        UI::PushStyleColor(UI::Col::Text, vec4(0.66f, 0.66f, 0.66f, 1.0f));
+        UI::Text("No checkpoints available.");
+        UI::PopStyleColor();
+    }
+
+    UI::Separator();
+    UI::Text("Laps");
     if (context.m_CurrentEntry.m_Laps.Length > 1)
         RenderLaps(context);
+    else
+    {
+        UI::PushStyleColor(UI::Col::Text, vec4(0.66f, 0.66f, 0.66f, 1.0f));
+        UI::Text("No laps available.");
+        UI::PopStyleColor();
+    }
+
+    UI::Separator();
+    UI::Text("Global Position History");
     if (context.m_CurrentEntry.m_GlobalPositionHistory.Length > 0)
         RenderGlobalPositionHistory(context);
+    else
+    {
+        UI::PushStyleColor(UI::Col::Text, vec4(0.66f, 0.66f, 0.66f, 1.0f));
+        UI::Text("No history available.");
+        UI::PopStyleColor();
+    }
+}
+
+void RenderDetailsWindow()
+{
+    if (g_DetailsWindowEntry is null)
+        return;
+
+    UI::PushFontSize(settingLeaderboardFontSize);
+    UI::SetNextWindowBgAlpha(settingLeaderboardBackgroundTransparency);
+    UI::SetNextWindowSizeConstraints(-1, 0, -1, settingDisplayLeaderboardMaxSize);
+
+    const auto mousePos = UI::GetMousePos();
+    UI::SetNextWindowPos(mousePos.x, mousePos.y, UI::Cond::Once);
+
+    bool open = true;
+    UI::Begin("LocalRecords Details - " + g_DetailsWindowEntry.GetDisplayName(), open, g_DetailsWindowFlags);
+
+    auto context = TableRenderContext();
+    PrepareRenderContext(context, @g_DetailsWindowEntry);
+    RenderDetail(context);
+
+    UI::End();
+
+    UI::PopFontSize();
+
+    if (!open)
+    {
+        @g_DetailsWindowEntry = null;
+    }
 }
 
 class TableRenderContext
@@ -369,6 +465,7 @@ class TableRenderContext
     uint m_CurrentRow = 0;
     LeaderboardEntry @m_CurrentEntry = null;
 
+    // Flags for the current entry
     bool m_IsPlayerNewest = false;
     bool m_IsPlayerBest = false;
     bool m_IsPlayerSessionBest = false;
@@ -379,12 +476,22 @@ class TableRenderContext
     bool m_IsPlayerSessionBestCheckpoints = false;
     bool m_IsPlayerBestLaps = false;
     bool m_IsPlayerSessionBestLaps = false;
+
+    // Flags for modification that are applied after the render loop to avoid modifying the array while iterating over it
+    bool m_ShouldUpdateRows = false;
+
 }
 
 void PrepareRenderContext(TableRenderContext&inout context, uint i)
 {
+    PrepareRenderContext(context, @g_TableRows[i]);
     context.m_CurrentRow = i;
-    @context.m_CurrentEntry = @g_TableRows[i];
+}
+
+void PrepareRenderContext(TableRenderContext&inout context, LeaderboardEntry@ const&in entry)
+{
+    context.m_CurrentRow = 0;
+    @context.m_CurrentEntry = @entry;
     context.m_IsPlayerNewest = context.m_CurrentEntry is g_State.m_Leaderboard.m_NewestRun;
     context.m_IsPlayerBest = context.m_CurrentEntry is g_State.m_Leaderboard.m_FastestRun;
     context.m_IsPlayerSessionBest = context.m_CurrentEntry is g_State.m_Leaderboard.m_SessionFastestRun;
@@ -608,7 +715,7 @@ void RenderGlobalPositionHistory(const TableRenderContext&in context)
         UI::Text(formatPosition(data.m_GlobalPositionTotalPlayers));
 
         UI::TableNextColumn();
-        UI::Text(formatPercentile(float(context.m_CurrentEntry.m_Rank) / float(g_State.m_Leaderboard.m_TotalNumberFinishes)));
+        UI::Text(formatPercentile(float(data.m_GlobalPosition) / float(g_State.m_NumberGlobalPositions)));
     }
 
     UI::EndTable();

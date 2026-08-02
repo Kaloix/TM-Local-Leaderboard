@@ -197,8 +197,7 @@ void RenderTableColumnsMenu()
         UI::BeginDisabled(i == 0);
         if (UI::Button(Icons::ArrowUp + "##" + i))
         {
-            GetTableColumn(i - 1).m_Pos += 1;
-            column.m_Pos -= 1;
+            SetColumnPosition(@column, column.m_Pos - 1);
             OnSettingsChanged();
 
             UI::EndDisabled();
@@ -210,8 +209,7 @@ void RenderTableColumnsMenu()
         UI::BeginDisabled(i == g_AllTableColumns.Length - 1);
         if (UI::Button(Icons::ArrowDown + "##" + i) )
         {
-            GetTableColumn(i + 1).m_Pos -= 1;
-            column.m_Pos += 1;
+            SetColumnPosition(@column, column.m_Pos - 1);
 
             OnSettingsChanged();
 

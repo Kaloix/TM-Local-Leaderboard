@@ -460,6 +460,18 @@ class State
         InitPositionForEntryAsync(@m_CustomTimeEntries[index]);
     }
 
+    void RemoveCustomTimeEntryById(int64 id)
+    {
+        for (uint i = 0; i < m_CustomTimeEntries.Length; ++i)
+        {
+            if (m_CustomTimeEntries[i].m_Id == id)
+            {
+                RemoveCustomTimeEntry(i);
+                return;
+            }
+        }
+    }
+
     void RemoveCustomTimeEntry(uint index)
     {
         if (index >= m_CustomTimeEntries.Length)
@@ -527,6 +539,18 @@ class State
         saveSettings();
 
         InitTimeForEntryAsync(@m_CustomPositionEntries[index]);
+    }
+
+    void RemoveCustomPositionEntryById(int64 id)
+    {
+        for (uint i = 0; i < m_CustomPositionEntries.Length; ++i)
+        {
+            if (m_CustomPositionEntries[i].m_Id == id)
+            {
+                RemoveCustomPositionEntry(i);
+                return;
+            }
+        }
     }
 
     void RemoveCustomPositionEntry(uint index)

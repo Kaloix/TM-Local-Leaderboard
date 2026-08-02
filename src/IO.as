@@ -202,6 +202,8 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
         entryObj[IO_KEY::WAS_PERSONAL_BEST] = entry.m_WasPersonalBest;
     if (entry.m_WasSessionBest)
         entryObj[IO_KEY::WAS_SESSION_BEST] = entry.m_WasSessionBest;
+    if (entry.m_IsStarred)
+        entryObj[IO_KEY::IS_STARRED] = entry.m_IsStarred;
 
     // Checkpoints
     auto checkpoints = Json::Array();
@@ -260,6 +262,8 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
         entry.m_WasPersonalBest = entryObj[IO_KEY::WAS_PERSONAL_BEST];
     if (entryObj.HasKey(IO_KEY::WAS_SESSION_BEST))
         entry.m_WasSessionBest = entryObj[IO_KEY::WAS_SESSION_BEST];
+    if (entryObj.HasKey(IO_KEY::IS_STARRED))
+        entry.m_IsStarred = entryObj[IO_KEY::IS_STARRED];
 
     
     int timeFromStart = 0;
@@ -510,7 +514,7 @@ Json::Value serializeColumnSettings(const TableColumn@ column)
 void deserializeColumnSettings(TableColumn@ column, const Json::Value&in columnSettingsObj)
 {
     column.m_Show = columnSettingsObj["show"];
-    column.m_Pos = columnSettingsObj[IO_KEY::POSITION];
+    SetColumnPosition(column, columnSettingsObj[IO_KEY::POSITION]);
 
     if (column.GetType() == TableColumnType::TimeDeltaColumn) {
         TimeDeltaColumn @timeDeltaColumn = cast<TimeDeltaColumn>(column);
@@ -550,6 +554,7 @@ const string CHECKPOINTS = "cps";
 const string GLOBAL_NUMBER_PLAYERS = "gnp";
 const string GLOBAL_POSITION_HISTORY = "gph";
 const string ID = "id";
+const string IS_STARRED = "is";
 const string LAPS = "l";
 const string NUMBER_RESPAWNS = "nr";
 const string PLAYER = "p";
