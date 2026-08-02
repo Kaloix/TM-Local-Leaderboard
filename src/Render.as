@@ -438,11 +438,8 @@ void RenderDetailsWindow()
     UI::SetNextWindowBgAlpha(settingLeaderboardBackgroundTransparency);
     UI::SetNextWindowSizeConstraints(-1, 0, -1, settingDisplayLeaderboardMaxSize);
 
-    const auto mousePos = UI::GetMousePos();
-    UI::SetNextWindowPos(mousePos.x, mousePos.y, UI::Cond::Once);
-
     bool open = true;
-    UI::Begin("LocalRecords Details - " + g_DetailsWindowEntry.GetDisplayName(), open, g_DetailsWindowFlags);
+    UI::Begin("LocalRecords Details", open, g_DetailsWindowFlags);
 
     auto context = TableRenderContext();
     PrepareRenderContext(context, @g_DetailsWindowEntry);
