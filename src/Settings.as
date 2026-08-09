@@ -157,6 +157,58 @@ float settingCurrentRunBackgroundTransparency = 1.0f;
 [Setting name="Font Size" description="Font size for the leaderboard and current run info" category="Current Run - Window" min=1 max=64]
 int settingCurrentRunFontSize = 16;
 
+[Setting name="Position Comparison Type" description="The type of comparison to use for determining the position at each checkpoint" category="Current Run - Table"]
+LocalRecords::CheckpointPositionComparison settingCurrentRunCheckpointPosition = LocalRecords::CheckpointPositionComparison::TimeFromStart;
+
+[Setting name="Show Checkpoints" category="Current Run - Table"]
+bool settingCurrentRunShowCp = true;
+
+[Setting name="Show Position" category="Current Run - Table"]
+bool settingCurrentRunShowPosition = false;
+
+[Setting name="Show Time" category="Current Run - Table"]
+bool settingCurrentRunShowTime = true;
+[Setting name="Show Time Delta" category="Current Run - Table"]
+bool settingCurrentRunShowTimeDelta = true;
+[Setting name="Show Time Position" category="Current Run - Table"]
+bool settingCurrentRunShowTimePosition = true;
+
+[Setting name="Show No-Respawn Time" category="Current Run - Table"]
+bool settingCurrentRunShowTimeNr = false;
+[Setting name="Show No-Respawn Time Delta" category="Current Run - Table"]
+bool settingCurrentRunShowTimeNrDelta = false;
+[Setting name="Show No-Respawn Time Position" category="Current Run - Table"]
+bool settingCurrentRunShowTimeNrPosition = false;
+
+[Setting name="Show Speed" category="Current Run - Table"]
+bool settingCurrentRunShowSpeed = true;
+[Setting name="Show Speed Delta" category="Current Run - Table"]
+bool settingCurrentRunShowSpeedDelta = true;
+[Setting name="Show Speed Position" category="Current Run - Table"]
+bool settingCurrentRunShowSpeedPosition = true;
+
+[Setting name="Show CP Time" category="Current Run - Table"]
+bool settingCurrentRunShowCpTime = false;
+[Setting name="Show CP Time Delta" category="Current Run - Table"]
+bool settingCurrentRunShowCpTimeDelta = false;
+[Setting name="Show CP Time Position" category="Current Run - Table"]
+bool settingCurrentRunShowCpTimePosition = false;
+
+[Setting name="Show CP No-Respawn Time" category="Current Run - Table"]
+bool settingCurrentRunShowCpTimeNr = true;
+[Setting name="Show CP No-Respawn Time Delta" category="Current Run - Table"]
+bool settingCurrentRunShowCpTimeNrDelta = true;
+[Setting name="Show CP No-Respawn Time Position" category="Current Run - Table"]
+bool settingCurrentRunShowCpTimeNrPosition = true;
+
+[Setting name="Show Number Respawns" category="Current Run - Table"]
+bool settingCurrentRunShowNumberRespawns = false;
+[Setting name="Show Number Respawns Delta" category="Current Run - Table"]
+bool settingCurrentRunShowNumberRespawnsDelta = false;
+[Setting name="Show Number Respawns Position" category="Current Run - Table"]
+bool settingCurrentRunShowNumberRespawnsPosition = false;
+
+
 // Category Debug
 [Setting name="Log Debug Info" description="Log debug information in the console" category="Debug"]
 bool settingShowDebugInfo = false;

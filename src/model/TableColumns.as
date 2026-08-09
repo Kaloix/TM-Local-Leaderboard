@@ -107,7 +107,7 @@ void initializeTableColumns()
     }
 }
 
-TableColumn@ GetTableColumn(const int pos)
+TableColumn@ GetTableColumn(const uint pos)
 {
     for (uint i = 0; i < g_AllTableColumns.Length; ++i)
     {
@@ -135,7 +135,7 @@ TableColumn@ GetTableColumnByType(const TableColumnType type)
     return null;
 }
 
-void SetColumnPosition(TableColumn@ column, const int newPos)
+void SetColumnPosition(TableColumn@ column, const uint newPos)
 {
     if (column is null)
         return;
@@ -166,7 +166,7 @@ class TableColumn
 {
     bool m_Show = true;
 
-    int m_Pos = 0;
+    uint m_Pos = 0;
 
     TableColumn()
     {
@@ -218,7 +218,7 @@ class RankColumn : TableColumn
     }
     string GetHeaderValue() const override
     {
-        return Icons::Desktop;
+        return Icons::Trophy;
     }
     string GetBodyValue(const TableRenderContext&in context) const override
     {

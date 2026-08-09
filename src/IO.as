@@ -267,6 +267,7 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
 
     
     int timeFromStart = 0;
+    int timeFromStartNoRespawn = 0;
     if (entryObj.HasKey(IO_KEY::CHECKPOINTS))
     {
         auto checkpointArray = entryObj[IO_KEY::CHECKPOINTS];
@@ -274,8 +275,13 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
         {
             auto cpDataObj = checkpointArray[i];
             auto @cpData = @deserializeCheckpointData(cpDataObj);
+
             timeFromStart += cpData.m_TimeFromPrevious;
+            timeFromStartNoRespawn += cpData.m_TimeFromPreviousNoRespawn;
+
             cpData.m_TimeFromStart = timeFromStart;
+            cpData.m_TimeFromStartNoRespawn = timeFromStartNoRespawn;
+
             entry.m_Checkpoints.InsertLast(@cpData);
         }
     }

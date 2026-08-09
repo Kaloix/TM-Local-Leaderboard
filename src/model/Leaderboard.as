@@ -25,6 +25,7 @@ class Leaderboard
     uint64 m_TotalTime = 0;
     uint64 m_LastUpdated = Time::get_Now();
 
+    array<array<array<int> @> @> m_SortedCheckpoints;
     array<LeaderboardEntry @> m_ForRemoval;
 
     LeaderboardEntry @createNewEntry(const MLFeed::PlayerCpInfo_V4 @player) const
@@ -117,6 +118,8 @@ class Leaderboard
             SetFastestCopiumRun(@entry);
         if (entry.m_NumberRespawns > 0 && m_SessionFastestRun !is null && entry.m_TimeNoRespawn < m_SessionFastestRun.m_Time && (m_SessionFastestCopiumRun is null || entry.m_TimeNoRespawn < m_SessionFastestCopiumRun.m_TimeNoRespawn))
             SetSessionFastestCopiumRun(@entry);
+
+        AddSortedCheckpoint(entry);
     }
 
     void AddEntry(LeaderboardEntry @entry)
@@ -459,6 +462,120 @@ class Leaderboard
             InitPositionForEntryAsync(@lapsRun);
         }
     }
+
+    void InitSortedCheckpoints()
+    {
+        m_SortedCheckpoints.RemoveRange(0, m_SortedCheckpoints.Length);
+        for (uint i = 0; i < 6; ++i)
+        {
+            m_SortedCheckpoints.InsertLast(array<array<int> @>());
+            CheckpointPositionComparison comparisonType = CheckpointPositionComparison(i);
+            InitSortedCheckpointTimes(comparisonType);
+        }
+    }
+
+    void InitSortedCheckpointTimes(const CheckpointPositionComparison comparisonType)
+    {
+        array<array<int> @> @a = @m_SortedCheckpoints[uint(comparisonType)];
+        a.RemoveRange(0, a.Length);
+
+        for (uint i = 0; i <= g_State.m_CurrentMapCpCount; i++)
+        {
+            a.InsertLast(array<int>());
+        }
+
+        for (uint j = 0; j < m_Entries.Length; j++)
+        {
+            AddSortedCheckpointTime(m_Entries[j].m_Checkpoints, comparisonType);
+        }
+    }
+
+    void AddSortedCheckpoint(const LeaderboardEntry&in entry)
+    {
+        for (uint i = 0; i < 6; ++i)
+        {
+            m_SortedCheckpoints.InsertLast(array<array<int> @>());
+            CheckpointPositionComparison comparisonType = CheckpointPositionComparison(i);
+            AddSortedCheckpointTime(entry.m_Checkpoints, comparisonType);
+        }
+    }
+
+    void AddSortedCheckpointTime(const array<CheckpointData@>&in entry, const CheckpointPositionComparison comparisonType)
+    {
+        for (uint checkpointIndex = 0; checkpointIndex < entry.Length; checkpointIndex++)
+        {
+            const int target = GetSortedCheckpointComparison(entry[checkpointIndex], comparisonType);
+            array<int> @a = @m_SortedCheckpoints[uint(comparisonType)][checkpointIndex];
+
+            for (uint j = 0; j < a.Length; j++)
+            {
+                if (target < a[j])
+                {
+                    a.InsertAt(j, target);
+                    return;
+                }
+            }
+            a.InsertLast(target);
+        }
+    }
+
+    uint GetSortedCheckpointRank(uint checkpointIndex, const CheckpointData&in checkpointData, const CheckpointPositionComparison comparisonType) const
+    {
+        array<array<int> @> @a = m_SortedCheckpoints[uint(comparisonType)];
+
+        if (checkpointIndex >= a.Length)
+            return 0;
+
+        const auto @checkpointTimes = @a[checkpointIndex];
+
+        if (comparisonType == CheckpointPositionComparison::Speed)
+        {
+            // Greater is better for speed, so we need to reverse the comparison.
+            for (uint i = 0; i < checkpointTimes.Length; i++)
+            {
+                const int target = GetSortedCheckpointComparison(checkpointData, comparisonType);
+                if (target >= checkpointTimes[checkpointTimes.Length - 1 - i])
+                    return i;
+            }
+        }
+        else
+        {
+            // Lower is better for all other comparisons.
+            for (uint i = 0; i < checkpointTimes.Length; i++)
+            {
+                const int target = GetSortedCheckpointComparison(checkpointData, comparisonType);
+                if (target <= checkpointTimes[i])
+                    return i;
+            }
+        }
+
+        return checkpointTimes.Length;
+
+    }
+
+    int GetSortedCheckpointComparison(const CheckpointData&in checkpointData, const CheckpointPositionComparison comparisonType) const
+    {
+        if (checkpointData is null)
+            return 0;
+
+        switch (comparisonType)
+        {
+            case CheckpointPositionComparison::TimeFromStart:
+                return checkpointData.m_TimeFromStart;
+            case CheckpointPositionComparison::TimeFromPrevious:
+                return checkpointData.m_TimeFromPrevious;
+            case CheckpointPositionComparison::TimeFromPreviousNoRespawn:
+                return checkpointData.m_TimeFromPreviousNoRespawn;
+            case CheckpointPositionComparison::Speed:
+                return checkpointData.m_Speed;
+            case CheckpointPositionComparison::NumberRespawns:
+                return checkpointData.m_NumberRespawns;
+            default:
+                return 0;
+        }
+        
+    }
+
 }
 
 class LeaderboardEntry
@@ -665,6 +782,7 @@ class LeaderboardEntry
 class CheckpointData
 {
     int m_TimeFromStart = 0;
+    int m_TimeFromStartNoRespawn = 0;
     int m_TimeFromPrevious = 0;
     int m_TimeFromPreviousNoRespawn = 0;
     int m_Speed = 0;
@@ -698,6 +816,16 @@ class GlobalPositionData
     int64 m_TimeStamp = 0;
 
     bool m_IsCurrentSession = false;
+}
+
+enum CheckpointPositionComparison
+{
+    TimeFromStart,
+    TimeFromStartNoRespawn,
+    TimeFromPrevious,
+    TimeFromPreviousNoRespawn,
+    Speed,
+    NumberRespawns,
 }
 
 }

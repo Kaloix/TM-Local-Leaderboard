@@ -68,6 +68,7 @@ void OnSettingsChanged()
     UpdateHookSettings();
     InitRender();
     InitRows();
+    InitCheckpointComparisons();
 }
 
 void Update(float dt)
@@ -165,6 +166,7 @@ void OnMapLoad()
     g_State.m_CurrentMapLapCount = raceData.LapCount;
 
     LoadLeaderboard(g_State);
+    InitCheckpointComparisons();
 
     addPreviousPb();
     InitPersonalBestAsync();
@@ -212,6 +214,7 @@ void OnReachingCheckpoint(int checkpoint)
 
     cpData.m_Speed = GetPlayerSpeed();
     cpData.m_TimeFromStart = player.cpTimes[checkpoint];
+    cpData.m_TimeFromStartNoRespawn = player.cpTimes[checkpoint] - player.TimeLostToRespawns;
     cpData.m_TimeFromPrevious = time;
     cpData.m_TimeFromPreviousNoRespawn = time - player.TimeLostToRespawnByCp[checkpoint - 1];
     cpData.m_NumberRespawns = player.NbRespawnsByCp[checkpoint - 1];
@@ -257,6 +260,11 @@ void addNewRecord(const MLFeed::PlayerCpInfo_V4 @player)
     g_State.m_Leaderboard.addNewestRun(player);
     InitRows();
     SaveLeaderboard(g_State);
+}
+
+void InitCheckpointComparisons()
+{
+    g_State.m_Leaderboard.InitSortedCheckpoints();
 }
 
 void addPreviousPb()
@@ -391,6 +399,7 @@ class State
 
         m_SessionStartTime = Time::get_Now();
         m_Leaderboard = Leaderboard();
+        InitCheckpointComparisons();
         addPreviousPb();
         setMedals();
         InitRows();
