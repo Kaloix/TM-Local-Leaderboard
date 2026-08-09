@@ -65,6 +65,7 @@ void Shutdown()
 void OnSettingsChanged()
 {
     saveSettings();
+    UpdateHookSettings();
     InitRender();
     InitRows();
 }

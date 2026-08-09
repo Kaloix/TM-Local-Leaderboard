@@ -9,6 +9,9 @@ bool settingDataAddPb = true;
 [Setting name="Use Nadeo API" description="If Nadeo's API should be used for estimating positions and fetching global records." category="Data"]
 bool settingUseNadeoApi = true;
 
+[Setting name="Read AT CP Times" description="If the plugin should read the checkpoint times from the AT plugin. Requires MLHook." category="Data"]
+bool settingReadATCpTimes = true;
+
 // Category Leaderboard - Window
 [Setting name="Display Leaderboard Window" description="Show the leaderboard UI" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardWindow = true;

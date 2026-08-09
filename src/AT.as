@@ -1,12 +1,28 @@
 namespace LocalRecords
 {
 
+bool g_InitializedHooks = false;
+
+void UpdateHookSettings()
+{
+    if (g_InitializedHooks && !settingReadATCpTimes)
+    {
+        UnloadHooks();
+    }
+    else if (!g_InitializedHooks && settingReadATCpTimes)
+    {
+        InitHooks();
+    }
+}
+
 #if DEPENDENCY_MLHOOK
 
 // Stolen from https://github.com/jespervdz/tm-at-check/tree/main
 
 void GetAtCpTimes()
 {
+    if (!settingReadATCpTimes)
+        return;
     // Request ML via MLHook for the AT CP Times. Will write it to `CPTimesAT`
     MLHook::Queue_MessageManialinkPlayground("LocalRecords", "Hook_LocalRecords");
 }
@@ -27,15 +43,23 @@ main() {
 """;
 
 void InitHooks() {
+    if (!settingReadATCpTimes)
+        return;
+
     LogDebug("MLHook found. Setting up hooks...");
     MLHook::RequireVersionApi("0.5.2");
     MLHook::RegisterMLHook(ATWaypointTimesFeed, ATWaypointTimesFeed.type);
     MLHook::InjectManialinkToPlayground("Hook_LocalRecords", script, true);
+
+    g_InitializedHooks = true;
 }
 
 void UnloadHooks()
 {
+    if (!g_InitializedHooks)
+        return;
     MLHook::UnregisterMLHooksAndRemoveInjectedML();
+    g_InitializedHooks = false;
 }
 
 _ATWaypointTimesFeed@ ATWaypointTimesFeed = _ATWaypointTimesFeed();
