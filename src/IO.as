@@ -370,6 +370,14 @@ Json::Value serializeCustomTime(const LeaderboardEntry&in entry)
     entryObj[IO_KEY::ID] = entry.m_Id;
     entryObj[IO_KEY::PLAYER] = entry.m_PlayerName;
     entryObj[IO_KEY::TIME] = entry.m_Time;
+
+    // Checkpoints
+    auto checkpoints = Json::Array();
+    for (uint i = 0; i < entry.m_Checkpoints.Length; i++)    {
+        checkpoints.Add(entry.m_Checkpoints[i].m_TimeFromStart);
+    }
+    entryObj[IO_KEY::CHECKPOINTS] = checkpoints;
+
     return entryObj;
 }
 
@@ -380,6 +388,22 @@ LeaderboardEntry @deserializeCustomTime(const Json::Value&in entryObj)
     entry.m_Type = LeaderboardEntryType::CustomTime;
     entry.m_PlayerName = entryObj[IO_KEY::PLAYER];
     entry.m_Time = entryObj[IO_KEY::TIME];
+
+    // Checkpoints
+    if (entryObj.HasKey(IO_KEY::CHECKPOINTS))
+    {
+        auto checkpointArray = entryObj[IO_KEY::CHECKPOINTS];
+        for (uint i = 0; i < checkpointArray.Length; i++)
+        {
+            auto cp = CheckpointData();
+            cp.m_TimeFromStart = checkpointArray[i];
+            cp.m_TimeFromStartNoRespawn = cp.m_TimeFromStart;
+            cp.m_TimeFromPrevious = i == 0 ? cp.m_TimeFromStart : cp.m_TimeFromStart - entry.m_Checkpoints[i - 1].m_TimeFromStart;
+            cp.m_TimeFromPreviousNoRespawn = cp.m_TimeFromPrevious;
+            entry.m_Checkpoints.InsertLast(@cp);
+        }
+    }
+
     return @entry;
 }
 

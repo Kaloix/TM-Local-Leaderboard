@@ -421,6 +421,12 @@ class State
         LeaderboardEntry newEntry;
         newEntry.m_Type = LeaderboardEntryType::CustomTime;
         newEntry.m_PlayerName = "Custom Time " + (m_CustomTimeEntries.Length + 1);
+
+        for (uint i = 0; i < g_State.m_CurrentMapCpCount; ++i)
+        {
+            newEntry.m_Checkpoints.InsertLast(CheckpointData());
+        }
+
         m_CustomTimeEntries.InsertLast(newEntry);
 
         InitRows();

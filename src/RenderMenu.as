@@ -39,11 +39,12 @@ void RenderCustomTimeEntries()
         g_State.AddCustomTimeEntry();
     }
 
-    UI::BeginTable("CustomTimeEntriesTable", 3, UI::TableFlags::SizingFixedFit);
+    UI::BeginTable("CustomTimeEntriesTable", 4, UI::TableFlags::SizingFixedFit);
 
     UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed);
     UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed);
     UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("##CPs", UI::TableColumnFlags::WidthFixed);
 
     UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
     UI::TableHeadersRow();
@@ -103,10 +104,80 @@ void RenderCustomTimeEntries()
             newTimeMilliseconds = 999;
         }
 
-        if ( newTimeMinutes != currentMinutes || newTimeSeconds != currentSeconds || newTimeMilliseconds != currentMilliseconds)
+        if (newTimeMinutes != currentMinutes || newTimeSeconds != currentSeconds || newTimeMilliseconds != currentMilliseconds)
         {
             auto newTime =  newTimeMinutes * 60000 + newTimeSeconds * 1000 + newTimeMilliseconds;
             g_State.UpdateCustomTimeEntryTime(i, newTime);
+        }
+
+        UI::TableNextColumn();
+        if (UI::BeginMenu(Icons::List + "##CheckpointTimes" + i))
+        {
+            LocalRecords::RenderCustomCheckpointTimes(@entry);
+            UI::EndMenu();
+        }
+    }
+
+    UI::EndTable();
+}
+
+void RenderCustomCheckpointTimes(LeaderboardEntry@ entry)
+{
+    UI::BeginTable("CustomTimeEntriesTable", 3, UI::TableFlags::SizingFixedFit);
+
+    UI::TableSetupColumn("CP", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Time", UI::TableColumnFlags::WidthFixed);
+    UI::TableHeadersRow();
+
+    for (uint i = 0; i < g_State.m_CurrentMapCpCount; ++i)
+    {
+        UI::TableNextRow();
+
+        auto @cpData = entry.m_Checkpoints[i];
+
+        UI::TableNextColumn();
+        string cpName = i == g_State.m_CurrentMapCpCount ? "Fin" : "" + (i + 1);
+        UI::Text(cpName);
+
+        UI::TableNextColumn();
+
+        int currentMinutes = cpData.m_TimeFromStart / 60000;
+        int currentSeconds = (cpData.m_TimeFromStart / 1000) % 60;
+        int currentMilliseconds = cpData.m_TimeFromStart % 1000;
+
+        UI::Text("Time: " + Time::Format(cpData.m_TimeFromStart));
+
+        UI::SameLine();
+        UI::Text("m:");
+        UI::SameLine();
+        UI::SetNextItemWidth(100);
+        auto newTimeMinutes = Math::Max(0, UI::InputInt("##TimeMinutes" + i, currentMinutes));
+
+        UI::SameLine();
+        UI::Text("s:");
+        UI::SameLine();
+        UI::SetNextItemWidth(100);
+        auto newTimeSeconds = Math::Max(-1, UI::InputInt("##TimeSeconds" + i, currentSeconds)) % 60;
+        if (newTimeSeconds == -1) {
+            newTimeSeconds = 59;
+        }
+
+        UI::SameLine();
+        UI::Text("ms:");
+        UI::SameLine();
+        UI::SetNextItemWidth(100);
+        auto newTimeMilliseconds = Math::Max(-1, UI::InputInt("##TimeMilliseconds" + i, currentMilliseconds)) % 1000;
+        if (newTimeMilliseconds == -1) {
+            newTimeMilliseconds = 999;
+        }
+
+        if (newTimeMinutes != currentMinutes || newTimeSeconds != currentSeconds || newTimeMilliseconds != currentMilliseconds)
+        {
+            auto newTime =  newTimeMinutes * 60000 + newTimeSeconds * 1000 + newTimeMilliseconds;
+            cpData.m_TimeFromStart = newTime;
+            cpData.m_TimeFromStartNoRespawn = newTime;
+            cpData.m_TimeFromPrevious = i == 0 ? cpData.m_TimeFromStart : cpData.m_TimeFromStart - entry.m_Checkpoints[i - 1].m_TimeFromStart;
+            cpData.m_TimeFromPreviousNoRespawn = cpData.m_TimeFromPrevious;
         }
     }
 
@@ -121,7 +192,7 @@ void RenderCustomPositionEntries()
     }
 
 
-    UI::BeginTable("CustomPositionEntriesTable", 3, UI::TableFlags::SizingFixedFit);
+    UI::BeginTable("CustomPositionEntriesTable", 3);
 
     UI::TableSetupColumn("##Actions", UI::TableColumnFlags::WidthFixed);
     UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed);
