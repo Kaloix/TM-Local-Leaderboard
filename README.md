@@ -44,8 +44,8 @@ The following awesome plugins helped me to find inspirations and implementations
 The [dev](./dev/) directory provides scripts to build and install the plugin on Windows and Linux.
 These can be used by running `./dev/build.[ps1|sh]` from the project's root directory.
 Currently the scripts assume that the Trackmania plugins are located at `~\OpenplanetNext\Plugins"` for Windows and at `~/.local/share/Steam/steamapps/compatdata/2225070/pfx/drive_c/users/steamuser/OpenplanetNext/Plugins"` on Linux machines.
-The installation can be disabled by using `--no-install`.
+The installation can be disabled by using `--no-install`, and installs to a directory with a `-dev` suffix so it doesn't collide with the live plugin.
 
-For testing migrations, backups can be created and restored by adding the flags `--backup-data` or `--restore-data` respectively.
+For testing migrations, the live version's data can be copied into the dev plugin's data directory with `--copy-data`, and removed again with `--delete-data`. The live data is never modified by either flag.
 
 The [.clang-format](./.clang-format) file provides code styles.

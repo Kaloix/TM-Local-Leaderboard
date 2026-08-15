@@ -2,8 +2,8 @@
 set -euo pipefail
 
 install=1
-backup_data=0
-restore_data=0
+copy_data=0
+delete_data=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --no-install|-n)
@@ -14,16 +14,16 @@ while [[ $# -gt 0 ]]; do
       install=1
       shift
       ;;
-    --backup-data|-b)
-      backup_data=1
+    --copy-data|-c)
+      copy_data=1
       shift
       ;;
-    --restore-data|-r)
-      restore_data=1
+    --delete-data|-d)
+      delete_data=1
       shift
       ;;
     *)
-      echo "Usage: $0 [--install|--no-install] [--backup-data] [--restore-data]" >&2
+      echo "Usage: $0 [--install|--no-install] [--copy-data] [--delete-data]" >&2
       exit 1
       ;;
   esac
@@ -53,36 +53,32 @@ project_name="${project_name//[[:space:]]/}"
 project_version="${project_version//[[:space:]]/}"
 file_name="${project_name}-v${project_version}"
 
+install_dir_name="${project_name}-dev"
+
 data_storage_root="${HOME}/.local/share/Steam/steamapps/compatdata/2225070/pfx/drive_c/users/steamuser/OpenplanetNext/PluginStorage"
-project_data_dir="${data_storage_root}/${project_name}"
-backup_dir="backup-data"
-backup_file_path="${backup_dir}/${file_name}-data.zip"
+live_data_dir="${data_storage_root}/${project_name}"
+dev_data_dir="${data_storage_root}/${install_dir_name}"
 
-# Create a versioned snapshot of this plugin's PluginStorage folder in a repo-local, gitignored directory.
-if [[ $backup_data -eq 1 ]]; then
-  mkdir -p "$backup_dir"
-  if [[ ! -d "$project_data_dir" ]]; then
-    echo "Project data directory not found: $project_data_dir" >&2
-    exit 1
-  fi
-  rm -f "$backup_file_path"
-  (
-    cd "$data_storage_root"
-    zip -r "$OLDPWD/$backup_file_path" "$project_name"
-  )
-  echo "Created data backup: $backup_file_path"
-fi
-
-# Restore the versioned snapshot into PluginStorage, replacing the current project data directory.
-if [[ $restore_data -eq 1 ]]; then
-  if [[ ! -f "$backup_file_path" ]]; then
-    echo "Backup file not found: $backup_file_path" >&2
+# Copy the live version's PluginStorage data into the dev plugin's data directory. The live data is left untouched.
+if [[ $copy_data -eq 1 ]]; then
+  if [[ ! -d "$live_data_dir" ]]; then
+    echo "Live data directory not found: $live_data_dir" >&2
     exit 1
   fi
   mkdir -p "$data_storage_root"
-  rm -rf "$project_data_dir"
-  unzip -o "$backup_file_path" -d "$data_storage_root"
-  echo "Restored data backup from: $backup_file_path"
+  rm -rf "$dev_data_dir"
+  cp -a "$live_data_dir" "$dev_data_dir"
+  echo "Copied live data into dev data directory: $dev_data_dir"
+fi
+
+# Delete the dev plugin's data directory. The live data is left untouched.
+if [[ $delete_data -eq 1 ]]; then
+  if [[ ! -d "$dev_data_dir" ]]; then
+    echo "Dev data directory not found: $dev_data_dir"
+  else
+    rm -rf "$dev_data_dir"
+    echo "Deleted dev data directory: $dev_data_dir"
+  fi
 fi
 
 # Define the build directory and the target directory
@@ -118,7 +114,6 @@ rm -f "$zip_file_path"
 
 # Install the plugin in the local TM installation
 if [[ $install -eq 1 ]]; then
-  install_dir_name="$project_name"
   destination_dir="${HOME}/.local/share/Steam/steamapps/compatdata/2225070/pfx/drive_c/users/steamuser/OpenplanetNext/Plugins"
   install_target_dir="$destination_dir/$install_dir_name"
   mkdir -p "$destination_dir"

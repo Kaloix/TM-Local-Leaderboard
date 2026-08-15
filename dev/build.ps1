@@ -3,10 +3,10 @@ param(
     $Install = 1,
 
     [switch]
-    $BackupData,
+    $CopyData,
 
     [switch]
-    $RestoreData
+    $DeleteData
 )
 
 # Define the path to the info.toml file
@@ -34,41 +34,36 @@ $projectName = $projectName -replace "\s", ""
 $projectVersion = $projectVersion -replace "\s", ""
 $fileName = "$projectName-v$projectVersion"
 
+$installDirName = "$projectName-dev"
+
 $dataStorageRoot = "$HOME\OpenplanetNext\PluginStorage"
-$projectDataDir = Join-Path $dataStorageRoot $projectName
-$backupDir = "backup-data"
-$backupFilePath = Join-Path $backupDir "$fileName-data.zip"
+$liveDataDir = Join-Path $dataStorageRoot $projectName
+$devDataDir = Join-Path $dataStorageRoot $installDirName
 
-# Create a versioned snapshot of this plugin's PluginStorage folder in a repo-local, gitignored directory.
-if ($BackupData) {
-    if (-Not (Test-Path $backupDir)) {
-        New-Item -ItemType Directory -Path $backupDir | Out-Null
-    }
-    if (-Not (Test-Path $projectDataDir)) {
-        Write-Host "Project data directory not found: $projectDataDir"
-        exit 1
-    }
-    if (Test-Path $backupFilePath) {
-        Remove-Item -Path $backupFilePath -Force
-    }
-    Compress-Archive -Path $projectDataDir -DestinationPath $backupFilePath
-    Write-Host "Created data backup: $backupFilePath"
-}
-
-# Restore the versioned snapshot into PluginStorage, replacing the current project data directory.
-if ($RestoreData) {
-    if (-Not (Test-Path $backupFilePath)) {
-        Write-Host "Backup file not found: $backupFilePath"
+# Copy the live version's PluginStorage data into the dev plugin's data directory. The live data is left untouched.
+if ($CopyData) {
+    if (-Not (Test-Path $liveDataDir)) {
+        Write-Host "Live data directory not found: $liveDataDir"
         exit 1
     }
     if (-Not (Test-Path $dataStorageRoot)) {
         New-Item -ItemType Directory -Path $dataStorageRoot | Out-Null
     }
-    if (Test-Path $projectDataDir) {
-        Remove-Item -Path $projectDataDir -Recurse -Force
+    if (Test-Path $devDataDir) {
+        Remove-Item -Path $devDataDir -Recurse -Force
     }
-    Expand-Archive -Path $backupFilePath -DestinationPath $dataStorageRoot -Force
-    Write-Host "Restored data backup from: $backupFilePath"
+    Copy-Item -Path $liveDataDir -Destination $devDataDir -Recurse
+    Write-Host "Copied live data into dev data directory: $devDataDir"
+}
+
+# Delete the dev plugin's data directory. The live data is left untouched.
+if ($DeleteData) {
+    if (-Not (Test-Path $devDataDir)) {
+        Write-Host "Dev data directory not found: $devDataDir"
+    } else {
+        Remove-Item -Path $devDataDir -Recurse -Force
+        Write-Host "Deleted dev data directory: $devDataDir"
+    }
 }
 
 # Define the build directory and the target directory
@@ -107,7 +102,6 @@ Compress-Archive -Path "$targetDir\*" -DestinationPath $zipFilePath
 # Install the plugin in the local TM installation
 if ($Install) {
     $destinationDir = "$HOME\OpenplanetNext\Plugins"
-    $installDirName = $projectName
     $installTargetDir = Join-Path $destinationDir $installDirName
 
     Write-Host "Copying directory $installDirName to $destinationDir..."
