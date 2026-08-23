@@ -282,6 +282,18 @@ void Render()
         }
     }
 
+    if (settingDisplayLeaderboardZoneSelection && g_Zones.Length > 0)
+    {
+        if (UI::Button(Icons::ChevronLeft))
+            SetZone(g_CurrentZoneIndex == 0 ? g_Zones.Length - 1 : g_CurrentZoneIndex - 1);
+        UI::SameLine();
+        if(UI::Button(Icons::ChevronRight))
+            SetZone((g_CurrentZoneIndex + 1) % g_Zones.Length);
+        UI::SameLine();
+        UI::Text(GetCurrentZoneName());
+    }
+
+
     if (settingDisplayLeaderboard)
     {
         if (g_TableColumns.Length == 0)
@@ -419,7 +431,7 @@ void RenderDetail(TableRenderContext&inout context)
 
     UI::Separator();
     UI::Text("Global Position History");
-    if (context.m_CurrentEntry.m_GlobalPositionHistory.Length > 0)
+    if (context.m_CurrentEntry.GetGlobalPositionHistory().Length > 0)
         RenderGlobalPositionHistory(context);
     else
     {
@@ -696,9 +708,10 @@ void RenderGlobalPositionHistory(const TableRenderContext&in context)
     UI::TableHeadersRow();
     UI::PopStyleColor();
 
-    for (uint i = 0; i < context.m_CurrentEntry.m_GlobalPositionHistory.Length; i++)
+    const auto globalPositionHistory = context.m_CurrentEntry.GetGlobalPositionHistory();
+    for (uint i = 0; i < globalPositionHistory.Length; i++)
     {
-        auto @data = @context.m_CurrentEntry.m_GlobalPositionHistory[i];
+        auto @data = @globalPositionHistory[i];
 
         UI::TableNextRow();
 

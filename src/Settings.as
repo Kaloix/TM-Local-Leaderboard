@@ -37,6 +37,9 @@ bool settingDisplayLeaderboardMapAuthor = true;
 [Setting name="Display Statistics" description="Show the statistics section in the leaderboard UI" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardStatistics = true;
 
+[Setting name="Display Zone Selection" description="Show the zone selection in the leaderboard UI" category="Leaderboard - Window"]
+bool settingDisplayLeaderboardZoneSelection = true;
+
 [Setting name="Display Leaderboard" description="Show the leaderboard UI" category="Leaderboard - Window"]
 bool settingDisplayLeaderboard = true;
 
@@ -143,7 +146,7 @@ vec3 settingColorTimeLast = vec3(0.5f, 1.0f, 0.0f);
 
 // Category Current Run
 [Setting name="Show Current Run" description="Show information about the current run" category="Current Run - Window"]
-bool settingShowCurrentRun = true;
+bool settingShowCurrentRun = false;
 
 [Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="Current Run - Window"]
 bool settingCurrentRunDisplayTitleBar = false;

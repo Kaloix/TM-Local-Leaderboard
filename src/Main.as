@@ -45,7 +45,10 @@ void Init()
     InitializeComparisonTarget();
     initializeTableColumns();
 
+    InitRegionsAsync();
+
     loadSettings();
+
     InitRender();
     LogDebug("Local Records plugin initializing.");
 

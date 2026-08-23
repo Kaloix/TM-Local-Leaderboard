@@ -603,7 +603,7 @@ class LeaderboardEntry
     uint m_Rank = 0;
 
     /**
-     * The global rank.
+     * The global rank for custom positions.
      */
     uint m_GlobalPosition = 0;
 
@@ -619,7 +619,8 @@ class LeaderboardEntry
     bool m_WasSessionBest = false;
     bool m_IsStarred = false;
 
-    array<GlobalPositionData @> m_GlobalPositionHistory;
+    array<RegionPositionData @> m_RegionPositions;
+    array<RegionTimeData @> m_RegionTimes;
 
     string GetDisplayRank() const
     {
@@ -667,6 +668,7 @@ class LeaderboardEntry
         switch (m_Type)
         {
             case LeaderboardEntryType::CustomPosition:
+                return GetLatestGlobalTime();
             case LeaderboardEntryType::CustomTime:
                 return m_Time;
             case LeaderboardEntryType::Medal:
@@ -732,28 +734,141 @@ class LeaderboardEntry
 
     uint GetLatestGlobalPosition() const
     {
+        // Custom positions have the global position set
         if (m_GlobalPosition > 0)
             return m_GlobalPosition;
-        if (settingLeaderboardPastGlobalPosition && m_GlobalPositionHistory.Length > 0)
-            return m_GlobalPositionHistory[m_GlobalPositionHistory.Length - 1].m_GlobalPosition;
+
+        // Take the latest value from the history
+        const auto zoneName = GetCurrentZoneName();
+        auto @regionPositionData = GetRegionPositionData(zoneName);
+        if (regionPositionData !is null && regionPositionData.m_RegionPositions.Length > 0)
+        {
+            auto @lastEntry = regionPositionData.m_RegionPositions[regionPositionData.m_RegionPositions.Length - 1];
+            return lastEntry.m_GlobalPosition;
+        }
+
         return 0;
     }
 
-    void AddGlobalPositionData(uint globalPosition)
+    array<GlobalPositionData @> GetGlobalPositionHistory() const
     {
-        if (globalPosition == 0)
+        const auto @region = @GetCurrentZone();
+        auto @regionPositionData = GetRegionPositionData(region);
+        if (regionPositionData !is null)
+            return regionPositionData.m_RegionPositions;
+
+        return array<GlobalPositionData @>();
+    }
+
+    void AddGlobalPositionData(const Json::Value &in globalPositionData)
+    {
+        if (globalPositionData.Length == 0)
             return;
 
-        // Update the current value
-        m_GlobalPosition = globalPosition;
+        // Update the history
+        const array<string> @keys = globalPositionData.GetKeys();
+        for (uint i = 0; i < keys.Length; ++i)
+        {
+            const string region = keys[i];
+            const int position = globalPositionData[region];;
+
+            GlobalPositionData @existingEntry = null;
+            RegionPositionData @regionPositionData = GetRegionPositionData(region);
+
+            if (regionPositionData !is null) {
+                if (regionPositionData.m_RegionPositions.Length > 0)
+                {
+                    auto @lastEntry = regionPositionData.m_RegionPositions[regionPositionData.m_RegionPositions.Length - 1];
+
+                    if (lastEntry.m_GlobalPosition == position && lastEntry.m_GlobalPositionTotalPlayers == g_State.m_NumberGlobalPositions)
+                    {
+                        continue;
+                    }
+
+                    if (lastEntry.m_IsCurrentSession)
+                    {
+                        @existingEntry = @lastEntry;
+                    }
+                }
+            }
+
+            if (existingEntry is null)
+            {
+
+                if (regionPositionData is null)
+                {
+                    @regionPositionData = RegionPositionData();
+                    regionPositionData.m_Region = region;
+                    m_RegionPositions.InsertLast(@regionPositionData);
+                }
+
+                // Add a new entry to the history
+                @existingEntry = GlobalPositionData();
+                existingEntry.m_IsCurrentSession = true;
+                regionPositionData.m_RegionPositions.InsertLast(@existingEntry);
+            }
+
+            existingEntry.m_GlobalPosition = position;
+            existingEntry.m_GlobalPositionTotalPlayers = g_State.m_NumberGlobalPositions;
+            existingEntry.m_GlobalPositionPercentile = g_State.m_NumberGlobalPositions > 0 ? float(position) / float(g_State.m_NumberGlobalPositions) : 0.0f;
+            existingEntry.m_TimeStamp = Time::get_Stamp();
+        }
+    }
+
+    RegionPositionData @GetRegionPositionData(const Zone @zone) const
+    {
+        if (zone is null)
+            return null;
+        return GetRegionPositionData(zone.m_Name);
+    }
+
+    RegionPositionData @GetRegionPositionData(const string &in region) const
+    {
+        for (uint i = 0; i < m_RegionPositions.Length; ++i)
+        {
+            if (m_RegionPositions[i].m_Region == region)
+                return m_RegionPositions[i];
+        }
+        return null;
+    }
+
+    uint GetLatestGlobalTime() const
+    {
+        // Take the latest value from the history
+        const auto zoneName = GetCurrentZoneName();
+        auto @regionPositionData = GetRegionTimeData(zoneName);
+        if (regionPositionData !is null && regionPositionData.m_RegionTimes.Length > 0)
+        {
+            auto @lastEntry = regionPositionData.m_RegionTimes[regionPositionData.m_RegionTimes.Length - 1];
+            return lastEntry.m_Time;
+        }
+
+        return 0;
+    }
+
+    void AddGlobalTimeData(const array<int> &in globalTimeData, const string &in zoneId)
+    {
+        if (globalTimeData.Length != 2)
+            return;
+
+        const int time = globalTimeData[0];
+        const int timestamp = globalTimeData[1];
 
         // Update the history
-        GlobalPositionData @existingEntry = null;
-        if (m_GlobalPositionHistory.Length > 0)
+        const auto zoneName = GetZoneName(zoneId);
+        auto @regionPositionData = GetRegionTimeData(zoneName);
+        if (regionPositionData is null)
         {
-            auto @lastEntry = m_GlobalPositionHistory[m_GlobalPositionHistory.Length - 1];
+            @regionPositionData = RegionTimeData();
+            regionPositionData.m_Region = zoneName;
+            m_RegionTimes.InsertLast(@regionPositionData);
+        }
 
-            if (lastEntry.m_GlobalPosition == globalPosition && lastEntry.m_GlobalPositionTotalPlayers == g_State.m_NumberGlobalPositions)
+        GlobalTimeData @existingEntry = null;
+        if (regionPositionData.m_RegionTimes.Length > 0)
+        {
+            auto @lastEntry = regionPositionData.m_RegionTimes[regionPositionData.m_RegionTimes.Length - 1];
+            if (lastEntry.m_Time == time && lastEntry.m_TimeStamp == timestamp)
             {
                 return;
             }
@@ -767,16 +882,25 @@ class LeaderboardEntry
         if (existingEntry is null)
         {
             // Add a new entry to the history
-            @existingEntry = GlobalPositionData();
+            @existingEntry = GlobalTimeData();
             existingEntry.m_IsCurrentSession = true;
-            m_GlobalPositionHistory.InsertLast(@existingEntry);
+            regionPositionData.m_RegionTimes.InsertLast(@existingEntry);
         }
 
-        existingEntry.m_GlobalPosition = globalPosition;
-        existingEntry.m_GlobalPositionTotalPlayers = g_State.m_NumberGlobalPositions;
-        existingEntry.m_GlobalPositionPercentile = g_State.m_NumberGlobalPositions > 0 ? float(globalPosition) / float(g_State.m_NumberGlobalPositions) : 0.0f;
-        existingEntry.m_TimeStamp = Time::get_Stamp();
+        existingEntry.m_Time = time;
+        existingEntry.m_TimeStamp = timestamp;
     }
+
+    RegionTimeData @GetRegionTimeData(const string &in region) const
+    {
+        for (uint i = 0; i < m_RegionTimes.Length; ++i)
+        {
+            if (m_RegionTimes[i].m_Region == region)
+                return m_RegionTimes[i];
+        }
+        return null;
+    }
+
 }
 
 class CheckpointData
@@ -808,12 +932,47 @@ enum LeaderboardEntryType
     ScoreCopium,
 }
 
+class RegionPositionData
+{
+    string m_Region = "";
+    array<GlobalPositionData @> m_RegionPositions;
+}
+
 class GlobalPositionData
 {
+    /**
+     * Position in the region's leaderboard at the time this position was recorded.
+     */
     uint m_GlobalPosition = 0;
-    float m_GlobalPositionPercentile = 0.0f;
+    /**
+     * The total number of players in the global leaderboard at the time this position was recorded.
+     * Always refers to the worldwide leaderboard, not the regional leaderboard.
+     */
     uint m_GlobalPositionTotalPlayers = 0;
+    float m_GlobalPositionPercentile = 0.0f;
+
+    /**
+     * The timestamp of when this global position was recorded.
+     */
     int64 m_TimeStamp = 0;
+
+    /**
+     * Whether this global position was recorded during the current session.
+     */
+    bool m_IsCurrentSession = false;
+}
+
+class RegionTimeData
+{
+    string m_Region = "";
+    array<GlobalTimeData @> m_RegionTimes;
+}
+
+
+class GlobalTimeData
+{
+    int64 m_TimeStamp = 0;
+    int m_Time = 0;
 
     bool m_IsCurrentSession = false;
 }

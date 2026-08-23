@@ -224,10 +224,20 @@ Json::Value serializeLeaderboardEntry(const LeaderboardEntry&in entry)
 
     // Global position history
     auto globalPositionHistory = Json::Array();
-    for (uint i = 0; i < entry.m_GlobalPositionHistory.Length; ++i)
+    for (uint i = 0; i < entry.m_RegionPositions.Length; ++i)
     {
-        auto positionDataObj = serializeGlobalPositionData(entry.m_GlobalPositionHistory[i]);
-        globalPositionHistory.Add(positionDataObj);
+        auto regionPositionObj = Json::Object();
+        regionPositionObj[IO_KEY::REGION] = entry.m_RegionPositions[i].m_Region;
+
+        auto regionPositionHistory = Json::Array();
+        for (uint j = 0; j < entry.m_RegionPositions[i].m_RegionPositions.Length; ++j)
+        {
+            auto positionDataObj = serializeGlobalPositionData(entry.m_RegionPositions[i].m_RegionPositions[j]);
+            regionPositionHistory.Add(positionDataObj);
+        }
+
+        regionPositionObj[IO_KEY::POSITIONS] = regionPositionHistory;
+        globalPositionHistory.Add(regionPositionObj);
     }
     entryObj[IO_KEY::GLOBAL_POSITION_HISTORY] = globalPositionHistory;
 
@@ -305,9 +315,16 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
         auto positionHistoryArray = entryObj[IO_KEY::GLOBAL_POSITION_HISTORY];
         for (uint i = 0; i < positionHistoryArray.Length; ++i)
         {
-            auto positionDataObj = positionHistoryArray[i];
-            auto @positionData = @deserializeGlobalPositionData(positionDataObj);
-            entry.m_GlobalPositionHistory.InsertLast(@positionData);
+            auto regionPositionObj = positionHistoryArray[i];
+            RegionPositionData @regionPositionData = RegionPositionData();
+            regionPositionData.m_Region = regionPositionObj[IO_KEY::REGION];
+
+            auto positionDataObj = regionPositionObj[IO_KEY::POSITIONS];
+            for (uint j = 0; j < positionDataObj.Length; ++j)
+            {
+                auto @positionData = @deserializeGlobalPositionData(positionDataObj[j]);
+                regionPositionData.m_RegionPositions.InsertLast(@positionData);
+            }
         }
     }
 
@@ -416,7 +433,7 @@ Json::Value serializeCustomPosition(const LeaderboardEntry&in entry)
     return entryObj;
 }
 
-LeaderboardEntry @deserializeCustomPostition(const Json::Value&in entryObj)
+LeaderboardEntry @deserializeCustomPosition(const Json::Value&in entryObj)
 {
     auto @entry = LeaderboardEntry();
     entry.m_Id = entryObj[IO_KEY::ID];
@@ -449,6 +466,7 @@ Json::Value serializeSettings()
 {
     auto settingsObj = Json::Object();
 
+    settingsObj[IO_KEY::CURRENT_REGION] = g_CurrentZoneIndex;
     settingsObj["tableSettings"] = serializeTableSettings();
 
     // Custom positions
@@ -469,6 +487,9 @@ Json::Value serializeSettings()
 
 void deserializeSettings(const Json::Value&in settingsObj)
 {
+    if (settingsObj.HasKey(IO_KEY::CURRENT_REGION))
+        SetZone(settingsObj[IO_KEY::CURRENT_REGION]);
+
     if (settingsObj.HasKey("tableSettings"))
         deserializeTableSettings(settingsObj["tableSettings"]);
 
@@ -478,7 +499,7 @@ void deserializeSettings(const Json::Value&in settingsObj)
         auto customPositionEntries = settingsObj["customPositionEntries"];
         for (uint i = 0; i < customPositionEntries.Length; i++)
         {
-            auto @entry = @deserializeCustomPostition(customPositionEntries[i]);
+            auto @entry = @deserializeCustomPosition(customPositionEntries[i]);
             g_State.m_CustomPositionEntries.InsertLast(@entry);
         }
     }
@@ -581,6 +602,7 @@ string buildFilePath(const string&in mapId)
 
 namespace IO_KEY {
 const string CHECKPOINTS = "cps";
+const string CURRENT_REGION = "cr"; 
 const string GLOBAL_NUMBER_PLAYERS = "gnp";
 const string GLOBAL_POSITION_HISTORY = "gph";
 const string ID = "id";
@@ -589,7 +611,9 @@ const string LAPS = "l";
 const string NUMBER_RESPAWNS = "nr";
 const string PLAYER = "p";
 const string POSITION = "pos";
+const string POSITIONS = "pos";
 const string RANK = "r";
+const string REGION = "reg";
 const string SCORE_NUMBER = "scn";
 const string SESSION_NUMBER = "sen";
 const string SPEED = "s";

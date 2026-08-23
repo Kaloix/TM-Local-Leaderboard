@@ -26,17 +26,6 @@ void InitPersonalBestAsync()
     if (g_State.m_Leaderboard.m_FastestRun is null)
         return;
     InitPositionForEntryAsync(@g_State.m_Leaderboard.m_FastestRun);
-    // if (g_InitPb !is null && g_InitPb.IsRunning())
-    //     return;
-    // @g_InitPb = @startnew(InitPersonalBest);
-}
-
-void InitPersonalBest()
-{
-    if (g_State.m_Leaderboard.m_FastestRun is null)
-        return;
-    const int position = FetchPersonalBest();
-    g_State.m_Leaderboard.m_FastestRun.AddGlobalPositionData(position);
 }
 
 awaitable@ g_InitLiveData = null;
@@ -134,22 +123,56 @@ void InitTimeForEntry(LeaderboardEntry@ entry)
 {
     if (entry is null)
         return;
-
-    const auto results = FetchRecords(entry.m_GlobalPosition);
-    entry.m_Time = results[0];
-    entry.m_TimeStamp = results[1];
+    
+    const auto zoneId = GetCurrentZoneId();
+    const auto results = FetchRecords(entry.m_GlobalPosition, zoneId);
+    entry.AddGlobalTimeData(results, zoneId);
 
     setMedal(entry);
     InitRows();
 }
 
-Json::Value@ FetchFromNadeoApi(const string&in uri)
+awaitable@ g_InitRegionsAsync = null;
+void InitRegionsAsync()
+{
+    if (g_InitRegionsAsync !is null && g_InitRegionsAsync.IsRunning())
+        return;
+    @g_InitRegionsAsync = @startnew(FetchRegions);
+}
+
+void FetchRegions()
+{
+    const auto result = array<Zone @>();
+
+    const auto @response = FetchFromNadeoLiveApi("/api/token/leaderboard/trophy");
+
+    if (!response.HasKey("zones"))
+        return;
+    const auto zones = response["zones"];
+
+    if (zones.GetType() != Json::Type::Array)
+        return;
+
+    for (uint i = 0; i < zones.Length; ++i)
+    {
+        if (!zones[i].HasKey("zoneName") && !zones[i].HasKey("zoneId"))
+            continue;
+        Zone @zone = Zone();
+        zone.m_Id = zones[i]["zoneId"];
+        zone.m_Name = zones[i]["zoneName"];
+        result.InsertLast(@zone);
+    }
+
+    g_Zones = result;
+}
+
+Json::Value@ FetchFromNadeoLiveApi(const string&in uri)
 {
     auto @request = NadeoServices::Get("NadeoLiveServices", NadeoServices::BaseURLLive() + uri);
     return DoRequest(request);
 }
 
-Json::Value@ PostToNadeoApi(const string&in uri, const string&in body)
+Json::Value@ PostToNadeoLiveApi(const string&in uri, const string&in body)
 {
     auto @request = NadeoServices::Post("NadeoLiveServices", NadeoServices::BaseURLLive() + uri, body);
     return DoRequest(request);
@@ -189,9 +212,19 @@ Json::Value@ DoRequest(Net::HttpRequest@ request)
     return request.Json();
 }
 
-array<int> FetchRecords(uint position)
+array<int> FetchRecords(uint position, const string&in zoneId)
 {
-    const auto @response = FetchFromNadeoApi("/api/token/leaderboard/group/Personal_Best/map/" + g_State.m_CurrentMap + "/top?length=" + 1 + "&onlyWorld=true&offset=" + (position - 1));
+    if (zoneId == "301e1b69-7e13-11e8-8060-e284abfd2bc4") {
+        return FetchRecordsWorlds(position);
+    } else {
+        return FetchRecordsZone(position, zoneId);
+    }
+}
+
+array<int> FetchRecordsWorlds(const uint position)
+{
+    const string url = "/api/token/leaderboard/group/Personal_Best/map/" + g_State.m_CurrentMap + "/top?length=" + 1 + "&onlyWorld=true&offset=" + (position - 1);
+    const auto @response = FetchFromNadeoLiveApi(url);
 
     if (!response.HasKey("tops"))
         return {0, 0};
@@ -207,34 +240,44 @@ array<int> FetchRecords(uint position)
     return {top[0]["score"], top[0]["timestamp"]};
 }
 
-int FetchPersonalBest()
+array<int> FetchRecordsZone(const uint position, const string&in zoneId)
 {
-    const auto @response = FetchFromNadeoApi("/api/token/leaderboard/group/Personal_Best/map/"+ g_State.m_CurrentMap +"/surround/0/0?onlyWorld=true");
+    if (position > 5)
+        return {0, 0};
+
+    string url = "/api/token/leaderboard/group/Personal_Best/map/" + g_State.m_CurrentMap + "/top?onlyWorld=false&zoneId=" + zoneId;
+    const auto @response = FetchFromNadeoLiveApi(url);
 
     if (!response.HasKey("tops"))
-        return 0;
-    
+        return {0, 0};
+
     const auto tops = response["tops"];
     if (tops.Length < 1)
-        return 0;
+        return {0, 0};
 
     const auto top = tops[0]["top"];
-    if (top.Length < 1)
-        return 0;
+    if (top.Length < position - 1)
+        return {0, 0};
 
-    return top[0]["position"];
+    return {top[position - 1]["score"], top[position - 1]["timestamp"]};
+
+
+    // TODO extract 
+
+    return {0, 0};
 }
 
-array<int> FetchForTimes(const array<int>&in time)
+
+array<Json::Value @> FetchForTimes(const array<int> time)
 {
     const auto @raceData = @MLFeed::GetRaceData_V4();
     const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
 
 
     // Initialize positions
-    array<int> positions;
+    array<Json::Value @> positions;
     for (uint i = 0; i < time.Length; ++i)
-        positions.InsertLast(0);
+        positions.InsertLast(Json::Object());
 
     // Prepare the body and uri
     auto maps = Json::Array();
@@ -267,10 +310,11 @@ array<int> FetchForTimes(const array<int>&in time)
     auto body = Json::Object();
     body["maps"] = maps;
 
-    const auto @results = PostToNadeoApi("/api/token/leaderboard/group/map" + params, Json::Write(body));
+    const auto @results = PostToNadeoLiveApi("/api/token/leaderboard/group/map" + params, Json::Write(body));
 
     if (results is null || results.GetType() != Json::Type::Array)
         return positions;
+
 
     for (uint i = 0; i < results.Length; ++i)
     {
@@ -292,14 +336,13 @@ array<int> FetchForTimes(const array<int>&in time)
         if (!response.HasKey("zones"))
             continue;
 
+        auto @regionPositions = @positions[timeIndex];
         for (uint z = 0; z < response["zones"].Length; ++z)
         {
             const auto zone = response["zones"][z];
-            if (zone["zoneName"] == "World")
-            {
-                positions[timeIndex] = zone["ranking"]["position"];
-                break;
-            }
+            const string zoneName = zone["zoneName"];
+            const int position = zone["ranking"]["position"];
+            regionPositions[zoneName] = position;
         }
     }
 
