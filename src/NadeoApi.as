@@ -59,8 +59,8 @@ void InitLiveData()
     }
 
     // Custom positions
-    for (uint i = 0; i < g_State.m_CustomPositionEntries.Length; ++i) {
-        InitTimeForEntry(@g_State.m_CustomPositionEntries[i]);
+    for (uint i = 0; i < g_CustomPositionEntries.Length; ++i) {
+        InitTimeForEntry(@g_CustomPositionEntries[i]);
     }
 
     // Copium

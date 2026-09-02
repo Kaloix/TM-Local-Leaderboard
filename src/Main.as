@@ -35,6 +35,7 @@ namespace LocalRecords
 int MAX_INT = 2147483647;
 
 State g_State = State();
+array<LeaderboardEntry @> g_CustomPositionEntries;
 
 void Init()
 {
@@ -509,10 +510,10 @@ class State
     {
         LeaderboardEntry newEntry;
         newEntry.m_Type = LeaderboardEntryType::CustomPosition;
-        newEntry.m_PlayerName = "Custom Pos " + (m_CustomPositionEntries.Length + 1);
+        newEntry.m_PlayerName = "Custom Pos " + (g_CustomPositionEntries.Length + 1);
         newEntry.m_GlobalPosition = 1;
 
-        m_CustomPositionEntries.InsertLast(newEntry);
+        g_CustomPositionEntries.InsertLast(newEntry);
 
         saveSettings();
 
@@ -521,9 +522,9 @@ class State
 
     LeaderboardEntry@ GetCustomPosition(const int64 id)
     {
-        for (uint i = 0; i < m_CustomPositionEntries.Length; ++i)
+        for (uint i = 0; i < g_CustomPositionEntries.Length; ++i)
         {
-            LeaderboardEntry@ entry = @m_CustomPositionEntries[i];
+            LeaderboardEntry@ entry = @g_CustomPositionEntries[i];
             if (entry.m_Id == id)
             {
                 return entry;
@@ -534,37 +535,37 @@ class State
 
     void UpdateCustomPositionEntryName(uint index, const string&in newName)
     {
-        if (index >= m_CustomPositionEntries.Length)
+        if (index >= g_CustomPositionEntries.Length)
         {
             LogWarning("Custom position entry index out of bounds: " + index);
             return;
         }
 
-        m_CustomPositionEntries[index].m_PlayerName = newName;
+        g_CustomPositionEntries[index].m_PlayerName = newName;
 
         saveSettings();
     }
 
     void UpdateCustomPositionEntryPosition(uint index, int newPosition)
     {
-        if (index >= m_CustomPositionEntries.Length)
+        if (index >= g_CustomPositionEntries.Length)
         {
             LogWarning("Custom position entry index out of bounds: " + index);
             return;
         }
 
-        m_CustomPositionEntries[index].m_GlobalPosition = newPosition;
+        g_CustomPositionEntries[index].m_GlobalPosition = newPosition;
 
         saveSettings();
 
-        InitTimeForEntryAsync(@m_CustomPositionEntries[index]);
+        InitTimeForEntryAsync(@g_CustomPositionEntries[index]);
     }
 
     void RemoveCustomPositionEntryById(int64 id)
     {
-        for (uint i = 0; i < m_CustomPositionEntries.Length; ++i)
+        for (uint i = 0; i < g_CustomPositionEntries.Length; ++i)
         {
-            if (m_CustomPositionEntries[i].m_Id == id)
+            if (g_CustomPositionEntries[i].m_Id == id)
             {
                 RemoveCustomPositionEntry(i);
                 return;
@@ -574,13 +575,13 @@ class State
 
     void RemoveCustomPositionEntry(uint index)
     {
-        if (index >= m_CustomPositionEntries.Length)
+        if (index >= g_CustomPositionEntries.Length)
         {
             LogWarning("Custom position entry index out of bounds: " + index);
             return;
         }
 
-        m_CustomPositionEntries.RemoveAt(index);
+        g_CustomPositionEntries.RemoveAt(index);
 
         InitRows();
         saveSettings();

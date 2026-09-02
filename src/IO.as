@@ -470,12 +470,12 @@ Json::Value serializeSettings()
     settingsObj["tableSettings"] = serializeTableSettings();
 
     // Custom positions
-    if (g_State.m_CustomPositionEntries.Length > 0)
+    if (g_CustomPositionEntries.Length > 0)
     {
         auto customPositionEntries = Json::Array();
-        for (uint i = 0; i < g_State.m_CustomPositionEntries.Length; i++)
+        for (uint i = 0; i < g_CustomPositionEntries.Length; i++)
         {
-            const auto @entry = @g_State.m_CustomPositionEntries[i];
+            const auto @entry = @g_CustomPositionEntries[i];
             auto entryObj = serializeCustomPosition(entry);
             customPositionEntries.Add(entryObj);
         }
@@ -500,7 +500,7 @@ void deserializeSettings(const Json::Value&in settingsObj)
         for (uint i = 0; i < customPositionEntries.Length; i++)
         {
             auto @entry = @deserializeCustomPosition(customPositionEntries[i]);
-            g_State.m_CustomPositionEntries.InsertLast(@entry);
+            g_CustomPositionEntries.InsertLast(@entry);
         }
     }
 }

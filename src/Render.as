@@ -173,9 +173,9 @@ void InitRows()
     }
     if (settingDisplayLeaderboardCustomPositions)
     {
-        for (uint i = 0; i < g_State.m_CustomPositionEntries.Length; i++)
+        for (uint i = 0; i < g_CustomPositionEntries.Length; i++)
         {
-            g_TableRows.InsertLast(@g_State.m_CustomPositionEntries[i]);
+            g_TableRows.InsertLast(@g_CustomPositionEntries[i]);
         }
     }
 

@@ -38,9 +38,9 @@ void SetZone(const uint zoneIndex)
     if (g_State.m_CurrentMap == "")
         return;
 
-    for (uint i = 0; i < g_State.m_CustomPositionEntries.Length; ++i)
+    for (uint i = 0; i < g_CustomPositionEntries.Length; ++i)
     {
-        InitTimeForEntryAsync(@g_State.m_CustomPositionEntries[i]);
+        InitTimeForEntryAsync(@g_CustomPositionEntries[i]);
     }
 }
 

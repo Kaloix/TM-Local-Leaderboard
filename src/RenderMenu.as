@@ -202,10 +202,10 @@ void RenderCustomPositionEntries()
     UI::TableHeadersRow();
     UI::PopStyleColor();
 
-    for (uint i = 0; i < g_State.m_CustomPositionEntries.Length ; i++)
+    for (uint i = 0; i < g_CustomPositionEntries.Length ; i++)
     {
         UI::TableNextRow();
-        auto @entry = g_State.m_CustomPositionEntries[i];
+        auto @entry = g_CustomPositionEntries[i];
 
         UI::TableNextColumn();
         if (UI::Button(Icons::Trash + "##" + i))
@@ -321,9 +321,9 @@ void RenderTableColumnsMenu()
                     else if (comparisonTarget.GetType() == ComparisonTargetType::CustomPosition)
                     {
                         auto @customEntryTarget = cast<CustomPositionComparisonTarget>(comparisonTarget);
-                        for (uint k = 0; k < g_State.m_CustomPositionEntries.Length; ++k)
+                        for (uint k = 0; k < g_CustomPositionEntries.Length; ++k)
                         {
-                            auto @customEntry = @g_State.m_CustomPositionEntries[k];
+                            auto @customEntry = @g_CustomPositionEntries[k];
                             if (UI::Selectable("Custom Position: " + customEntry.m_GlobalPosition, isEntrySelected && customEntryTarget.m_CustomEntryId == customEntry.m_Id))
                             {
                                 customEntryTarget.m_CustomEntryId = customEntry.m_Id;
