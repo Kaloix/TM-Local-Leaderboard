@@ -78,6 +78,7 @@ class Leaderboard
             @m_NewestCopiumRun = LeaderboardEntry(m_NewestRun);
             m_NewestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
             setMedal(m_NewestCopiumRun);
+            InitPositionForEntryAsync(@m_NewestCopiumRun);
         }
         else
         {
@@ -313,18 +314,32 @@ class Leaderboard
 
     void SetFastestCopiumRun(LeaderboardEntry @entry)
     {
-        @m_FastestCopiumRun = LeaderboardEntry(entry);
-        m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
-        setMedal(m_FastestCopiumRun);
-        InitPositionForEntryAsync(@m_FastestCopiumRun);
+        if (m_NewestCopiumRun !is entry)
+        {
+            @m_FastestCopiumRun = LeaderboardEntry(entry);
+            m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
+            setMedal(m_FastestCopiumRun);
+            InitPositionForEntryAsync(@m_FastestCopiumRun);
+        }
+        else
+        {
+            @m_NewestCopiumRun = @entry;
+        }
     }
 
     void SetSessionFastestCopiumRun(LeaderboardEntry @entry)
     {
-        @m_SessionFastestCopiumRun = LeaderboardEntry(entry);
-        m_SessionFastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
-        setMedal(m_SessionFastestCopiumRun);
-        InitPositionForEntryAsync(@m_SessionFastestCopiumRun);
+        if (m_NewestCopiumRun !is entry)
+        {
+            @m_SessionFastestCopiumRun = LeaderboardEntry(entry);
+            m_SessionFastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
+            setMedal(m_SessionFastestCopiumRun);
+            InitPositionForEntryAsync(@m_SessionFastestCopiumRun);
+        }
+        else
+        {
+            @m_NewestCopiumRun = @entry;
+        }
     }
 
     void updateTime()
