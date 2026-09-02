@@ -286,9 +286,10 @@ class Leaderboard
     
     void SetFastestRun(LeaderboardEntry @entry)
     {
-        @m_FastestRun = LeaderboardEntry(entry);
-        m_FastestRun.m_WasPersonalBest = true;
-        InitPositionForEntryAsync(@m_FastestRun);
+        entry.m_WasPersonalBest = true;
+        InitPositionForEntryAsync(@entry);
+        // @m_FastestRun = LeaderboardEntry(entry);
+        @m_FastestRun = @entry;
 
         if (m_FastestCopiumRun !is null && m_FastestRun.m_Time <= m_FastestCopiumRun.m_TimeNoRespawn)
         {
