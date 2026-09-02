@@ -77,6 +77,7 @@ class Leaderboard
         {
             @m_NewestCopiumRun = LeaderboardEntry(m_NewestRun);
             m_NewestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
+            m_NewestCopiumRun.m_Rank = 0;
             setMedal(m_NewestCopiumRun);
             InitPositionForEntryAsync(@m_NewestCopiumRun);
         }
@@ -318,6 +319,7 @@ class Leaderboard
         {
             @m_FastestCopiumRun = LeaderboardEntry(entry);
             m_FastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
+            m_FastestCopiumRun.m_Rank = 0;
             setMedal(m_FastestCopiumRun);
             InitPositionForEntryAsync(@m_FastestCopiumRun);
         }
@@ -333,6 +335,7 @@ class Leaderboard
         {
             @m_SessionFastestCopiumRun = LeaderboardEntry(entry);
             m_SessionFastestCopiumRun.m_Type = LeaderboardEntryType::ScoreCopium;
+            m_SessionFastestCopiumRun.m_Rank = 0;
             setMedal(m_SessionFastestCopiumRun);
             InitPositionForEntryAsync(@m_SessionFastestCopiumRun);
         }
