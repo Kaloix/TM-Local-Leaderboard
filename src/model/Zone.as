@@ -33,13 +33,23 @@ string GetCurrentZoneId()
 
 void SetZone(const uint zoneIndex)
 {
+    // Set the current zone index
     g_CurrentZoneIndex = zoneIndex;
 
+    // If no map is loaded, we don't need to update the entries
     if (g_State.m_CurrentMap == "")
         return;
 
+    // Update the custom position entries for the new zone
     for (uint i = 0; i < g_CustomPositionEntries.Length; ++i)
     {
+        auto @entry = g_CustomPositionEntries[i];
+        auto @latestGlobalTimeData = @entry.GetLatestGlobalTimeData();
+
+        // Skip entries that already have the latest global time data for the current session
+        if (latestGlobalTimeData !is null && latestGlobalTimeData.m_IsCurrentSession)
+            continue;
+
         InitTimeForEntryAsync(@g_CustomPositionEntries[i]);
     }
 }

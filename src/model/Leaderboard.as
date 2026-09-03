@@ -853,16 +853,25 @@ class LeaderboardEntry
 
     uint GetLatestGlobalTime() const
     {
-        // Take the latest value from the history
+        auto @latestGlobalTimeData = @GetLatestGlobalTimeData();
+        if (latestGlobalTimeData is null)
+            return 0;
+
+        return latestGlobalTimeData.m_Time;
+    }
+
+    /**
+     * Returns the latest global time data for the current zone, or null if no data is available.
+     */
+    GlobalTimeData @GetLatestGlobalTimeData() const
+    {
         const auto zoneName = GetCurrentZoneName();
         auto @regionPositionData = GetRegionTimeData(zoneName);
-        if (regionPositionData !is null && regionPositionData.m_RegionTimes.Length > 0)
-        {
-            auto @lastEntry = regionPositionData.m_RegionTimes[regionPositionData.m_RegionTimes.Length - 1];
-            return lastEntry.m_Time;
-        }
 
-        return 0;
+        if (regionPositionData is null || regionPositionData.m_RegionTimes.Length == 0)
+            return null;
+
+        return @regionPositionData.m_RegionTimes[regionPositionData.m_RegionTimes.Length - 1];
     }
 
     void AddGlobalTimeData(const array<int> &in globalTimeData, const string &in zoneId)
