@@ -258,6 +258,11 @@ void Render()
         return; // Don't render if no map is loaded
     }
 
+    if (settingDisplayLeaderboardWindowHideWithUi && !UI::IsGameUIVisible())
+    {
+        return; // Don't render if the game UI is not visible
+    }
+
     UI::PushFontSize(settingLeaderboardFontSize);
     UI::SetNextWindowBgAlpha(settingLeaderboardBackgroundTransparency);
     UI::SetNextWindowSizeConstraints(-1, 0, -1, settingDisplayLeaderboardMaxSize);

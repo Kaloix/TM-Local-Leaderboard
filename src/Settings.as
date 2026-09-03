@@ -16,6 +16,9 @@ bool settingReadATCpTimes = true;
 [Setting name="Display Leaderboard Window" description="Show the leaderboard UI" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardWindow = true;
 
+[Setting name="Hide Leaderboard With UI" description="Hide the leaderboard window when the game UI is hidden" category="Leaderboard - Window"]
+bool settingDisplayLeaderboardWindowHideWithUi = true;
+
 [Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardTitleBar = false;
 
@@ -153,6 +156,9 @@ vec3 settingColorTimeLast = vec3(0.5f, 1.0f, 0.0f);
 // Category Current Run
 [Setting name="Show Current Run" description="Show information about the current run" category="Current Run - Window"]
 bool settingShowCurrentRun = false;
+
+[Setting name="Hide Current Run With UI" description="Hide the current run window when the game UI is hidden" category="Current Run - Window"]
+bool settingCurrentRunHideWithUi = true;
 
 [Setting name="Display Title Bar" description="Show the title bar with the plugin name" category="Current Run - Window"]
 bool settingCurrentRunDisplayTitleBar = false;

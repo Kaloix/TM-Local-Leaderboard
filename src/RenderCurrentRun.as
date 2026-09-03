@@ -23,6 +23,11 @@ void renderCurrentRun()
         return; // Don't render if no map is loaded
     }
 
+    if (settingCurrentRunHideWithUi && !UI::IsGameUIVisible())
+    {
+        return; // Don't render if the game UI is not visible
+    }
+
     UI::PushFontSize(settingCurrentRunFontSize);
     UI::SetNextWindowBgAlpha(settingCurrentRunBackgroundTransparency);
     UI::SetNextWindowSizeConstraints(-1, 0, -1, settingCurrentRunMaxSize);
