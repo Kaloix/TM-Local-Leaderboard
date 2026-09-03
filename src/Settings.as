@@ -40,6 +40,9 @@ bool settingDisplayLeaderboardMapAuthor = true;
 [Setting name="Display Statistics" description="Show the statistics section in the leaderboard UI" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardStatistics = true;
 
+[Setting name="Display Actions" description="Show actions button above the leaderboard" category="Leaderboard - Window"]
+bool settingDisplayLeaderboardActions = false;
+
 [Setting name="Display Zone Selection" description="Show the zone selection in the leaderboard UI" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardZoneSelection = true;
 

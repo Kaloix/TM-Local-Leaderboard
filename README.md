@@ -14,7 +14,6 @@ A Trackmania plugin adding a leaderboard for local records.
 ## Future Plans
 Here a some of my ideas for future release that might or might not be implemented:
 
-- Add filter and sort buttons to the table
 - Show leaderboard statistics
 - Save statistics about sessions
 - Add support for multiple local players

@@ -308,6 +308,32 @@ void Render()
         }
     }
 
+    if (settingDisplayLeaderboardActions)
+    {
+        if (UI::Button(Icons::Refresh))
+        {
+            InitLiveDataAsync();
+        }
+
+        UI::SameLine();
+
+        const auto sortIcon = settingLeaderboardSortDirection == LeaderboardSortDirection::Ascending ? Icons::SortAsc : Icons::SortDesc;
+        if (UI::Button(sortIcon))
+        {
+            settingLeaderboardSortDirection = settingLeaderboardSortDirection == LeaderboardSortDirection::Ascending ? LeaderboardSortDirection::Descending : LeaderboardSortDirection::Ascending;
+            InitRows();
+        }
+
+        UI::SameLine();
+
+        const auto sortTypeIcon = settingLeaderboardSortType == LeaderboardSortType::Time ? Icons::ClockO : Icons::Calendar;
+        if (UI::Button(sortTypeIcon))
+        {
+            settingLeaderboardSortType = settingLeaderboardSortType == LeaderboardSortType::Time ? LeaderboardSortType::Chronological : LeaderboardSortType::Time;
+            InitRows();
+        }
+    }
+
     if (settingDisplayLeaderboardZoneSelection && g_Zones.Length > 0)
     {
         if (UI::Button(Icons::ChevronLeft))
