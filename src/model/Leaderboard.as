@@ -290,13 +290,10 @@ class Leaderboard
     {
         entry.m_WasPersonalBest = true;
         InitPositionForEntryAsync(@entry);
-        // @m_FastestRun = LeaderboardEntry(entry);
         @m_FastestRun = @entry;
 
         if (m_FastestCopiumRun !is null && m_FastestRun.m_Time <= m_FastestCopiumRun.m_TimeNoRespawn)
-        {
             @m_FastestCopiumRun = null;
-        }
     }
 
     void SetSessionFastestRun(LeaderboardEntry @entry)
@@ -304,13 +301,11 @@ class Leaderboard
         if (m_SessionFastestRun !is null)
             m_SessionFastestRun.m_WasSessionBest = false;
 
-        @m_SessionFastestRun = LeaderboardEntry(entry);
-        m_SessionFastestRun.m_WasSessionBest = true;
+        entry.m_WasSessionBest = true;
+        @m_SessionFastestRun = @entry;
 
         if (m_SessionFastestCopiumRun !is null && m_SessionFastestRun.m_Time <= m_SessionFastestCopiumRun.m_TimeNoRespawn)
-        {
             @m_SessionFastestCopiumRun = null;
-        }
     }
 
     void SetFastestCopiumRun(LeaderboardEntry @entry)
@@ -789,7 +784,7 @@ class LeaderboardEntry
         for (uint i = 0; i < keys.Length; ++i)
         {
             const string region = keys[i];
-            const int position = globalPositionData[region];;
+            const uint position = globalPositionData[region];;
 
             GlobalPositionData @existingEntry = null;
             RegionPositionData @regionPositionData = GetRegionPositionData(region);

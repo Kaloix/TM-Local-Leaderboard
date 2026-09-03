@@ -173,7 +173,6 @@ void OnMapLoad()
     InitCheckpointComparisons();
 
     addPreviousPb();
-    InitPersonalBestAsync();
 
     g_State.m_Leaderboard.m_TotalNumberSessions++;
 

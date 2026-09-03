@@ -167,7 +167,7 @@ bool settingCurrentRunHideWithUi = true;
 bool settingCurrentRunDisplayTitleBar = false;
 
 [Setting name="Maximum Size" description="Maximum size of the current run window" category="Current Run - Window" min=0 max=1000]
-int settingCurrentRunMaxSize = 300;
+int settingCurrentRunMaxSize = 120;
 
 [Setting name="Background Transparency" description="Transparency of the current run info" category="Current Run - Window" min=0.0f max=1.0f]
 float settingCurrentRunBackgroundTransparency = 1.0f;

@@ -19,15 +19,6 @@ void InitNadeoApi()
     LogDebug("Authenticated to NadeoLiveServices");
 }
 
-
-awaitable@ g_InitPb = null;
-void InitPersonalBestAsync()
-{
-    if (g_State.m_Leaderboard.m_FastestRun is null)
-        return;
-    InitPositionForEntryAsync(@g_State.m_Leaderboard.m_FastestRun);
-}
-
 awaitable@ g_InitLiveData = null;
 void InitLiveDataAsync()
 {
@@ -48,6 +39,9 @@ void InitPositionForEntryAsync(LeaderboardEntry@ entry)
 
 void InitLiveData()
 {
+    // PB
+    InitPositionForEntry(@g_State.m_Leaderboard.m_FastestRun);
+
     // Medals
     for (uint i = 0; i < g_State.m_MedalEntries.Length; ++i) {
         InitPositionForEntry(@g_State.m_MedalEntries[i]);
@@ -260,13 +254,7 @@ array<int> FetchRecordsZone(const uint position, const string&in zoneId)
         return {0, 0};
 
     return {top[position - 1]["score"], top[position - 1]["timestamp"]};
-
-
-    // TODO extract 
-
-    return {0, 0};
 }
-
 
 array<Json::Value @> FetchForTimes(const array<int> time)
 {
