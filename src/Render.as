@@ -109,25 +109,42 @@ void InitRows()
         g_TableRows.InsertLast(@g_State.m_Leaderboard.m_NewestRun);
     for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
     {
+        auto @entry = @g_State.m_Leaderboard.m_Entries[i];
+
         // Always add starred runs
-        if (settingDisplayLeaderboardStarred && g_State.m_Leaderboard.m_Entries[i].m_IsStarred)
+        if (settingDisplayLeaderboardStarred && entry.m_IsStarred)
         {
-            g_TableRows.InsertLast(@g_State.m_Leaderboard.m_Entries[i]);
+            g_TableRows.InsertLast(@entry);
             continue;
         }
 
-        if (settingFilterPersonalBests && !g_State.m_Leaderboard.m_Entries[i].m_WasPersonalBest)
+        // Always add the player's personal best and session best if the settings are enabled
+        if (settingDisplayLeaderboardPersonalBest && entry is g_State.m_Leaderboard.m_FastestRun)
+        {
+            g_TableRows.InsertLast(@entry);
             continue;
-        if (settingFilterSessionBests && !g_State.m_Leaderboard.m_Entries[i].m_WasSessionBest)
+        }
+        if (settingDisplayLeaderboardSessionBest && entry is g_State.m_Leaderboard.m_SessionFastestRun)
+        {
+            g_TableRows.InsertLast(@entry);
             continue;
-        if (settingFilterSessionCurrent && g_State.m_Leaderboard.m_Entries[i].m_SessionNumber != g_State.m_Leaderboard.m_TotalNumberSessions)
+        }
+
+        // Filter by previous personal bests and session bests
+        if (settingFilterPersonalBests && !entry.m_WasPersonalBest)
+            continue;
+        if (settingFilterSessionBests && !entry.m_WasSessionBest)
             continue;
 
-        if (@g_State.m_Leaderboard.m_NewestRun is @g_State.m_Leaderboard.m_Entries[i])
+        // Filter by the current session
+        if (settingFilterSessionCurrent && entry.m_SessionNumber != g_State.m_Leaderboard.m_TotalNumberSessions)
             continue;
-        if (g_State.m_Leaderboard.m_Entries[i].m_Rank > settingDisplayLeaderboardNumberRanks)
+
+        if (g_State.m_Leaderboard.m_NewestRun is entry)
             continue;
-        g_TableRows.InsertLast(@g_State.m_Leaderboard.m_Entries[i]);
+        if (entry.m_Rank > settingDisplayLeaderboardNumberRanks)
+            continue;
+        g_TableRows.InsertLast(entry);
     }
 
     // Add medal entries
