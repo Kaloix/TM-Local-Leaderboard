@@ -105,8 +105,6 @@ void InitRows()
     if (settingDisplayLeaderboardCopiumSessionFastest && g_State.m_Leaderboard.m_SessionFastestCopiumRun !is null && (!addedNewestCopium || g_State.m_Leaderboard.m_SessionFastestCopiumRun.m_ScoreNumber != g_State.m_Leaderboard.m_NewestCopiumRun.m_ScoreNumber) && (!addedFastestCopium || g_State.m_Leaderboard.m_SessionFastestCopiumRun.m_ScoreNumber != g_State.m_Leaderboard.m_FastestCopiumRun.m_ScoreNumber))
         g_TableRows.InsertLast(g_State.m_Leaderboard.m_SessionFastestCopiumRun);
 
-    if (g_State.m_Leaderboard.m_NewestRun !is null)
-        g_TableRows.InsertLast(@g_State.m_Leaderboard.m_NewestRun);
     for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
     {
         auto @entry = @g_State.m_Leaderboard.m_Entries[i];
@@ -130,6 +128,13 @@ void InitRows()
             continue;
         }
 
+        // Always add the player's latest run if the setting is enabled
+        if (settingDisplayLeaderboardLatest && entry is g_State.m_Leaderboard.m_NewestRun)
+        {
+            g_TableRows.InsertLast(@g_State.m_Leaderboard.m_NewestRun);
+            continue;
+        }
+
         // Filter by previous personal bests and session bests
         if (settingFilterPersonalBests && !entry.m_WasPersonalBest)
             continue;
@@ -140,8 +145,7 @@ void InitRows()
         if (settingFilterSessionCurrent && entry.m_SessionNumber != g_State.m_Leaderboard.m_TotalNumberSessions)
             continue;
 
-        if (g_State.m_Leaderboard.m_NewestRun is entry)
-            continue;
+        // Filter the number of ranks displayed for each player
         if (entry.m_Rank > settingDisplayLeaderboardNumberRanks)
             continue;
         g_TableRows.InsertLast(entry);

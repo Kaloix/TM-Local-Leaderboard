@@ -71,6 +71,9 @@ bool settingFilterSessionCurrent = false;
 [Setting name="Number ranks" description="The number of displayed entries for each player" category="Leaderboard - Table"]
 uint settingDisplayLeaderboardNumberRanks = 3;
 
+[Setting name="Display Latest Run" description="Show the player's latest run in the leaderboard" category="Leaderboard - Table"]
+bool settingDisplayLeaderboardLatest = true;
+
 [Setting name="Display Personal Best" description="Show the player's personal best in the leaderboard" category="Leaderboard - Table"]
 bool settingDisplayLeaderboardPersonalBest = true;
 
