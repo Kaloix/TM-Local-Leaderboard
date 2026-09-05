@@ -73,6 +73,8 @@ void OnSettingsChanged()
     InitRender();
     InitRows();
     InitCheckpointComparisons();
+
+    Statistics::StatisticsOnSettingsChanged();
 }
 
 void Update(float dt)
@@ -181,6 +183,8 @@ void OnMapLoad()
 
     InitRows();
 
+    Statistics::Init();
+
     GetNumberGlobalPositions();
     GetAtCpTimes();
     InitLiveDataAsync();
@@ -189,6 +193,7 @@ void OnMapLoad()
 void OnMapUnload()
 {
     SaveLeaderboard(g_State);
+    Statistics::Shutdown();
     g_State = State();
 }
 
@@ -263,6 +268,7 @@ void addNewRecord(const MLFeed::PlayerCpInfo_V4 @player)
     g_State.m_Leaderboard.addNewestRun(player);
     InitRows();
     SaveLeaderboard(g_State);
+    Statistics::Update();
 }
 
 void InitCheckpointComparisons()

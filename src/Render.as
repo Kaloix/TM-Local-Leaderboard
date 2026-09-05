@@ -12,6 +12,10 @@ void Render()
         LocalRecords::CurrentRun::renderCurrentRun();
     }
 
+    if (settingStatisticsShow)
+    {
+        LocalRecords::Statistics::Render();
+    }
 }
 
 enum LeaderboardSortType
@@ -142,7 +146,7 @@ void InitRows()
             continue;
 
         // Filter by the current session
-        if (settingFilterSessionCurrent && entry.m_SessionNumber != g_State.m_Leaderboard.m_TotalNumberSessions)
+        if (settingFilterSessionCurrent && entry.IsCurrentSession())
             continue;
 
         // Filter the number of ranks displayed for each player

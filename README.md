@@ -6,17 +6,11 @@ A Trackmania plugin adding a leaderboard for local records.
 
 ## Main Features
 - **Record History**: A table containing your previous and best times, not just your personal best.
+- **Statistics**: 
 - **Medals**: Support for all common medals.
 - **Your Potential**: Integration of no-respawn and best-checkpoint times. Shows the potential global position.
 - **Comparisons**: Detailed comparison of checkpoints and laps. Available for your own records and the AT.
 - **Customization**: Displaying exactly the information you want. Filtering and sorting of rows and columns. Creation of custom times and positions.
-
-## Future Plans
-Here a some of my ideas for future release that might or might not be implemented:
-
-- Show leaderboard statistics
-- Save statistics about sessions
-- Add support for multiple local players
 
 ## License
 LocalRecords is licensed under the [Apache-2.0 license](./LICENSE).

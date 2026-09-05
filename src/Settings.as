@@ -229,6 +229,24 @@ bool settingCurrentRunShowNumberRespawnsDelta = false;
 [Setting name="Show Number Respawns Position" category="Current Run - Table"]
 bool settingCurrentRunShowNumberRespawnsPosition = false;
 
+// Category Statistics
+[Setting name="Show" description="Show the statistics window" category="Statistics"]
+bool settingStatisticsShow = false;
+
+[Setting name="Hide With UI" description="Hide the statistics window when the game UI is hidden" category="Statistics"]
+bool settingStatisticsHideWithUi = true;
+
+[Setting name="Font Size" description="Font size for the statistics window" category="Statistics" min=1 max=64]
+int settingStatisticFontSize = 16;
+
+[Setting name="Display Title Bar" description="Show the title bar" category="Statistics"]
+bool settingStatisticsDisplayTitleBar = true;
+
+[Setting name="Background Transparency" description="Transparency of the statistics background" category="Statistics" min=0.0f max=1.0f]
+float settingStatisticsBackgroundTransparency = 1.0f;
+
+[Setting name="Average Interval" description="Number of runs to average over for the statistics" category="Statistics" min=1 max=100]
+uint settingsStatisticsAverageInterval = 10;
 
 // Category Debug
 [Setting name="Log Debug Info" description="Log debug information in the console" category="Debug"]

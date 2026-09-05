@@ -746,6 +746,11 @@ class LeaderboardEntry
         }
     }
 
+    bool IsCurrentSession() const
+    {
+        return m_SessionNumber == g_State.m_Leaderboard.m_TotalNumberSessions;
+    }
+
     uint GetLatestGlobalPosition() const
     {
         // Custom positions have the global position set
