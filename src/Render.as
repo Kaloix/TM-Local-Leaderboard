@@ -357,6 +357,9 @@ void Render()
     UI::End();
 
     UI::PopFontSize();
+
+    if (!open)
+        settingDisplayLeaderboardWindow = false;
 }
 
 void RenderLeaderboardTable()
