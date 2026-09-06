@@ -5,11 +5,11 @@ bool g_InitializedHooks = false;
 
 void UpdateHookSettings()
 {
-    if (g_InitializedHooks)
+    if (g_InitializedHooks || !settingEnableHooks)
     {
         UnloadHooks();
     }
-    else if (!g_InitializedHooks)
+    else if (!g_InitializedHooks && settingEnableHooks)
     {
         InitHooks();
     }

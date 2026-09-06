@@ -251,3 +251,6 @@ uint settingsStatisticsAverageInterval = 10;
 // Category Debug
 [Setting name="Log Debug Info" description="Log debug information in the console" category="Debug"]
 bool settingShowDebugInfo = false;
+
+[Setting name="Enable Hooks" description="Register hooks using MLHook." category="Debug"]
+bool settingEnableHooks = true;
