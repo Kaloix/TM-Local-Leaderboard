@@ -119,8 +119,9 @@ void InitTimeForEntry(LeaderboardEntry@ entry)
         return;
     
     const auto zoneId = GetCurrentZoneId();
-    const auto results = FetchRecords(entry.m_GlobalPosition, zoneId);
-    entry.AddGlobalTimeData(results, zoneId);
+    auto @result = @FetchRecords(entry.m_GlobalPosition, zoneId);
+
+    entry.AddGlobalTimeData(@result, zoneId);
 
     setMedal(entry);
     InitRows();
@@ -206,54 +207,60 @@ Json::Value@ DoRequest(Net::HttpRequest@ request)
     return request.Json();
 }
 
-array<int> FetchRecords(uint position, const string&in zoneId)
+GlobalTimeData@ FetchRecords(uint position, const string&in zoneId)
 {
-    if (zoneId == "301e1b69-7e13-11e8-8060-e284abfd2bc4") {
-        return FetchRecordsWorlds(position);
-    } else {
-        return FetchRecordsZone(position, zoneId);
-    }
+    GlobalTimeData@ result = zoneId == ZONE_WORLD ? FetchRecordsWorlds(position) : FetchRecordsZone(position, zoneId);
+    result.m_PlayerName = NadeoServices::GetDisplayNameAsync(result.m_PlayerId);
+    return result;
 }
 
-array<int> FetchRecordsWorlds(const uint position)
+GlobalTimeData@ FetchRecordsWorlds(const uint position)
 {
     const string url = "/api/token/leaderboard/group/Personal_Best/map/" + g_State.m_CurrentMap + "/top?length=" + 1 + "&onlyWorld=true&offset=" + (position - 1);
     const auto @response = FetchFromNadeoLiveApi(url);
 
     if (!response.HasKey("tops"))
-        return {0, 0};
+        return GlobalTimeData();
 
     const auto tops = response["tops"];
     if (tops.Length < 1)
-        return {0, 0};
+        return GlobalTimeData();
 
     const auto top = tops[0]["top"];
     if (top.Length < 1)
-        return {0, 0};
+        return GlobalTimeData();
 
-    return {top[0]["score"], top[0]["timestamp"]};
+    auto @result = GlobalTimeData();
+    result.m_PlayerId = top[0]["accountId"];
+    result.m_Time = top[0]["score"];
+    result.m_TimeStamp = top[0]["timestamp"];
+    return @result;
 }
 
-array<int> FetchRecordsZone(const uint position, const string&in zoneId)
+GlobalTimeData@ FetchRecordsZone(const uint position, const string&in zoneId)
 {
     if (position > 5)
-        return {0, 0};
+        return GlobalTimeData();
 
     string url = "/api/token/leaderboard/group/Personal_Best/map/" + g_State.m_CurrentMap + "/top?onlyWorld=false&zoneId=" + zoneId;
     const auto @response = FetchFromNadeoLiveApi(url);
 
     if (!response.HasKey("tops"))
-        return {0, 0};
+        return GlobalTimeData();
 
     const auto tops = response["tops"];
     if (tops.Length < 1)
-        return {0, 0};
+        return GlobalTimeData();
 
     const auto top = tops[0]["top"];
     if (top.Length < position - 1)
-        return {0, 0};
+        return GlobalTimeData();
 
-    return {top[position - 1]["score"], top[position - 1]["timestamp"]};
+    auto @result = GlobalTimeData();
+    result.m_PlayerId = top[position - 1]["accountId"];
+    result.m_Time = top[position - 1]["score"];
+    result.m_TimeStamp = top[position - 1]["timestamp"];
+    return @result;
 }
 
 array<Json::Value @> FetchForTimes(const array<int> time)

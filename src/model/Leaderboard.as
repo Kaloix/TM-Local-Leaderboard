@@ -874,14 +874,8 @@ class LeaderboardEntry
         return @regionPositionData.m_RegionTimes[regionPositionData.m_RegionTimes.Length - 1];
     }
 
-    void AddGlobalTimeData(const array<int> &in globalTimeData, const string &in zoneId)
+    void AddGlobalTimeData(GlobalTimeData@ newData, const string &in zoneId)
     {
-        if (globalTimeData.Length != 2)
-            return;
-
-        const int time = globalTimeData[0];
-        const int timestamp = globalTimeData[1];
-
         // Update the history
         const auto zoneName = GetZoneName(zoneId);
         auto @regionPositionData = GetRegionTimeData(zoneName);
@@ -896,7 +890,7 @@ class LeaderboardEntry
         if (regionPositionData.m_RegionTimes.Length > 0)
         {
             auto @lastEntry = regionPositionData.m_RegionTimes[regionPositionData.m_RegionTimes.Length - 1];
-            if (lastEntry.m_Time == time && lastEntry.m_TimeStamp == timestamp)
+            if (lastEntry.m_PlayerId == newData.m_PlayerId && lastEntry.m_Time == newData.m_Time && lastEntry.m_TimeStamp == newData.m_TimeStamp)
             {
                 return;
             }
@@ -910,13 +904,14 @@ class LeaderboardEntry
         if (existingEntry is null)
         {
             // Add a new entry to the history
-            @existingEntry = GlobalTimeData();
+            @existingEntry = @newData;
             existingEntry.m_IsCurrentSession = true;
             regionPositionData.m_RegionTimes.InsertLast(@existingEntry);
+        } else {
+            existingEntry.m_PlayerId = newData.m_PlayerId;
+            existingEntry.m_Time = newData.m_Time;
+            existingEntry.m_TimeStamp = newData.m_TimeStamp;
         }
-
-        existingEntry.m_Time = time;
-        existingEntry.m_TimeStamp = timestamp;
     }
 
     RegionTimeData @GetRegionTimeData(const string &in region) const
@@ -1001,6 +996,8 @@ class GlobalTimeData
 {
     int64 m_TimeStamp = 0;
     int m_Time = 0;
+    string m_PlayerId = "";
+    string m_PlayerName = "";
 
     bool m_IsCurrentSession = false;
 }

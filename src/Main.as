@@ -32,7 +32,8 @@ void OnSettingsChanged()
 namespace LocalRecords
 {
 
-int MAX_INT = 2147483647;
+const int MAX_INT = 2147483647;
+const string ZONE_WORLD = "301e1b69-7e13-11e8-8060-e284abfd2bc4";
 
 State g_State = State();
 array<LeaderboardEntry @> g_CustomPositionEntries;
@@ -56,6 +57,10 @@ void Init()
     if (!Permissions::ViewRecords())
     {
         UI::ShowNotification(Icons::ExclamationTriangle + "Local Records", "Not allowed to view records, Global records are disabled.", vec4(1.0, 0.6, 0.0, 1.0));
+    }
+    if (!Permissions::PlayRecords())
+    {
+        UI::ShowNotification(Icons::ExclamationTriangle + "Local Records", "Not allowed to play records, Watching ghosts and replay are disabled.", vec4(1.0, 0.6, 0.0, 1.0));
     }
 
 }

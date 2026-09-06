@@ -21,6 +21,7 @@ array<TableColumn @> g_AllTableColumns = {
     // version 0.2.0
     LocalPercentageColumn(),
     DisplayNameColumn(),
+    ReplayColumn(),
 };
 
 enum TableColumnType
@@ -44,6 +45,7 @@ enum TableColumnType
     // version 0.2.0
     LocalPercentageColumn,
     DisplayNameColumn,
+    ReplayColumn,
 }
 
 string TableColumnTypeToString(const TableColumnType type)
@@ -67,6 +69,7 @@ string TableColumnTypeToString(const TableColumnType type)
         case TableColumnType::TimeSinceColumn:       return "TimeSinceColumn";
         case TableColumnType::LocalPercentageColumn: return "LocalPercentageColumn";
         case TableColumnType::DisplayNameColumn:     return "DisplayNameColumn";
+        case TableColumnType::ReplayColumn:          return "ReplayColumn";
     }
     return "";
 }
@@ -90,6 +93,7 @@ TableColumnType StringToTableColumnType(const string&in value)
     if (value == "TimeSinceColumn")        return TableColumnType::TimeSinceColumn;
     if (value == "LocalPercentageColumn")  return TableColumnType::LocalPercentageColumn;
     if (value == "DisplayNameColumn")      return TableColumnType::DisplayNameColumn;
+    if (value == "ReplayColumn")           return TableColumnType::ReplayColumn;
 
     LogWarning("Unknown TableColumnType string: " + value);
     return TableColumnType::MedalColumn;
@@ -643,6 +647,88 @@ class DisplayNameColumn : TableColumn
     string GetBodyValue(const TableRenderContext&in context) const override
     {
         return context.m_CurrentEntry.GetDisplayName();
+    }
+}
+
+class ReplayColumn : TableColumn
+{
+    bool GetDefaultShow() override
+    {
+        return false;
+    }
+    TableColumnType GetType() const override
+    {
+        return TableColumnType::ReplayColumn;
+    }
+    string GetName() const override
+    {
+        return "Replay";
+    }
+    void renderBody(TableRenderContext&inout context) const override {
+        if (!Permissions::PlayRecords())
+            return;
+
+        auto @entry = @context.m_CurrentEntry;
+        if (entry.m_Type == LeaderboardEntryType::CustomPosition)
+            CustomPositionReplay(entry.GetLatestGlobalTimeData());
+        else if (context.m_IsPlayerBest)
+            PbReplay();
+    }
+
+    void PbReplay()
+    {
+        const auto @raceData = @MLFeed::GetRaceData_V4();
+        const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
+        Replay(player.WebServicesUserId, player.NameMwId.GetName());
+
+        // TODO handle PB ghost and Ghost++
+        auto a = "$7FAPersonal best";
+    }
+
+    void CustomPositionReplay(const GlobalTimeData@ globalTimeData)
+    {
+        if (globalTimeData is null || globalTimeData.m_PlayerId == "" || globalTimeData.m_PlayerName == "")
+            return;
+        Replay(globalTimeData.m_PlayerId, globalTimeData.m_PlayerName);
+    }
+
+    void Replay(const string &in playerId, const string &in playerName)
+    {
+        // Determine if the player ghost is enabled
+        CGameManiaAppPlayground @playground = @GetApp().Network.ClientManiaAppPlayground;
+        bool ghostEnabled = false;
+        for (uint i = 0; i < playground.DataFileMgr.Ghosts.Length; ++i)
+        {
+            if (playground.DataFileMgr.Ghosts[i].Nickname == playerName)
+            {
+                ghostEnabled = true;
+                break;
+            }
+        }
+
+        // Determine if currently a replay is watched
+        bool replayEnabled = false;
+        auto @currentReplay = VehicleState::GetViewingPlayer();
+        if (currentReplay is null)
+            replayEnabled = true;
+
+        // Ghost toggle
+        const auto ghostIcon = (ghostEnabled && !replayEnabled) ? Icons::Eye : Icons::EyeSlash;
+        UI::Text(ghostIcon);
+        if (UI::IsItemClicked())
+        {
+            MLHook::Queue_SH_SendCustomEvent("TMGame_Record_ToggleGhost", {playerId});
+        }
+
+        UI::SameLine();
+
+        // Replay Toggle
+        const auto replayIcon = (ghostEnabled && replayEnabled) ? Icons::Stop : Icons::Play;
+        UI::Text(replayIcon);
+        if (UI::IsItemClicked())
+        {
+            MLHook::Queue_SH_SendCustomEvent("TMGame_Record_SpectateGhost", {playerId});
+        }
     }
 }
 

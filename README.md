@@ -6,7 +6,6 @@ A Trackmania plugin adding a leaderboard for local records.
 
 ## Main Features
 - **Record History**: A table containing your previous and best times, not just your personal best.
-- **Statistics**: 
 - **Medals**: Support for all common medals.
 - **Your Potential**: Integration of no-respawn and best-checkpoint times. Shows the potential global position.
 - **Comparisons**: Detailed comparison of checkpoints and laps. Available for your own records and the AT.
