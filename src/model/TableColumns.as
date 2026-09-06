@@ -188,6 +188,10 @@ class TableColumn
     {
         return "";
     }
+    bool EnableMouseInteraction() const
+    {
+        return true;
+    }
     string GetHeaderValue() const
     {
         return GetName();
@@ -663,6 +667,10 @@ class ReplayColumn : TableColumn
     string GetName() const override
     {
         return "Replay";
+    }
+    bool EnableMouseInteraction() const override
+    {
+        return false;
     }
     void renderBody(TableRenderContext&inout context) const override {
         if (!Permissions::PlayRecords())

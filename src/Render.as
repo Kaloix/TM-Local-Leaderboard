@@ -401,8 +401,11 @@ void RenderLeaderboardTable()
             UI::TableNextColumn();
             g_TableColumns[col].renderBody(context);
 
-            isRowHovered = isRowHovered || UI::IsItemHovered();
-            isRowClicked = isRowClicked || UI::IsItemClicked();
+            if (g_TableColumns[col].EnableMouseInteraction())
+            {
+                isRowHovered = isRowHovered || UI::IsItemHovered();
+                isRowClicked = isRowClicked || UI::IsItemClicked();
+            }
         }
 
         if (isRowClicked)
