@@ -162,6 +162,22 @@ void Update(float dt)
         OnPlayerFinish();
         g_State.m_IsPlayerFinishHandled = true;
     }
+
+    // Determine if the replay has stopped
+    if (g_State.m_ActiveReplay != "")
+    {
+        auto @currentReplay = VehicleState::GetViewingPlayer();
+        if (currentReplay is null)
+        {
+            g_State.m_TogglingGhost = true;
+        }
+
+        if (currentReplay !is null && g_State.m_TogglingGhost)
+        {
+            g_State.m_ActiveReplay = "";
+            g_State.m_TogglingGhost = false;
+        }
+    }
 }
 
 void OnMapLoad()
@@ -169,6 +185,10 @@ void OnMapLoad()
     CGameCtnApp @app = GetApp();
     auto @map = @app.RootMap;
     const auto @raceData = @MLFeed::GetRaceData_V4();
+    const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
+
+    // g_State.m_PlayerName = player.NameMwId.GetName();
+    g_State.m_PlayerWebServicesId = player.WebServicesUserId;
 
     g_State.m_CurrentMap = map.IdName;
     g_State.m_CurrentMapName = map.MapName;
@@ -396,6 +416,14 @@ class State
     array<LeaderboardEntry @> m_CustomTimeEntries;
     array<LeaderboardEntry @> m_CustomPositionEntries;
 
+    // string m_PlayerName = "";
+    string m_PlayerWebServicesId = "";
+
+    array<string> m_ActiveGhosts;
+    string m_ActiveReplay = "";
+    bool m_TogglingGhost = false;
+
+
     uint64 GetSessionTime() const
     {
         return Time::get_Now() - m_SessionStartTime;
@@ -454,7 +482,7 @@ class State
             LeaderboardEntry@ entry = @m_CustomTimeEntries[i];
             if (entry.m_Id == id)
             {
-                return entry;
+                return @entry;
             }
         }
         return null;
@@ -537,7 +565,7 @@ class State
             LeaderboardEntry@ entry = @g_CustomPositionEntries[i];
             if (entry.m_Id == id)
             {
-                return entry;
+                return @entry;
             }
         }
         return null;

@@ -210,7 +210,7 @@ Json::Value@ DoRequest(Net::HttpRequest@ request)
 GlobalTimeData@ FetchRecords(uint position, const string&in zoneId)
 {
     GlobalTimeData@ result = zoneId == ZONE_WORLD ? FetchRecordsWorlds(position) : FetchRecordsZone(position, zoneId);
-    result.m_PlayerName = NadeoServices::GetDisplayNameAsync(result.m_PlayerId);
+    // result.m_PlayerName = NadeoServices::GetDisplayNameAsync(result.m_PlayerId);
     return result;
 }
 

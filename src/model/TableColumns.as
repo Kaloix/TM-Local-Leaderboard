@@ -677,61 +677,48 @@ class ReplayColumn : TableColumn
             return;
 
         auto @entry = @context.m_CurrentEntry;
-        if (entry.m_Type == LeaderboardEntryType::CustomPosition)
-            CustomPositionReplay(entry.GetLatestGlobalTimeData());
-        else if (context.m_IsPlayerBest)
+        if (context.m_IsPlayerBest)
             PbReplay();
+        else
+        {
+            const auto @a = @entry.GetLatestGlobalTimeData();
+            if (a !is null)
+                CustomPositionReplay(@a);
+        }
     }
 
     void PbReplay()
     {
-        const auto @raceData = @MLFeed::GetRaceData_V4();
-        const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
-        Replay(player.WebServicesUserId, player.NameMwId.GetName());
-
-        // TODO handle PB ghost and Ghost++
-        auto a = "$7FAPersonal best";
+        Replay(g_State.m_PlayerWebServicesId);
     }
 
     void CustomPositionReplay(const GlobalTimeData@ globalTimeData)
     {
-        if (globalTimeData is null || globalTimeData.m_PlayerId == "" || globalTimeData.m_PlayerName == "")
+        if (globalTimeData is null || globalTimeData.m_PlayerId == "")
             return;
-        Replay(globalTimeData.m_PlayerId, globalTimeData.m_PlayerName);
+        Replay(globalTimeData.m_PlayerId);
     }
 
-    void Replay(const string &in playerId, const string &in playerName)
+    void Replay(const string &in playerId)
     {
         // Determine if the player ghost is enabled
-        CGameManiaAppPlayground @playground = @GetApp().Network.ClientManiaAppPlayground;
-        bool ghostEnabled = false;
-        for (uint i = 0; i < playground.DataFileMgr.Ghosts.Length; ++i)
-        {
-            if (playground.DataFileMgr.Ghosts[i].Nickname == playerName)
-            {
-                ghostEnabled = true;
-                break;
-            }
-        }
-
-        // Determine if currently a replay is watched
-        bool replayEnabled = false;
-        auto @currentReplay = VehicleState::GetViewingPlayer();
-        if (currentReplay is null)
-            replayEnabled = true;
+        const int ghostIndex = g_State.m_ActiveGhosts.Find(playerId);
+        const bool ghostEnabled = ghostIndex != -1;
 
         // Ghost toggle
-        const auto ghostIcon = (ghostEnabled && !replayEnabled) ? Icons::Eye : Icons::EyeSlash;
+        const auto ghostIcon = ghostEnabled ? Icons::Eye : Icons::EyeSlash;
         UI::Text(ghostIcon);
         if (UI::IsItemClicked())
         {
+            // The event is sent twice when using the leaderboard
+            toggleHook.m_FirstCall = true;
             MLHook::Queue_SH_SendCustomEvent("TMGame_Record_ToggleGhost", {playerId});
         }
 
         UI::SameLine();
 
         // Replay Toggle
-        const auto replayIcon = (ghostEnabled && replayEnabled) ? Icons::Stop : Icons::Play;
+        const auto replayIcon = (g_State.m_ActiveReplay == playerId) ? Icons::Stop : Icons::Play;
         UI::Text(replayIcon);
         if (UI::IsItemClicked())
         {

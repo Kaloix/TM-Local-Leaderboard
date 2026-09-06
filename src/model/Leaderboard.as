@@ -866,7 +866,7 @@ class LeaderboardEntry
     GlobalTimeData @GetLatestGlobalTimeData() const
     {
         const auto zoneName = GetCurrentZoneName();
-        auto @regionPositionData = GetRegionTimeData(zoneName);
+        auto @regionPositionData = @GetRegionTimeData(zoneName);
 
         if (regionPositionData is null || regionPositionData.m_RegionTimes.Length == 0)
             return null;
@@ -997,7 +997,7 @@ class GlobalTimeData
     int64 m_TimeStamp = 0;
     int m_Time = 0;
     string m_PlayerId = "";
-    string m_PlayerName = "";
+    // string m_PlayerName = "";
 
     bool m_IsCurrentSession = false;
 }
