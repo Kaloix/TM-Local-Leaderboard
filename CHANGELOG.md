@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [v0.2.0] - TBA
 
 ### Added
+- Added support for ghosts and replays
 - Added support for zones
 - Added statistics window for the current run
 - Added statistics about number of runs and time spent on the map
