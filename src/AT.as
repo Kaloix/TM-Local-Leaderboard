@@ -43,7 +43,7 @@ main() {
 """;
 
 void InitHooks() {
-    if (!settingReadATCpTimes)
+    if (!settingEnableHooks)
         return;
 
     LogDebug("MLHook found. Setting up hooks...");
