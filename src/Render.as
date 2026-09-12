@@ -491,7 +491,10 @@ void RenderDetail(const LeaderboardRenderRow &in renderRow, bool &out shouldUpda
     // Actions
     UI::BeginDisabled(renderRow.m_Entry.m_Type == LeaderboardEntryType::Medal);
     if (UI::Button(Icons::Trash))
+    {
         g_State.m_Leaderboard.MarkForRemoval(@renderRow.m_Entry);
+        g_OpenDetails = -1;
+    }
     UI::EndDisabled();
 
     UI::SameLine();
