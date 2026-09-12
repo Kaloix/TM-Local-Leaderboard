@@ -393,10 +393,10 @@ void Render()
     if (settingDisplayLeaderboardZoneSelection && g_Zones.Length > 0)
     {
         if (UI::Button(Icons::ChevronLeft))
-            SetZone(g_CurrentZoneIndex == 0 ? g_Zones.Length - 1 : g_CurrentZoneIndex - 1);
+            SetZone((g_CurrentZoneIndex + 1) % g_Zones.Length);
         UI::SameLine();
         if(UI::Button(Icons::ChevronRight))
-            SetZone((g_CurrentZoneIndex + 1) % g_Zones.Length);
+            SetZone(g_CurrentZoneIndex == 0 ? g_Zones.Length - 1 : g_CurrentZoneIndex - 1);
         UI::SameLine();
         UI::Text(GetCurrentZoneName());
     }
