@@ -217,13 +217,19 @@ class Leaderboard
         }
 
         // Remove the entry from the leaderboard
-        for (uint i = 0; i < m_Entries.Length; i++)
+        uint i = 0;
+        for (; i < m_Entries.Length; i++)
         {
             if (m_Entries[i].m_Id == entry.m_Id)
             {
                 m_Entries.RemoveAt(i);
                 break;
             }
+        }
+        // Update ranks
+        for (; i < m_Entries.Length; ++i)
+        {
+            m_Entries[i].m_Rank -= 1;
         }
 
         // Update newest run
