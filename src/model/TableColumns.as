@@ -659,7 +659,7 @@ class ReplayColumn : TableColumn
         else
         {
             const auto @timeData = @renderRow.m_Entry.GetLatestGlobalTimeData();
-            if (timeData !is null)
+            if (timeData !is null && timeData.m_Time > 0)
                 CustomPositionReplay(@timeData);
         }
     }
