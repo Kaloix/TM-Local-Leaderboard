@@ -12,6 +12,9 @@ bool settingUseNadeoApi = true;
 [Setting name="Read AT CP Times" description="If the plugin should read the checkpoint times from the AT plugin. Requires MLHook." category="Data"]
 bool settingReadATCpTimes = true;
 
+[Setting name="Load reference ghosts" description="Load ghost for the estimated position of medals, no-respawn times, and custom times." category="Data"]
+bool settingReferenceGhosts = true;
+
 // Category Leaderboard - Window
 [Setting name="Display Leaderboard Window" description="Show the leaderboard UI" category="Leaderboard - Window"]
 bool settingDisplayLeaderboardWindow = true;

@@ -831,6 +831,13 @@ class LeaderboardEntry
             existingEntry.m_GlobalPositionTotalPlayers = g_State.m_NumberGlobalPositions;
             existingEntry.m_GlobalPositionPercentile = g_State.m_NumberGlobalPositions > 0 ? float(position) / float(g_State.m_NumberGlobalPositions) : 0.0f;
             existingEntry.m_TimeStamp = Time::get_Stamp();
+
+            if (settingReferenceGhosts && region == "World")
+            {
+                m_GlobalPosition = position;
+                InitTimeForEntry(@this);
+                m_GlobalPosition = 0;
+            }
         }
     }
 
