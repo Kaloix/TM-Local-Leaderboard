@@ -194,23 +194,26 @@ class TableColumn
     }
     string GetHeaderValue() const
     {
-        return GetName();
+        return GetName() + "##" + int(GetType());
     }
-    string GetBodyValue(const TableRenderContext&in context) const
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const
     {
         return "";
+    }
+    void PrepareBodyCell(const LeaderboardRenderRow &in renderRow, LeaderboardRenderCell &inout renderCell) const
+    {
+        renderCell.m_Value = GetBodyValue(renderRow);
+        renderCell.m_FontColor = GetRowColor(renderRow);
+    }
+    void RenderBodyCell(const LeaderboardRenderRow &in renderRow, const LeaderboardRenderCell &in renderCell) const
+    {
+        UI::PushStyleColor(UI::Col::Text, renderCell.m_FontColor);
+        UI::Text(renderCell.m_Value);
+        UI::PopStyleColor();
     }
     bool shouldDisplay() const
     {
         return m_Show;
-    }
-    void setup(const uint index) const
-    {
-        UI::TableSetupColumn(GetHeaderValue() + "##" + index, UI::TableColumnFlags::WidthFixed);
-    }
-    void renderBody(TableRenderContext &inout context) const
-    {
-        renderText(context, GetBodyValue(context));
     }
 }
 
@@ -228,9 +231,9 @@ class RankColumn : TableColumn
     {
         return Icons::Trophy;
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        return context.m_CurrentEntry.GetDisplayRank();
+        return renderRow.m_Entry.GetDisplayRank();
     }
 }
 
@@ -248,9 +251,9 @@ class GlobalPositionColumn : TableColumn
     {
         return Icons::Globe;
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        return formatPosition(context.m_CurrentEntry.GetLatestGlobalPosition());
+        return formatPosition(renderRow.m_Entry.GetLatestGlobalPosition());
     }
 }
 
@@ -268,12 +271,12 @@ class LocalPercentageColumn : TableColumn
     {
         return Icons::Desktop + " %";
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        if (g_State.m_Leaderboard.m_TotalNumberFinishes <= 0 || context.m_CurrentEntry.m_Rank <= 0)
+        if (g_State.m_Leaderboard.m_TotalNumberFinishes <= 0 || renderRow.m_Entry.m_Rank <= 0)
             return "";
         else
-            return formatPercentile(float(context.m_CurrentEntry.m_Rank) / float(g_State.m_Leaderboard.m_TotalNumberFinishes));
+            return formatPercentile(float(renderRow.m_Entry.m_Rank) / float(g_State.m_Leaderboard.m_TotalNumberFinishes));
     }
 }
 
@@ -291,12 +294,12 @@ class GlobalPercentageColumn : TableColumn
     {
         return Icons::Globe + " %";
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        if (g_State.m_NumberGlobalPositions == 0 || context.m_CurrentEntry.GetLatestGlobalPosition() <= 0)
+        if (g_State.m_NumberGlobalPositions == 0 || renderRow.m_Entry.GetLatestGlobalPosition() <= 0)
             return "";
         else
-            return formatPercentile(float(context.m_CurrentEntry.GetLatestGlobalPosition()) / float(g_State.m_NumberGlobalPositions));
+            return formatPercentile(float(renderRow.m_Entry.GetLatestGlobalPosition()) / float(g_State.m_NumberGlobalPositions));
     }
 }
 
@@ -314,20 +317,13 @@ class MedalColumn : TableColumn
     {
         return "";
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    void PrepareBodyCell(const LeaderboardRenderRow &in renderRow, LeaderboardRenderCell &inout renderCell) const override
     {
-        return context.m_CurrentEntry.GetDisplayIcon();
-    }
-    void renderBody(TableRenderContext&inout context) const override
-    {
-        // Medal can be null if the record was too slow
-        if (context.m_CurrentEntry.m_Medal !is null)
-            UI::PushStyleColor(UI::Col::Text, vec4(context.m_CurrentEntry.m_Medal.GetIconColor(), 1));
-
-        UI::Text(GetBodyValue(context));
-
-        if (context.m_CurrentEntry.m_Medal !is null)
-            UI::PopStyleColor();
+        renderCell.m_Value = renderRow.m_Entry.GetDisplayIcon();
+        if (renderRow.m_Entry.m_Medal !is null)
+        {
+            renderCell.m_FontColor = vec4(renderRow.m_Entry.m_Medal.GetIconColor(), 1);
+        }
     }
 }
 
@@ -341,19 +337,19 @@ class TimeColumn : TableColumn
     {
         return "Time";
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        const auto time = GetTime(context);
+        const auto time = GetTime(renderRow);
         if (time > 0)
-            return Time::Format(GetTime(context), ShowFractions());
+            return Time::Format(time, ShowFractions());
         else if (time < 0)
             return Icons::EyeSlash;
         else
             return "";
     }
-    int64 GetTime(TableRenderContext&in context) const
+    int64 GetTime(const LeaderboardRenderRow&in renderRow) const
     {
-        return context.m_CurrentEntry.GetDisplayTime();
+        return renderRow.m_Entry.GetDisplayTime();
     }
     bool ShowFractions()
     {
@@ -375,9 +371,9 @@ class PlayerColumn : TableColumn
     {
         return "Player";
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        return context.m_CurrentEntry.GetPlayerDisplayName();
+        return renderRow.m_Entry.GetPlayerDisplayName();
     }
 }
 
@@ -393,40 +389,21 @@ class TimeDeltaColumn : TableColumn
     {
         return "Delta";
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    void PrepareBodyCell(const LeaderboardRenderRow &in renderRow, LeaderboardRenderCell &inout renderCell) const override
     {
-        bool showDelta = m_ComparisonTarget !is null && m_ComparisonTarget.IsAvailable() && context.m_CurrentEntry.GetDisplayTime() > 0;
-        if (context.m_CurrentEntry.GetDisplayTime() <= 0 || !showDelta)
+        bool showDelta = m_ComparisonTarget !is null && m_ComparisonTarget.IsAvailable() && renderRow.m_Entry.GetDisplayTime() > 0;
+        if (renderRow.m_Entry.GetDisplayTime() <= 0 || !showDelta)
         {
-            return "";
+            return;
         }
-
-        if (context.m_CurrentEntry is m_ComparisonTarget.GetComparisonTargetEntry())
+        if (renderRow.m_Entry is m_ComparisonTarget.GetComparisonTargetEntry())
         {
-            return "";
-        }
-        else
-        {
-            return "" + (context.m_CurrentEntry.GetDisplayTime() - m_ComparisonTarget.GetTime());
-        }
-    }
-    void renderBody(TableRenderContext&inout context) const override
-    {
-        bool showDelta = m_ComparisonTarget !is null && m_ComparisonTarget.IsAvailable() && context.m_CurrentEntry.GetDisplayTime() > 0;
-        if (context.m_CurrentEntry.GetDisplayTime() <= 0 || !showDelta)
-        {
-            UI::Text("");
             return;
         }
 
-        if (context.m_CurrentEntry is m_ComparisonTarget.GetComparisonTargetEntry())
-        {
-            UI::Text("");
-        }
-        else
-        {
-            renderDelta(context.m_CurrentEntry.GetDisplayTime() - m_ComparisonTarget.GetTime());
-        }
+        const int delta = renderRow.m_Entry.GetDisplayTime() - m_ComparisonTarget.GetTime(); 
+        renderCell.m_Value = GetDeltaString(delta);
+        renderCell.m_FontColor = GetDeltaColor(delta);
     }
 }
 
@@ -444,9 +421,9 @@ class TimeNoRespawnColumn : TableColumn
     {
         return "Copium";
     }
-    string GetBodyValue(const TableRenderContext&in context) const override {
-        if (context.m_CurrentEntry.m_Type == LeaderboardEntryType::Score && context.m_CurrentEntry.m_NumberRespawns != 0)
-            return Time::Format(context.m_CurrentEntry.m_TimeNoRespawn);
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override {
+        if (renderRow.m_Entry.m_Type == LeaderboardEntryType::Score && renderRow.m_Entry.m_NumberRespawns != 0)
+            return Time::Format(renderRow.m_Entry.m_TimeNoRespawn);
         else
             return "";
     }
@@ -470,10 +447,10 @@ class NumberRespawnsColumn : TableColumn
     {
         return Icons::Refresh;
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        if (context.m_CurrentEntry.m_NumberRespawns != 0)
-            return "" + context.m_CurrentEntry.m_NumberRespawns;
+        if (renderRow.m_Entry.m_NumberRespawns != 0)
+            return "" + renderRow.m_Entry.m_NumberRespawns;
         else
             return "";
     }
@@ -497,10 +474,10 @@ class ScoreNumberColumn : TableColumn
     {
         return "No.";
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        if (context.m_CurrentEntry.m_ScoreNumber > 0)
-            return  "" + context.m_CurrentEntry.m_ScoreNumber;
+        if (renderRow.m_Entry.m_ScoreNumber > 0)
+            return  "" + renderRow.m_Entry.m_ScoreNumber;
         else
             return "";
     }
@@ -524,10 +501,10 @@ class SessionNumberColumn : TableColumn
     {
         return "S";
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        if (context.m_CurrentEntry.m_SessionNumber > 0)
-            return "" + context.m_CurrentEntry.m_SessionNumber;
+        if (renderRow.m_Entry.m_SessionNumber > 0)
+            return "" + renderRow.m_Entry.m_SessionNumber;
         else
             return "";
     }
@@ -547,9 +524,9 @@ class TimestampColumn : TableColumn
     {
         return "Timestamp";
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        return formatTimestamp(context.m_CurrentEntry.m_TimeStamp);
+        return formatTimestamp(renderRow.m_Entry.m_TimeStamp);
     }
 }
 
@@ -571,9 +548,9 @@ class TotalTimeColumn : TimeColumn
     {
         return "Tot. T.";
     }
-    int64 GetTime(TableRenderContext&in context) const override
+    int64 GetTime(const LeaderboardRenderRow&in renderRow) const override
     {
-        return context.m_CurrentEntry.m_TimeInTotal;
+        return renderRow.m_Entry.m_TimeInTotal;
     }
 }
 
@@ -595,9 +572,9 @@ class SessionTimeColumn : TimeColumn
     {
         return "Ses. T.";
     }
-    int64 GetTime(TableRenderContext&in context) const override
+    int64 GetTime(const LeaderboardRenderRow&in renderRow) const override
     {
-        return context.m_CurrentEntry.m_TimeInSession;
+        return renderRow.m_Entry.m_TimeInSession;
     }
 }
 
@@ -619,14 +596,14 @@ class TimeSinceColumn : TimeColumn
     {
         return "Since";
     }
-    int64 GetTime(TableRenderContext&in context) const override
+    int64 GetTime(const LeaderboardRenderRow&in renderRow) const override
     {
-        if (context.m_CurrentEntry.m_TimeStamp <= 0)
+        if (renderRow.m_Entry.m_TimeStamp <= 0)
         {
             return 0;
         }
 
-        return (g_State.m_Leaderboard.m_TotalTime - context.m_CurrentEntry.m_TimeInTotal);
+        return (g_State.m_Leaderboard.m_TotalTime - renderRow.m_Entry.m_TimeInTotal);
     }
     bool ShowFractions() override
     {
@@ -648,9 +625,9 @@ class DisplayNameColumn : TableColumn
     {
         return "Display Name";
     }
-    string GetBodyValue(const TableRenderContext&in context) const override
+    string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        return context.m_CurrentEntry.GetDisplayName();
+        return renderRow.m_Entry.GetDisplayName();
     }
 }
 
@@ -672,18 +649,18 @@ class ReplayColumn : TableColumn
     {
         return false;
     }
-    void renderBody(TableRenderContext&inout context) const override {
+    void RenderBodyCell(const LeaderboardRenderRow &in renderRow, const LeaderboardRenderCell &in renderCell) const override
+    {
         if (!Permissions::PlayRecords())
             return;
 
-        auto @entry = @context.m_CurrentEntry;
-        if (context.m_IsPlayerBest)
+        if (renderRow.m_IsPlayerBest)
             PbReplay();
         else
         {
-            const auto @a = @entry.GetLatestGlobalTimeData();
-            if (a !is null)
-                CustomPositionReplay(@a);
+            const auto @timeData = @renderRow.m_Entry.GetLatestGlobalTimeData();
+            if (timeData !is null)
+                CustomPositionReplay(@timeData);
         }
     }
 
