@@ -499,7 +499,8 @@ class Leaderboard
         array<array<int> @> @a = @m_SortedCheckpoints[uint(comparisonType)];
         a.RemoveRange(0, a.Length);
 
-        for (uint i = 0; i <= g_State.m_CurrentMapCpCount; i++)
+        const uint numberCps = (g_State.m_CurrentMapCpCount + 1) * g_State.m_CurrentMapLapCount;
+        for (uint i = 0; i < numberCps; i++)
         {
             a.InsertLast(array<int>());
         }
