@@ -80,6 +80,7 @@ void OnSettingsChanged()
     InitCheckpointComparisons();
 
     Statistics::StatisticsOnSettingsChanged();
+    CurrentRun::CurrentRunOnSettingsChanged();
 }
 
 void Update(float dt)
@@ -150,11 +151,13 @@ void Update(float dt)
     if (player.IsSpawned && currentCp != int(g_State.m_CurrentCheckpoints.Length) && currentCp != 0)
     {
         OnReachingCheckpoint(currentCp);
-        if (currentCp == int((g_State.m_CurrentMapCpCount + 1) * g_State.m_CurrentMapLapCount))
+        if (currentCp == int(g_State.GetCurrentMapTotalCpCount()))
         {
             OnPlayerFinish();
         }
     }
+
+    CurrentRun::OnUpdate();
 
     // Determine if the replay has stopped
     if (g_State.m_ActiveReplay != "")
@@ -202,6 +205,7 @@ void OnMapLoad()
     InitRows();
 
     Statistics::Init();
+    CurrentRun::PrepareCurrentRun();
 
     GetNumberGlobalPositions();
     GetAtCpTimes();
@@ -211,6 +215,7 @@ void OnMapLoad()
 void OnMapUnload()
 {
     SaveLeaderboard(g_State);
+    CurrentRun::Shutdown();
     Statistics::Shutdown();
     g_State = State();
 }
@@ -222,6 +227,8 @@ void OnStart()
 
     const LeaderboardEntry @comparisonTarget = @(cast<TimeDeltaColumn>(GetTableColumnByType(TableColumnType::TimeDeltaColumn))).m_ComparisonTarget.GetComparisonTargetEntry();
     g_State.m_CurrentRunComparisonCheckpoints = comparisonTarget !is null ? comparisonTarget.m_Checkpoints : array<CheckpointData@>();
+
+    CurrentRun::PrepareCurrentRun();
 }
 
 void OnReachingCheckpoint(int checkpoint)
@@ -246,6 +253,8 @@ void OnReachingCheckpoint(int checkpoint)
     cpData.m_NumberRespawns = player.NbRespawnsByCp[checkpoint - 1];
 
     AddLap(checkpoint, cpData, g_State.m_CurrentCheckpoints, g_State.m_CurrentLaps);
+
+    CurrentRun::PrepareCurrentRun();
 }
 
 void AddLap(const int checkpointIndex, const CheckpointData&in currentCp, const array<CheckpointData@>&in checkpoints, array<LapData@>&inout laps)
@@ -419,6 +428,11 @@ class State
     uint64 GetSessionTime() const
     {
         return Time::get_Now() - m_SessionStartTime;
+    }
+
+    uint GetCurrentMapTotalCpCount()
+    {
+        return (m_CurrentMapCpCount + 1) * m_CurrentMapLapCount;
     }
 
     void ResetData()

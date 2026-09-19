@@ -923,10 +923,20 @@ void renderDelta(int delta)
     UI::PopStyleColor();
 }
 
+vec4 GetDeltaSpeedColor(int delta)
+{
+    return delta < 0 ? vec4(settingColorDeltaWorse, 1) : (delta > 0 ? vec4(settingColorDeltaBetter, 1) : vec4(settingColorDeltaEqual, 1));
+}
+
+string GetDeltaSpeedString(int delta)
+{
+    return (delta > 0 ? "+" : (delta < 0 ? "" : "±")) + delta;
+}
+
 void renderDeltaSpeed(int delta)
 {
-    auto deltaColor = delta < 0 ? vec4(settingColorDeltaWorse, 1) : (delta > 0 ? vec4(settingColorDeltaBetter, 1) : vec4(settingColorDeltaEqual, 1));
-    string deltaStr = (delta > 0 ? "+" : (delta < 0 ? "" : "±")) + delta;
+    auto deltaColor = GetDeltaSpeedColor(delta);
+    string deltaStr = GetDeltaSpeedString(delta);
 
     UI::PushStyleColor(UI::Col::Text, deltaColor);
     UI::Text(deltaStr);
@@ -935,8 +945,8 @@ void renderDeltaSpeed(int delta)
 
 void renderDeltaRespawns(int delta)
 {
-    auto deltaColor = delta < 0 ? vec4(settingColorDeltaBetter, 1) : (delta > 0 ? vec4(settingColorDeltaWorse, 1) : vec4(settingColorDeltaEqual, 1));
-    string deltaStr = (delta > 0 ? "+" : (delta < 0 ? "" : "±")) + delta;
+    auto deltaColor = GetDeltaColor(delta);
+    string deltaStr = GetDeltaSpeedString(delta);
 
     UI::PushStyleColor(UI::Col::Text, deltaColor);
     UI::Text(deltaStr);
