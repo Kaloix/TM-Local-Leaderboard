@@ -187,7 +187,7 @@ void OnMapLoad()
     g_State.m_CurrentMapName = map.MapName;
     g_State.m_CurrentMapAuthor = map.AuthorNickName;
     g_State.m_CurrentMapCpCount = raceData.CpCount;
-    g_State.m_CurrentMapLapCount = raceData.LapCount;
+    g_State.m_CurrentMapLapCount = (raceData.LapCount > 1) ? raceData.LapCount : 1;
 
     LoadLeaderboard(g_State);
     InitCheckpointComparisons();

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.2.1] - Unreleased
+
+### Fixed
+- Fixed multi laps are not shown in the current run info
+- Fixed initialization of sorted checkpoints for multi lap maps
+- Improved detection of reaching the finish
+- Fixed compiler warnings
+
 ## [v0.2.0] - 2026-09-12
 
 ### Added

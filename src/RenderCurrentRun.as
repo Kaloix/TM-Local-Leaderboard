@@ -192,28 +192,44 @@ void renderCurrentRunInfo()
     const auto @raceData = @MLFeed::GetRaceData_V4();
     const auto @player = @raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
 
-    // CPs
-    for (uint i = 0; i <= g_State.m_CurrentMapCpCount; ++i)
+    for (uint lapIndex = 0; lapIndex < g_State.m_CurrentMapLapCount; ++lapIndex)
+    {
+        if (g_State.m_CurrentMapLapCount > 1)
+        {
+            UI::TableNextRow();
+            UI::TableNextColumn();
+            UI::Text("Lap " + (lapIndex + 1));
+        }
+        RenderCpsForLap(lapIndex, player);
+    }
+
+    UI::EndTable();
+}
+
+void RenderCpsForLap(const uint lap, const MLFeed::PlayerCpInfo_V4 &in player)
+{
+    uint cp = lap * (g_State.m_CurrentMapCpCount + 1);
+    for (; cp < (lap + 1) * (g_State.m_CurrentMapCpCount + 1); ++cp)
     {
         UI::TableNextRow();
 
         if (settingCurrentRunShowCp)
         {
             UI::TableNextColumn();
-            string cpName = i == g_State.m_CurrentMapCpCount ? "Fin" : "" + (i + 1);
+            string cpName = cp == ((g_State.m_CurrentMapCpCount + 1) * g_State.m_CurrentMapLapCount) - 1 ? "Fin" : "" + (cp + 1);
             UI::Text(cpName);
         }
 
-        const auto @comparisonCheckpointData = (g_State.m_CurrentRunComparisonCheckpoints.Length > i) ? @g_State.m_CurrentRunComparisonCheckpoints[i] : null;
+        const auto @comparisonCheckpointData = (g_State.m_CurrentRunComparisonCheckpoints.Length > cp) ? @g_State.m_CurrentRunComparisonCheckpoints[cp] : null;
 
-        if (i < g_State.m_CurrentCheckpoints.Length)
+        if (cp < g_State.m_CurrentCheckpoints.Length)
         {
-            const auto @checkpointData = @g_State.m_CurrentCheckpoints[i];
+            const auto @checkpointData = @g_State.m_CurrentCheckpoints[cp];
 
             if (settingCurrentRunShowPosition)
             {
                 UI::TableNextColumn();
-                UI::Text("" + (g_State.m_Leaderboard.GetSortedCheckpointRank(i, checkpointData, settingCurrentRunCheckpointPosition) + 1));
+                UI::Text("" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, settingCurrentRunCheckpointPosition) + 1));
             }
 
             // Time from start
@@ -234,7 +250,7 @@ void renderCurrentRunInfo()
             if (settingCurrentRunShowTimePosition)
             {
                 UI::TableNextColumn();
-                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(i, checkpointData, CheckpointPositionComparison::TimeFromStart) + 1) + ")");
+                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::TimeFromStart) + 1) + ")");
             }
 
             // Speed
@@ -255,7 +271,7 @@ void renderCurrentRunInfo()
             if (settingCurrentRunShowSpeedPosition)
             {
                 UI::TableNextColumn();
-                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(i, checkpointData, CheckpointPositionComparison::Speed) + 1) + ")");
+                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::Speed) + 1) + ")");
             }
 
             // Time from previous
@@ -276,7 +292,7 @@ void renderCurrentRunInfo()
             if (settingCurrentRunShowCpTimePosition)
             {
                 UI::TableNextColumn();
-                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(i, checkpointData, CheckpointPositionComparison::TimeFromPrevious) + 1) + ")");
+                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::TimeFromPrevious) + 1) + ")");
             }
 
             // Time from previous no respawn
@@ -297,7 +313,7 @@ void renderCurrentRunInfo()
             if (settingCurrentRunShowCpTimeNrPosition)
             {
                 UI::TableNextColumn();
-                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(i, checkpointData, CheckpointPositionComparison::TimeFromPreviousNoRespawn) + 1) + ")");
+                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::TimeFromPreviousNoRespawn) + 1) + ")");
             }
 
             // Time from start no respawn
@@ -318,7 +334,7 @@ void renderCurrentRunInfo()
             if (settingCurrentRunShowTimeNrPosition)
             {
                 UI::TableNextColumn();
-                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(i, checkpointData, CheckpointPositionComparison::TimeFromStartNoRespawn) + 1) + ")");
+                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::TimeFromStartNoRespawn) + 1) + ")");
             }
 
             // Number of respawns
@@ -339,14 +355,14 @@ void renderCurrentRunInfo()
             if (settingCurrentRunShowNumberRespawnsPosition)
             {
                 UI::TableNextColumn();
-                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(i, checkpointData, CheckpointPositionComparison::NumberRespawns) + 1) + ")");
+                UI::Text("(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::NumberRespawns) + 1) + ")");
             }
         }
-        else if (i == g_State.m_CurrentCheckpoints.Length)
+        else if (cp == g_State.m_CurrentCheckpoints.Length)
         {
-            if (g_FocusedColumn != i)
+            if (g_FocusedColumn != cp)
             {
-                g_FocusedColumn = i;
+                g_FocusedColumn = cp;
                 UI::SetScrollHereY();
             }
 
@@ -432,15 +448,15 @@ void renderCurrentRunInfo()
             if (settingCurrentRunShowNumberRespawns)
             {
                 UI::TableNextColumn();
-                if (player.NbRespawnsByCp.Length > i)
-                    UI::Text("" + player.NbRespawnsByCp[i]);
+                if (player.NbRespawnsByCp.Length > cp)
+                    UI::Text("" + player.NbRespawnsByCp[cp]);
             }
             if (settingCurrentRunShowNumberRespawnsDelta)
             {
                 UI::TableNextColumn();
-                if (player.NbRespawnsByCp.Length > i && comparisonCheckpointData !is null)
+                if (player.NbRespawnsByCp.Length > cp && comparisonCheckpointData !is null)
                 {
-                    int delta = player.NbRespawnsByCp[i] - comparisonCheckpointData.m_NumberRespawns;
+                    int delta = player.NbRespawnsByCp[cp] - comparisonCheckpointData.m_NumberRespawns;
                     renderDeltaRespawns(delta);
                 }
             }
@@ -450,8 +466,6 @@ void renderCurrentRunInfo()
         }
 
     }
-
-    UI::EndTable();
 }
 
 
