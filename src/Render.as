@@ -39,7 +39,8 @@ array<TableColumn @> g_TableColumns;
 array<TableColumn @> g_DetailColumns;
 
 LeaderboardRenderData @g_LeaderboardRenderData = null;
-int g_OpenDetails = -1;
+uint g_OpenDetails = 0;
+bool g_IsDetailsOpen = false;
 
 void InitRender()
 {
@@ -469,6 +470,7 @@ void RenderLeaderboardTable()
         if (isRowClicked)
         {
             g_OpenDetails = i;
+            g_IsDetailsOpen = true;
         }
 
         if (settingDisplayLeaderboardTooltips && isRowHovered && i != g_OpenDetails)
@@ -493,7 +495,7 @@ void RenderDetail(const LeaderboardRenderRow &in renderRow, bool &out shouldUpda
     if (UI::Button(Icons::Trash))
     {
         g_State.m_Leaderboard.MarkForRemoval(@renderRow.m_Entry);
-        g_OpenDetails = -1;
+        g_IsDetailsOpen = false;
     }
     UI::EndDisabled();
 
@@ -575,7 +577,7 @@ void RenderDetail(const LeaderboardRenderRow &in renderRow, bool &out shouldUpda
 
 void RenderDetailsWindow()
 {
-    if (g_OpenDetails < 0)
+    if (!g_IsDetailsOpen)
         return;
 
     UI::PushFontSize(settingLeaderboardFontSize);
@@ -595,7 +597,7 @@ void RenderDetailsWindow()
 
     if (!open)
     {
-        g_OpenDetails = -1;
+        g_IsDetailsOpen = false;
     }
 
     if (shouldUpdateRows)

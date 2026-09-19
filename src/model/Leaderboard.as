@@ -217,19 +217,19 @@ class Leaderboard
         }
 
         // Remove the entry from the leaderboard
-        uint i = 0;
-        for (; i < m_Entries.Length; i++)
+        uint entryIndex = 0;
+        for (; entryIndex < m_Entries.Length; ++entryIndex)
         {
-            if (m_Entries[i].m_Id == entry.m_Id)
+            if (m_Entries[entryIndex].m_Id == entry.m_Id)
             {
-                m_Entries.RemoveAt(i);
+                m_Entries.RemoveAt(entryIndex);
                 break;
             }
         }
         // Update ranks
-        for (; i < m_Entries.Length; ++i)
+        for (; entryIndex < m_Entries.Length; ++entryIndex)
         {
-            m_Entries[i].m_Rank -= 1;
+            m_Entries[entryIndex].m_Rank -= 1;
         }
 
         // Update newest run
