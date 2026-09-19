@@ -150,17 +150,10 @@ void Update(float dt)
     if (player.IsSpawned && currentCp != int(g_State.m_CurrentCheckpoints.Length) && currentCp != 0)
     {
         OnReachingCheckpoint(currentCp);
-    }
-
-    // Events for player finishing
-    if (g_State.m_IsPlayerFinishHandled && !player.IsFinished)
-    {
-        g_State.m_IsPlayerFinishHandled = false;
-    }
-    else if (!g_State.m_IsPlayerFinishHandled && player.IsFinished)
-    {
-        OnPlayerFinish();
-        g_State.m_IsPlayerFinishHandled = true;
+        if (currentCp == int((g_State.m_CurrentMapCpCount + 1) * g_State.m_CurrentMapLapCount))
+        {
+            OnPlayerFinish();
+        }
     }
 
     // Determine if the replay has stopped
@@ -397,7 +390,6 @@ class State
 
     uint m_NumberGlobalPositions = 0;
 
-    bool m_IsPlayerFinishHandled = true;
     array<CheckpointData @> m_CurrentCheckpoints;
     array<LapData @> m_CurrentLaps;
     uint64 m_CurrentStartTime = 0;

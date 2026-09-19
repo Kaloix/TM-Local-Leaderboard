@@ -32,8 +32,8 @@ class Leaderboard
     {
         auto @entry = LeaderboardEntry();
         entry.m_PlayerName = player.Name;
-        entry.m_Time = player.FinishTime;
-        entry.m_TimeNoRespawn = (player.FinishTime - player.TimeLostToRespawns);
+        entry.m_Time = player.lastCpTime;
+        entry.m_TimeNoRespawn = (player.lastCpTime - player.TimeLostToRespawns);
         entry.m_NumberRespawns = player.RespawnTimes.Length;
         entry.m_TimeStamp = Time::get_Stamp();
 
