@@ -89,6 +89,7 @@ if (-Not (Test-Path $targetDir)) {
 
 # Copy the files from src, info.toml, and LICENSE into the target directory
 Copy-Item -Path "src\*" -Destination $targetDir -Recurse
+Copy-Item -Path "test\*" -Destination $targetDir -Recurse
 Copy-Item -Path $infoFilePath -Destination $targetDir
 Copy-Item -Path "LICENSE" -Destination $targetDir
 

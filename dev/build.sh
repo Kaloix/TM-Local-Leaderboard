@@ -101,6 +101,7 @@ mkdir -p "$target_dir"
 
 # Copy the files from src, info.toml, and LICENSE into the target directory
 cp -a src/. "$target_dir/"
+cp -a test/. "$target_dir/"
 cp "$info_file" "$target_dir/"
 cp LICENSE "$target_dir/"
 

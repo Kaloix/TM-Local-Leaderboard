@@ -271,16 +271,20 @@ void InitRows()
 
 bool timeSort(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ const&in b)
 {
-
-    switch (settingLeaderboardSortDirection)
+    // Sort by time if unequal
+    if (a.GetDisplayTime() != b.GetDisplayTime())
     {
-        case LeaderboardSortDirection::Ascending:
-            return timeSortDesc(a, b);
-        case LeaderboardSortDirection::Descending:
-            return timeSortAsc(a, b);
-        default:
-            return false;
+        return sortNumbers(a.GetDisplayTime(), b.GetDisplayTime());
     }
+
+    // Sort by rank if both are scores
+    if (a.m_Type == LeaderboardEntryType::Score && b.m_Type == LeaderboardEntryType::Score)
+    {
+        return sortNumbers(a.m_Rank, b.m_Rank);
+    }
+
+    // Sort by type
+    return sortNumbers(GetTypePriority(a.m_Type), GetTypePriority(b.m_Type));
 }
 
 bool timeSortAsc(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ const&in b)
@@ -293,6 +297,45 @@ bool timeSortDesc(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ 
     return a.GetDisplayTime() < b.GetDisplayTime();
 }
 
+int GetTypePriority(const LeaderboardEntryType type)
+{
+    switch (type)
+    {
+        // Custom entries are global positions and can only be beaten by being faster
+        case LeaderboardEntryType::CustomPosition:
+            return 0;
+        case LeaderboardEntryType::CustomTime:
+            return 1;
+        // Player scores should be above all other entries
+        case LeaderboardEntryType::Score:
+            return 2;
+        // The order of these one do not really matter
+        case LeaderboardEntryType::ScoreBestCheckpoints:
+            return 3;
+        case LeaderboardEntryType::ScoreBestLaps:
+            return 4;
+        case LeaderboardEntryType::ScoreCopium:
+            return 5;
+        // Medals can be beaten by tying them
+        case LeaderboardEntryType::Medal:
+            return 6;
+        default:
+            return 7;
+    }
+}
+
+bool sortNumbers(const int a, const int b)
+{
+    switch (settingLeaderboardSortDirection)
+    {
+        case LeaderboardSortDirection::Ascending:
+            return a < b;
+        case LeaderboardSortDirection::Descending:
+            return a > b;
+        default:
+            return false;
+    }
+}
 
 bool chronologicalSort(const LeaderboardEntry @ const&in a, const LeaderboardEntry @ const&in b)
 {
