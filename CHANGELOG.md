@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Improved detection of reaching the finish
 - Fixed compiler warnings
 - Fixed order of entries with equal times
+- Fixed current session filter
 
 ## [v0.2.0] - 2026-09-12
 

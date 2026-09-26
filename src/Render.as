@@ -149,8 +149,10 @@ void InitRows()
             continue;
 
         // Filter by the current session
-        if (settingFilterSessionCurrent && entry.IsCurrentSession())
+        if (settingFilterSessionCurrent && !entry.IsCurrentSession())
+        {
             continue;
+        }
 
         // Filter the number of ranks displayed for each player
         if (entry.m_Rank > settingDisplayLeaderboardNumberRanks)
