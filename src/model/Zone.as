@@ -52,6 +52,9 @@ void SetZone(const uint zoneIndex)
 
         InitTimeForEntryAsync(@g_CustomPositionEntries[i]);
     }
+
+    // Update the leaderboard to show times/positions of the new zone
+    InitRows();
 }
 
 

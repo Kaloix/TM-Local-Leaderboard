@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Fixed compiler warnings
 - Fixed order of entries with equal times
 - Fixed current session filter
+- Fixed leaderboard not updating when changing zones
 
 ## [v0.2.0] - 2026-09-12
 
