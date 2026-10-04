@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Fixed order of entries with equal times
 - Fixed current session filter
 - Fixed leaderboard not updating when changing zones
+- Fixed global position history not being loaded 
 
 ## [v0.2.0] - 2026-09-12
 

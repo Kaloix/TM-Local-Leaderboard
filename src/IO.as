@@ -325,6 +325,8 @@ LeaderboardEntry @deserializeLeaderboardEntry(const Json::Value&in entryObj)
                 auto @positionData = @deserializeGlobalPositionData(positionDataObj[j]);
                 regionPositionData.m_RegionPositions.InsertLast(@positionData);
             }
+
+            entry.m_RegionPositions.InsertLast(@regionPositionData);
         }
     }
 
