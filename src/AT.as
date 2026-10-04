@@ -58,8 +58,7 @@ void InitHooks() {
     MLHook::RegisterMLHook(spectateHook, "TMGame_Record_SpectateGhost", true);
     MLHook::RegisterMLHook(spectateHook, "TMGame_Record_Spectate", true);
     MLHook::RegisterMLHook(toggleHook, "TMGame_Record_ToggleGhost", true);
-    // TODO: handle toggle of ghost during replay
-    // MLHook::RegisterMLHook(toggleHook, "TMGame_Record_TogglePB", true);
+    MLHook::RegisterMLHook(togglePbHook, "TMGame_Record_TogglePB", true);
 
     g_InitializedHooks = true;
 }
@@ -107,6 +106,7 @@ class _ATWaypointTimesFeed : MLHook::HookMLEventsByType
 }
 
 ToggleHook @toggleHook = ToggleHook();
+TogglePbHook @togglePbHook = TogglePbHook();
 SpectateHook @spectateHook = SpectateHook();
 
 class ToggleHook : MLHook::HookMLEventsByType {
@@ -136,6 +136,28 @@ class ToggleHook : MLHook::HookMLEventsByType {
         {
             g_State.m_ActiveGhosts.RemoveAt(ghostIndex);
         }
+    }
+}
+
+class TogglePbHook : MLHook::HookMLEventsByType {
+    bool m_FirstCall = false;
+
+    TogglePbHook() {
+        super("TMGame_Record_TogglePB");
+    }
+
+    void OnEvent(MLHook::PendingEvent@ event) override {
+        LogDebug("TMGame_Record_TogglePB");
+
+        // Event is fired twice
+        if (!m_FirstCall)
+        {
+            m_FirstCall = true;
+            return;
+        }
+        m_FirstCall = false;
+
+        g_State.m_HidePb = !g_State.m_HidePb;
     }
 }
 

@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Improved performance of the current run table
+- Improved toggling of PB ghost
 
 ### Fixed
 - Fixed multi laps are not shown in the current run info

@@ -680,17 +680,46 @@ class ReplayColumn : TableColumn
     {
         // Determine if the player ghost is enabled
         const int ghostIndex = g_State.m_ActiveGhosts.Find(playerId);
-        const bool ghostEnabled = ghostIndex != -1;
+        bool ghostEnabled = ghostIndex != -1;
+        bool ghostToggleEnabled = true;
+
+        if (playerId == g_State.m_PlayerWebServicesId)
+        {
+            if (g_State.m_ActiveGhosts.Length == 0 || !g_State.m_HidePb)
+            {
+                ghostToggleEnabled = false;
+            }
+
+            if (ghostEnabled == false && g_State.m_ActiveGhosts.Length > 0 && g_State.m_HidePb)
+            {
+                ghostEnabled = false;
+            }
+            else
+            {
+                ghostEnabled = true;
+            }
+        }
 
         // Ghost toggle
         const auto ghostIcon = ghostEnabled ? Icons::Eye : Icons::EyeSlash;
-        UI::Text(ghostIcon);
-        if (UI::IsItemClicked())
+
+        if (ghostToggleEnabled)
         {
-            // The event is sent twice when using the leaderboard
-            toggleHook.m_FirstCall = true;
-            MLHook::Queue_SH_SendCustomEvent("TMGame_Record_ToggleGhost", {playerId});
+            UI::Text(ghostIcon);
+            if (UI::IsItemClicked())
+            {
+                // The event is sent twice when using the leaderboard
+                toggleHook.m_FirstCall = true;
+                MLHook::Queue_SH_SendCustomEvent("TMGame_Record_ToggleGhost", {playerId});
+            }
         }
+        else
+        {
+            UI::PushStyleColor(UI::Col::Text, vec4(0.66f, 0.66f, 0.66f, 1.0f));
+            UI::Text(ghostIcon);
+            UI::PopStyleColor();
+        }
+
 
         UI::SameLine();
 

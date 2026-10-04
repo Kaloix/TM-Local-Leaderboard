@@ -421,6 +421,7 @@ class State
     string m_PlayerWebServicesId = "";
 
     array<string> m_ActiveGhosts;
+    bool m_HidePb = false;
     string m_ActiveReplay = "";
     bool m_TogglingGhost = false;
 
