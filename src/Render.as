@@ -518,7 +518,7 @@ void RenderLeaderboardTable()
             g_IsDetailsOpen = true;
         }
 
-        if (settingDisplayLeaderboardTooltips && isRowHovered && i != g_OpenDetails)
+        if (settingDisplayLeaderboardTooltips && isRowHovered && (!g_IsDetailsOpen || i != g_OpenDetails))
         {
             UI::BeginTooltip();
             // shouldUpdateRows cannot be triggered from tooltip

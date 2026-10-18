@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- Fixed details tooltip not showing after closing the details window for the same entry
 - Fixed details tooltip always triggers update for render data
 
 ## [v0.2.1] - 2026-10-04
