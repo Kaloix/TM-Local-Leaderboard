@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Added button to details window for setting the entry as comparison target
 - Added comparison target for best laps run and session best laps run
 
 ### Fixed

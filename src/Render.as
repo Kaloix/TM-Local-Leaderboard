@@ -256,6 +256,15 @@ void InitRows()
         renderRow.m_IsPlayerBestLaps = entry is g_State.m_Leaderboard.m_BestLapsRun;
         renderRow.m_IsPlayerSessionBestLaps = entry is g_State.m_Leaderboard.m_SessionBestLapsRun;
 
+
+        if (entry.m_Type == LeaderboardEntryType::Score)
+            renderRow.m_ValidComparisonTarget = renderRow.m_IsPlayerBest || renderRow.m_IsPlayerNewest || renderRow.m_IsPlayerSessionBest;
+        else
+            renderRow.m_ValidComparisonTarget = true;
+        auto @timeDeltaColumn =  cast<TimeDeltaColumn>(g_AllTableColumns[TableColumnType::TimeDeltaColumn]);
+        if (entry is timeDeltaColumn.m_ComparisonTarget.GetComparisonTargetEntry())
+            renderRow.m_IsComparisonTarget = true;
+
         // Prepare the data for all table columns regardless of visibility for details and faster column changes
         renderRow.m_Cells.Resize(g_AllTableColumns.Length);
         for (uint c = 0; c < g_AllTableColumns.Length; ++c)
@@ -536,7 +545,7 @@ void RenderDetail(const LeaderboardRenderRow &in renderRow, bool &out shouldUpda
 {
     // Actions
     UI::BeginDisabled(renderRow.m_Entry.m_Type == LeaderboardEntryType::Medal);
-    if (UI::Button(Icons::Trash))
+    if (UI::Button(Icons::Trash + "##" + renderRow.m_CurrentRow))
     {
         g_State.m_Leaderboard.MarkForRemoval(@renderRow.m_Entry);
         g_IsDetailsOpen = false;
@@ -547,19 +556,36 @@ void RenderDetail(const LeaderboardRenderRow &in renderRow, bool &out shouldUpda
 
     UI::BeginDisabled(renderRow.m_Entry.m_Type != LeaderboardEntryType::Score);
     if (renderRow.m_Entry.m_IsStarred) {
-        if (UI::Button(Icons::Star))
+        if (UI::Button(Icons::Star + "##" + renderRow.m_CurrentRow))
         {
             renderRow.m_Entry.m_IsStarred = false;
             shouldUpdateRows = true;
         }
     }
     else {
-        if (UI::Button(Icons::StarO))
+        if (UI::Button(Icons::StarO + "##" + renderRow.m_CurrentRow))
         {
             renderRow.m_Entry.m_IsStarred = true;
             shouldUpdateRows = true;
         }
     }
+    UI::EndDisabled();
+
+    UI::SameLine();
+
+    UI::BeginDisabled(!renderRow.m_ValidComparisonTarget || renderRow.m_IsComparisonTarget);
+    if (UI::Button(Icons::ClockO + "##" + renderRow.m_CurrentRow))
+    {
+        SetAsComparisonTarget(renderRow);
+        shouldUpdateRows = true;
+    }
+    if(UI::IsItemHovered(UI::HoveredFlags::ForTooltip))
+    {
+        UI::BeginTooltip();
+        UI::Text("Select as comparison target");
+        UI::EndTooltip();
+    }
+
     UI::EndDisabled();
 
     // Table
@@ -669,6 +695,9 @@ class LeaderboardRenderRow
     bool m_IsPlayerSessionBestCheckpoints = false;
     bool m_IsPlayerBestLaps = false;
     bool m_IsPlayerSessionBestLaps = false;
+
+    bool m_ValidComparisonTarget = false;
+    bool m_IsComparisonTarget = false;
 
     LeaderboardEntry @m_Entry;
 
@@ -1024,6 +1053,107 @@ string formatTimestamp(const int64 timestamp)
 
     auto time = Time::Parse(timestamp);
     return time.Year + "-" + Text::Format("%02d", time.Month) + "-" + Text::Format("%02d", time.Day) + " " + Text::Format("%02d", time.Hour) + ":" + Text::Format("%02d", time.Minute) + ":" + Text::Format("%02d", time.Second);
+}
+
+void SetAsComparisonTarget(const LeaderboardRenderRow &in row)
+{
+    auto @entry = row.m_Entry;
+    auto @timeDeltaColumn =  cast<TimeDeltaColumn>(g_AllTableColumns[TableColumnType::TimeDeltaColumn]);
+
+    switch(entry.m_Type)
+    {
+        case LeaderboardEntryType::CustomPosition:
+        {
+            auto @ct = cast<CustomPositionComparisonTarget>(@g_ComparisonTargets[ComparisonTargetType::CustomPosition]);
+            ct.m_CustomEntryId = entry.m_Id;
+            @timeDeltaColumn.m_ComparisonTarget = @ct;
+            break;
+        }
+        case LeaderboardEntryType::CustomTime:
+        {
+            auto @ct = cast<CustomTimeComparisonTarget>(@g_ComparisonTargets[ComparisonTargetType::CustomTime]);
+            ct.m_CustomEntryId = entry.m_Id;
+            @timeDeltaColumn.m_ComparisonTarget = @ct;
+            break;
+        }
+        case LeaderboardEntryType::Medal:
+        {
+            switch (entry.m_Medal.GetType())
+            {
+#if DEPENDENCY_CHAMPIONMEDALS
+                case MedalType::Champion:
+                {
+                    @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::ChampionMedal];
+                    break;
+                }
+#endif
+#if DEPENDENCY_WARRIORMEDALS
+                case MedalType::Warrior:
+                {
+                    @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::WarriorMedal];
+                    break;
+                }
+#endif
+                case MedalType::Author:
+                {
+                    @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::AuthorMedal];
+                    break;
+                }
+                case MedalType::Gold:
+                {
+                    @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::GoldMedal];
+                    break;
+                }
+                case MedalType::Silver:
+                {
+                    @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::SilverMedal];
+                    break;
+                }
+                case MedalType::Bronze:
+                {
+                    @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::BronzeMedal];
+                    break;
+                }
+            }
+            break;
+        }
+        case LeaderboardEntryType::Score:
+        {
+            if (row.m_IsPlayerBest)
+                @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::FastestRun];
+            else if (row.m_IsPlayerSessionBest)
+                @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::SessionFastestRun];
+            else if (row.m_IsPlayerNewest)
+                @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::NewestRun];
+            break;
+        }
+        case LeaderboardEntryType::ScoreBestCheckpoints:
+        {
+            @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::BestCheckpoints];
+            break;
+        }
+        case LeaderboardEntryType::ScoreBestLaps:
+        {
+            if (row.m_IsPlayerBestLaps)
+                @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::BestLaps];
+            else if (row.m_IsPlayerSessionBestLaps)
+                @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::SessionBestLaps];
+            break;
+        }
+        case LeaderboardEntryType::ScoreCopium:
+        {
+            if (row.m_IsPlayerBestCopium)
+                @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::FastestCopium];
+            else if (row.m_IsPlayerNewestCopium)
+                @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::NewestCopium];
+            else if (row.m_IsPlayerSessionBestCopium)
+                @timeDeltaColumn.m_ComparisonTarget = @g_ComparisonTargets[ComparisonTargetType::SessionFastestCopium];
+            break;
+        }
+
+    }
+
+    saveSettings();
 }
 
 }
