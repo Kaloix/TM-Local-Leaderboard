@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+- Added comparison target for best laps run and session best laps run
+
 ### Fixed
 - Fixed details tooltip not showing after closing the details window for the same entry
 - Fixed details tooltip always triggers update for render data

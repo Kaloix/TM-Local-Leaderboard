@@ -31,6 +31,10 @@ enum ComparisonTargetType
     GoldMedal,
     SilverMedal,
     BronzeMedal,
+
+    // Laps runs
+    BestLaps,
+    SessionBestLaps,
 }
 
 namespace LocalRecords
@@ -66,6 +70,9 @@ void InitializeComparisonTarget()
     g_ComparisonTargets.InsertLast(GoldMedalComparisonTarget());
     g_ComparisonTargets.InsertLast(SilverMedalComparisonTarget());
     g_ComparisonTargets.InsertLast(BronzeMedalComparisonTarget());
+    // Laps runs
+    g_ComparisonTargets.InsertLast(BestLapsComparisonTarget());
+    g_ComparisonTargets.InsertLast(SessionBestLapsComparisonTarget());
 }
 
 ComparisonTarget@ GetComparisonTarget(ComparisonTargetType type)
@@ -399,6 +406,38 @@ class BronzeMedalComparisonTarget : MedalComparisonTarget
     MedalType GetMedalType() const override
     {
         return MedalType::Bronze;
+    }
+}
+
+class BestLapsComparisonTarget : ComparisonTarget
+{
+    ComparisonTargetType GetType() const override
+    {
+        return ComparisonTargetType::BestLaps;
+    }
+    string GetName() const override
+    {
+        return "Best Laps";
+    }
+    LeaderboardEntry@ GetComparisonTargetEntry() const override
+    {
+        return @g_State.m_Leaderboard.m_BestLapsRun;
+    }
+}
+
+class SessionBestLapsComparisonTarget : ComparisonTarget
+{
+    ComparisonTargetType GetType() const override
+    {
+        return ComparisonTargetType::SessionBestLaps;
+    }
+    string GetName() const override
+    {
+        return "Session Best Laps";
+    }
+    LeaderboardEntry@ GetComparisonTargetEntry() const override
+    {
+        return @g_State.m_Leaderboard.m_SessionBestLapsRun;
     }
 }
 
