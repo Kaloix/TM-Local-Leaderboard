@@ -711,7 +711,10 @@ class LeaderboardEntry
         {
             case LeaderboardEntryType::CustomPosition:
             case LeaderboardEntryType::CustomTime:
-                return m_PlayerName;
+            {
+                auto @timeData = @GetLatestGlobalTimeData();
+                return timeData != null ? timeData.m_PlayerName : m_PlayerName;
+            }
             case LeaderboardEntryType::Medal:
                 return m_Medal is null ? "Unknown Medal" : m_Medal.GetName();
             case LeaderboardEntryType::Score:
@@ -1011,7 +1014,7 @@ class GlobalTimeData
     int64 m_TimeStamp = 0;
     int m_Time = 0;
     string m_PlayerId = "";
-    // string m_PlayerName = "";
+    string m_PlayerName = "";
 
     bool m_IsCurrentSession = false;
 }

@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 - Added button to details window for setting the entry as comparison target
 - Added comparison target for best laps run and session best laps run
 
+### Changed
+- Changed display player name of custom entires to the actual player who drove the referenced run
+
 ### Fixed
 - Fixed details tooltip not showing after closing the details window for the same entry
 - Fixed details tooltip always triggers update for render data
