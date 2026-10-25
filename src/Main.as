@@ -228,7 +228,7 @@ void OnStart()
     const LeaderboardEntry @comparisonTarget = @(cast<TimeDeltaColumn>(GetTableColumnByType(TableColumnType::TimeDeltaColumn))).m_ComparisonTarget.GetComparisonTargetEntry();
     g_State.m_CurrentRunComparisonCheckpoints = comparisonTarget !is null ? comparisonTarget.m_Checkpoints : array<CheckpointData@>();
 
-    CurrentRun::PrepareCurrentRun();
+    CurrentRun::OnStart();
 }
 
 void OnReachingCheckpoint(int checkpoint)

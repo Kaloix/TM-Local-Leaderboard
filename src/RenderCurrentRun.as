@@ -17,10 +17,28 @@ void InitRender()
         windowFlags |= UI::WindowFlags::NoTitleBar;
 }
 
+void OnStart()
+{
+    if (settingCurrentRunKeepLastUntilFirstCp)
+        return;
+    PrepareCurrentRun();
+}
+
 void OnUpdate()
 {
     if (g_CurrentRunRenderData is null)
         return;
+
+    if (settingCurrentRunKeepLastUntilFirstCp)
+    {
+        // Keep the data of the last run before reaching first CP
+        const uint cp = g_State.m_CurrentCheckpoints.Length;
+        if (cp == 0)
+            return;
+        else if (cp == 1)
+            PrepareCurrentRun();
+    }
+
     UpdateCurrentCp(g_CurrentRunRenderData);
 }
 

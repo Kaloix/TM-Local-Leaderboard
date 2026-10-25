@@ -181,6 +181,9 @@ float settingCurrentRunBackgroundTransparency = 1.0f;
 [Setting name="Font Size" description="Font size for the leaderboard and current run info" category="Current Run - Window" min=1 max=64]
 int settingCurrentRunFontSize = 16;
 
+[Setting name="Keep last run" description="Show the data of the last run until the first checkpoint is reached" category="Current Run - Table"]
+bool settingCurrentRunKeepLastUntilFirstCp = true;
+
 [Setting name="Position Comparison Type" description="The type of comparison to use for determining the position at each checkpoint" category="Current Run - Table"]
 LocalRecords::CheckpointPositionComparison settingCurrentRunCheckpointPosition = LocalRecords::CheckpointPositionComparison::TimeFromStart;
 
