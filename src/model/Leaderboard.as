@@ -86,30 +86,27 @@ class Leaderboard
             @m_NewestCopiumRun = null;
         }
 
-        if (g_State.m_Leaderboard.m_Entries.Length < settingDataRecordLimit)
-        {
-            AddNewEntry(@m_NewestRun);
-        }
-        else
-        {
-            if (player.FinishTime < m_Entries[m_Entries.Length - 1].m_Time)
-            {
-                RemoveLastPlayerEntry();
-                AddNewEntry(@m_NewestRun);
-            }
-            else
-            {
-                m_NewestRun.m_Rank = m_Entries.Length + 1;
-            }
-        }
-
-        updateBestCheckpointsRun(m_NewestRun);
-        updateBestLapsRun(m_NewestRun);
+        AddNewEntry(@m_NewestRun);
     }
 
     void AddNewEntry(LeaderboardEntry @entry)
     {
-        AddEntry(@entry);
+        if (g_State.m_Leaderboard.m_Entries.Length < settingDataRecordLimit)
+        {
+            AddEntry(@entry);
+        }
+        else
+        {
+            if (entry.m_Time < m_Entries[m_Entries.Length - 1].m_Time)
+            {
+                RemoveLastPlayerEntry();
+                AddEntry(@entry);
+            }
+            else
+            {
+                entry.m_Rank = m_Entries.Length + 1;
+            }
+        }
 
         if (m_FastestRun is null || entry.m_Time < m_FastestRun.m_Time)
             SetFastestRun(@entry);
@@ -120,6 +117,9 @@ class Leaderboard
             SetFastestCopiumRun(@entry);
         if (entry.m_NumberRespawns > 0 && m_SessionFastestRun !is null && entry.m_TimeNoRespawn < m_SessionFastestRun.m_Time && (m_SessionFastestCopiumRun is null || entry.m_TimeNoRespawn < m_SessionFastestCopiumRun.m_TimeNoRespawn))
             SetSessionFastestCopiumRun(@entry);
+
+        updateBestCheckpointsRun(entry);
+        updateBestLapsRun(entry);
 
         AddSortedCheckpoint(entry);
     }
@@ -134,7 +134,7 @@ class Leaderboard
             if (entry.m_Time < m_Entries[i].m_Time)
             {
                 entry.m_Rank = rank;
-                m_Entries.InsertAt(i, entry);
+                m_Entries.InsertAt(i, @entry);
                 inserted = true;
                 break;
             }
@@ -144,7 +144,7 @@ class Leaderboard
         if (!inserted)
         {
             entry.m_Rank = rank;
-            m_Entries.InsertLast(entry);
+            m_Entries.InsertLast(@entry);
         }
         else
         {

@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Changed display player name of custom entires to the actual player who drove the referenced run
 
 ### Fixed
+- Fixed records too slow for the leaderboard are not considered for fastest copium
 - Fixed details tooltip not showing after closing the details window for the same entry
 - Fixed details tooltip always triggers update for render data
 
