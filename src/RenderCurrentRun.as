@@ -514,12 +514,12 @@ void renderCurrentRunInfo()
     UI::TableHeadersRow();
     UI::PopStyleColor();
 
-    RenderCpsForLap(0);
+    RenderCpsForLap();
 
     UI::EndTable();
 }
 
-void RenderCpsForLap(const uint lap)
+void RenderCpsForLap()
 {
     for (uint cp = 0; cp < g_CurrentRunRenderData.m_Rows.Length; ++cp)
     {
@@ -547,7 +547,6 @@ void RenderCpsForLap(const uint lap)
             UI::PushStyleColor(UI::Col::Text, renderCell.m_FontColor);
             UI::Text(renderCell.m_Value);
             UI::PopStyleColor();
-
         }
 
     }
