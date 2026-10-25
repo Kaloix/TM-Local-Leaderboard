@@ -80,6 +80,7 @@ void InitRows()
 
     // Add rows to display
     array<LeaderboardEntry @> tableRows;
+    auto @context = InitRowsContext();
 
     if (g_State.m_Leaderboard.m_FastestRun !is null)
     {
@@ -112,6 +113,16 @@ void InitRows()
     if (settingDisplayLeaderboardCopiumSessionFastest && g_State.m_Leaderboard.m_SessionFastestCopiumRun !is null && (!addedNewestCopium || g_State.m_Leaderboard.m_SessionFastestCopiumRun.m_ScoreNumber != g_State.m_Leaderboard.m_NewestCopiumRun.m_ScoreNumber) && (!addedFastestCopium || g_State.m_Leaderboard.m_SessionFastestCopiumRun.m_ScoreNumber != g_State.m_Leaderboard.m_FastestCopiumRun.m_ScoreNumber))
         tableRows.InsertLast(g_State.m_Leaderboard.m_SessionFastestCopiumRun);
 
+    // Always add the player's personal best and session best if the settings are enabled
+    if (settingDisplayLeaderboardPersonalBest)
+        context.AddRecord(tableRows, @g_State.m_Leaderboard.m_FastestRun);
+    if (settingDisplayLeaderboardSessionBest)
+        context.AddRecord(tableRows, @g_State.m_Leaderboard.m_SessionFastestRun);
+
+    // Always add the player's latest run if the setting is enabled
+    if (settingDisplayLeaderboardLatest)
+        context.AddRecord(tableRows, @g_State.m_Leaderboard.m_NewestRun);
+
     for (uint i = 0; i < g_State.m_Leaderboard.m_Entries.Length; i++)
     {
         auto @entry = @g_State.m_Leaderboard.m_Entries[i];
@@ -119,26 +130,7 @@ void InitRows()
         // Always add starred runs
         if (settingDisplayLeaderboardStarred && entry.m_IsStarred)
         {
-            tableRows.InsertLast(@entry);
-            continue;
-        }
-
-        // Always add the player's personal best and session best if the settings are enabled
-        if (settingDisplayLeaderboardPersonalBest && entry is g_State.m_Leaderboard.m_FastestRun)
-        {
-            tableRows.InsertLast(@entry);
-            continue;
-        }
-        if (settingDisplayLeaderboardSessionBest && entry is g_State.m_Leaderboard.m_SessionFastestRun)
-        {
-            tableRows.InsertLast(@entry);
-            continue;
-        }
-
-        // Always add the player's latest run if the setting is enabled
-        if (settingDisplayLeaderboardLatest && entry is g_State.m_Leaderboard.m_NewestRun)
-        {
-            tableRows.InsertLast(@g_State.m_Leaderboard.m_NewestRun);
+            context.AddRecord(tableRows, @entry);
             continue;
         }
 
@@ -150,14 +142,12 @@ void InitRows()
 
         // Filter by the current session
         if (settingFilterSessionCurrent && !entry.IsCurrentSession())
-        {
             continue;
-        }
 
         // Filter the number of ranks displayed for each player
         if (entry.m_Rank > settingDisplayLeaderboardNumberRanks)
             continue;
-        tableRows.InsertLast(entry);
+        context.AddRecord(tableRows, @entry);
     }
 
     // Add medal entries
@@ -708,6 +698,41 @@ class LeaderboardRenderCell
 {
     string m_Value = "";
     vec4 m_FontColor = vec4(1, 1, 1, 1);
+}
+
+class InitRowsContext
+{
+    bool m_AddedFastestRun = false;
+    bool m_AddedSessionFastestRun = false;
+    bool m_AddedNewestRun = false;
+
+    void AddRecord(array<LeaderboardEntry @> &inout tableRows, LeaderboardEntry@ entry)
+    {
+        if (entry is null)
+            return;
+
+        if (entry is g_State.m_Leaderboard.m_FastestRun)
+        {
+            if (m_AddedFastestRun)
+                return;
+            m_AddedFastestRun = true;
+        }
+        if (entry is g_State.m_Leaderboard.m_SessionFastestRun)
+        {
+            if (m_AddedSessionFastestRun)
+                return;
+            m_AddedSessionFastestRun = true;
+        }
+        if (entry is g_State.m_Leaderboard.m_NewestRun)
+        {
+            if (m_AddedNewestRun)
+                return;
+            m_AddedNewestRun = true;
+        }
+
+        tableRows.InsertLast(@entry);
+    }
+
 }
 
 void RenderCheckpoints(const LeaderboardRenderRow&in renderRow)
