@@ -47,20 +47,23 @@ void Render()
 }
 
 Statistics@ g_Statistics = null;
-StatisticsRenderer@ g_StatisticsRenderer = StatisticsRenderer();
+StatisticsRenderer@ g_StatisticsRenderer = null;
 
 void Enable()
 {
     if (g_Statistics is null)
         @g_Statistics = Statistics();
+    if (g_StatisticsRenderer is null)
+        @g_StatisticsRenderer = StatisticsRenderer();
 }
 
 void Disable()
 {
     if (g_Statistics !is null)
         @g_Statistics = null;
+    if (g_StatisticsRenderer !is null)
+        @g_StatisticsRenderer = null;
 }
-
 
 class Statistics
 {

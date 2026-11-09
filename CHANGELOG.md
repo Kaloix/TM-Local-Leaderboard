@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - Fixed records too slow for the leaderboard are not considered for fastest copium
 - Fixed details tooltip not showing after closing the details window for the same entry
 - Fixed details tooltip always triggers update for render data
+- Fixed statistics window not respecting settings in initial load (e.g. always showing window header)
 
 ## [v0.2.1] - 2026-10-04
 
