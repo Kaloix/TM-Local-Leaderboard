@@ -194,7 +194,7 @@ class TableColumn
     }
     string GetHeaderValue() const
     {
-        return GetName() + "##" + int(GetType());
+        return GetName();
     }
     string GetBodyValue(const LeaderboardRenderRow&in renderRow) const
     {

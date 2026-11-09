@@ -215,11 +215,13 @@ void InitRows()
     @g_LeaderboardRenderData = @renderData;
 
     // Prepare the header
+    renderData.m_ColumnIndex.Resize(g_AllTableColumns.Length);
     renderData.m_HeaderRow.Resize(g_AllTableColumns.Length);
     for (uint c = 0; c < g_AllTableColumns.Length; ++c)
     {
         const TableColumn @column = @g_AllTableColumns[c];
         string headerValue = column.GetHeaderValue();
+        renderData.m_ColumnIndex[c] = headerValue + "##" + int(column.GetType());
         renderData.m_HeaderRow[c] = headerValue;
     }
 
@@ -399,7 +401,7 @@ void Render()
         }
 
         UI::SameLine();
-        UI::Text(Icons::Flag + " " + formatPosition(g_State.m_Leaderboard.m_TotalNumberSessionFinishes, "0") + " / " + formatPosition(g_State.m_Leaderboard.m_TotalNumberFinishes, "0") + " / " + formatPosition(g_State.m_NumberGlobalPositions, "0"));
+        UI::Text(Icons::FlagCheckered + " " + formatPosition(g_State.m_Leaderboard.m_TotalNumberSessionFinishes, "0") + " / " + formatPosition(g_State.m_Leaderboard.m_TotalNumberFinishes, "0") + " / " + formatPosition(g_State.m_NumberGlobalPositions, "0"));
 
         if (UI::IsItemHovered())
         {
@@ -472,16 +474,20 @@ void RenderLeaderboardTable()
     for (uint i = 0; i < g_TableColumns.Length; i++)
     {
         const int columnIndex = g_TableColumns[i].GetType();
-        const string headerValue = g_LeaderboardRenderData.m_HeaderRow[columnIndex];
+        const string headerValue = g_LeaderboardRenderData.m_ColumnIndex[columnIndex];
         UI::TableSetupColumn(headerValue, UI::TableColumnFlags::WidthFixed);
     }
 
     // Table header
     if (settingDisplayLeaderboardHeader)
     {
-        UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-        UI::TableHeadersRow();
-        UI::PopStyleColor();
+        UI::TableNextRow();
+        for (uint i = 0; i < g_TableColumns.Length; i++)
+        {
+            UI::TableNextColumn();
+            const int columnIndex = g_TableColumns[i].GetType();
+            UI::Text(g_LeaderboardRenderData.m_HeaderRow[columnIndex]);
+        }
     }
 
     // Table body
@@ -666,6 +672,7 @@ void RenderDetailsWindow()
 
 class LeaderboardRenderData
 {
+    array<string> m_ColumnIndex;
     array<string> m_HeaderRow;
     array<LeaderboardRenderRow @> m_Rows;
 }
@@ -748,9 +755,24 @@ void RenderCheckpoints(const LeaderboardRenderRow&in renderRow)
     UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed);
     UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed);
 
-    UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    UI::TableHeadersRow();
-    UI::PopStyleColor();
+    UI::TableNextRow();
+    UI::TableNextColumn();
+    UI::Text("Cp");
+    UI::TableNextColumn();
+    UI::Text("Time Acc");
+    UI::TableNextColumn();
+    UI::Text("Time");
+    UI::TableNextColumn();
+    UI::Text("Time NR");
+    UI::TableNextColumn();
+    UI::Text("Speed");
+    UI::TableNextColumn();
+    UI::Text(Icons::Refresh);
+    UI::TableNextColumn();
+    UI::Text("Delta Best");
+    UI::TableNextColumn();
+    UI::Text("Delta PB");
+    UI::TableNextColumn();
 
     for (uint i = 0; i < renderRow.m_Entry.m_Checkpoints.Length; i++)
     {
@@ -849,9 +871,21 @@ void RenderLaps(const LeaderboardRenderRow &in renderRow)
     UI::TableSetupColumn("Delta Best", UI::TableColumnFlags::WidthFixed);
     UI::TableSetupColumn("Delta PB", UI::TableColumnFlags::WidthFixed);
 
-    UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    UI::TableHeadersRow();
-    UI::PopStyleColor();
+    UI::TableNextRow();
+    UI::TableNextColumn();
+    UI::Text("Lap");
+    UI::TableNextColumn();
+    UI::Text("Time Acc");
+    UI::TableNextColumn();
+    UI::Text("Time");
+    UI::TableNextColumn();
+    UI::Text("Time NR");
+    UI::TableNextColumn();
+    UI::Text(Icons::Refresh);
+    UI::TableNextColumn();
+    UI::Text("Delta Best");
+    UI::TableNextColumn();
+    UI::Text("Delta PB");
 
     for (uint i = 0; i < renderRow.m_Entry.m_Laps.Length; i++)
     {
@@ -926,9 +960,15 @@ void RenderGlobalPositionHistory(const LeaderboardRenderRow &in renderRow)
     UI::TableSetupColumn("Total Players", UI::TableColumnFlags::WidthFixed);
     UI::TableSetupColumn("Percentile", UI::TableColumnFlags::WidthFixed);
 
-    UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    UI::TableHeadersRow();
-    UI::PopStyleColor();
+    UI::TableNextRow();
+    UI::TableNextColumn();
+    UI::Text(Icons::Calendar);
+    UI::TableNextColumn();
+    UI::Text(Icons::Globe);
+    UI::TableNextColumn();
+    UI::Text(Icons::FlagCheckered);
+    UI::TableNextColumn();
+    UI::Text(Icons::Globe + "%");
 
     const auto globalPositionHistory = renderRow.m_Entry.GetGlobalPositionHistory();
     for (uint i = 0; i < globalPositionHistory.Length; i++)
