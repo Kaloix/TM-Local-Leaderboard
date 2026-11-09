@@ -540,105 +540,148 @@ void RenderLeaderboardTable()
 void RenderDetail(const LeaderboardRenderRow &in renderRow, bool &out shouldUpdateRows)
 {
     // Actions
-    UI::BeginDisabled(renderRow.m_Entry.m_Type == LeaderboardEntryType::Medal);
-    if (UI::Button(Icons::Trash + "##" + renderRow.m_CurrentRow))
+    const auto actionsOpen = UI::TreeNode("Actions", UI::TreeNodeFlags::DefaultOpen);
+    if (actionsOpen)
     {
-        g_State.m_Leaderboard.MarkForRemoval(@renderRow.m_Entry);
-        g_IsDetailsOpen = false;
-    }
-    UI::EndDisabled();
-
-    UI::SameLine();
-
-    UI::BeginDisabled(renderRow.m_Entry.m_Type != LeaderboardEntryType::Score);
-    if (renderRow.m_Entry.m_IsStarred) {
-        if (UI::Button(Icons::Star + "##" + renderRow.m_CurrentRow))
+        // Remove entry
+        UI::BeginDisabled(renderRow.m_Entry.m_Type == LeaderboardEntryType::Medal);
+        if (UI::Button(Icons::Trash + "##" + renderRow.m_CurrentRow))
         {
-            renderRow.m_Entry.m_IsStarred = false;
+            g_State.m_Leaderboard.MarkForRemoval(@renderRow.m_Entry);
+            g_IsDetailsOpen = false;
+        }
+        UI::EndDisabled();
+
+        UI::SameLine();
+
+        // Start entry
+        UI::BeginDisabled(renderRow.m_Entry.m_Type != LeaderboardEntryType::Score);
+        if (renderRow.m_Entry.m_IsStarred) {
+            if (UI::Button(Icons::Star + "##" + renderRow.m_CurrentRow))
+            {
+                renderRow.m_Entry.m_IsStarred = false;
+                shouldUpdateRows = true;
+            }
+        }
+        else {
+            if (UI::Button(Icons::StarO + "##" + renderRow.m_CurrentRow))
+            {
+                renderRow.m_Entry.m_IsStarred = true;
+                shouldUpdateRows = true;
+            }
+        }
+        UI::EndDisabled();
+
+        UI::SameLine();
+
+        // Compare against entry
+        UI::BeginDisabled(!renderRow.m_ValidComparisonTarget || renderRow.m_IsComparisonTarget);
+        if (UI::Button(Icons::ClockO + "##" + renderRow.m_CurrentRow))
+        {
+            SetAsComparisonTarget(renderRow);
             shouldUpdateRows = true;
         }
-    }
-    else {
-        if (UI::Button(Icons::StarO + "##" + renderRow.m_CurrentRow))
+        if(UI::IsItemHovered(UI::HoveredFlags::ForTooltip))
         {
-            renderRow.m_Entry.m_IsStarred = true;
-            shouldUpdateRows = true;
+            UI::BeginTooltip();
+            UI::Text("Select as comparison target");
+            UI::EndTooltip();
         }
-    }
-    UI::EndDisabled();
+        UI::EndDisabled();
 
-    UI::SameLine();
-
-    UI::BeginDisabled(!renderRow.m_ValidComparisonTarget || renderRow.m_IsComparisonTarget);
-    if (UI::Button(Icons::ClockO + "##" + renderRow.m_CurrentRow))
-    {
-        SetAsComparisonTarget(renderRow);
-        shouldUpdateRows = true;
-    }
-    if(UI::IsItemHovered(UI::HoveredFlags::ForTooltip))
-    {
-        UI::BeginTooltip();
-        UI::Text("Select as comparison target");
-        UI::EndTooltip();
+        UI::TreePop();
     }
 
-    UI::EndDisabled();
+    UI::Separator();
 
     // Table
-    UI::BeginTable("DetailTable" + renderRow.m_CurrentRow, 2, UI::TableFlags::SizingFixedFit);
-
-    UI::TableSetupColumn("#Property", UI::TableColumnFlags::WidthFixed, 200.0f);
-    UI::TableSetupColumn("#Value", UI::TableColumnFlags::WidthStretch);
-
-    for (uint c = 0; c < g_DetailColumns.Length; c++)
+    const auto detailsOpen = UI::TreeNode("Details", UI::TreeNodeFlags::DefaultOpen);
+    if (detailsOpen)
     {
-        const TableColumn @column = @g_DetailColumns[c];
+        UI::BeginTable("DetailTable" + renderRow.m_CurrentRow, 2, UI::TableFlags::SizingFixedFit);
 
-        UI::TableNextRow();
+        UI::TableSetupColumn("#Property", UI::TableColumnFlags::WidthFixed, 200.0f);
+        UI::TableSetupColumn("#Value", UI::TableColumnFlags::WidthStretch);
 
-        UI::TableNextColumn();
-        UI::Text(column.GetName());
+        for (uint c = 0; c < g_DetailColumns.Length; c++)
+        {
+            const TableColumn @column = @g_DetailColumns[c];
 
-        UI::TableNextColumn();
-        const uint columnIndex = uint(column.GetType());
-        const LeaderboardRenderCell @renderCell = renderRow.m_Cells[columnIndex];
-        g_DetailColumns[c].RenderBodyCell(renderRow, renderCell);
-    }
+            UI::TableNextRow();
 
-    UI::EndTable();
+            UI::TableNextColumn();
+            UI::Text(column.GetName());
 
-    UI::Separator();
-    UI::Text("Checkpoints");
-    if (renderRow.m_Entry.m_Checkpoints.Length > 1)
-        RenderCheckpoints(renderRow);
-    else
-    {
-        UI::PushStyleColor(UI::Col::Text, vec4(0.66f, 0.66f, 0.66f, 1.0f));
-        UI::Text("No checkpoints available.");
-        UI::PopStyleColor();
+            UI::TableNextColumn();
+            const uint columnIndex = uint(column.GetType());
+            const LeaderboardRenderCell @renderCell = renderRow.m_Cells[columnIndex];
+            g_DetailColumns[c].RenderBodyCell(renderRow, renderCell);
+        }
+
+        UI::EndTable();
+
+        UI::TreePop();
     }
 
     UI::Separator();
-    UI::Text("Laps");
-    if (renderRow.m_Entry.m_Laps.Length > 1)
-        RenderLaps(renderRow);
-    else
+
+    // Checkpoints
+    const auto checkpointsFlags = renderRow.m_Entry.m_Checkpoints.Length <= 10 ? UI::TreeNodeFlags::DefaultOpen : 0;
+    const auto checkpointsOpen = UI::TreeNode("Checkpoints", checkpointsFlags);
+    if (checkpointsOpen)
     {
-        UI::PushStyleColor(UI::Col::Text, vec4(0.66f, 0.66f, 0.66f, 1.0f));
-        UI::Text("No laps available.");
-        UI::PopStyleColor();
+        if (renderRow.m_Entry.m_Checkpoints.Length > 1)
+            RenderCheckpoints(renderRow);
+        else
+        {
+            UI::PushStyleColor(UI::Col::Text, vec4(0.66f, 0.66f, 0.66f, 1.0f));
+            UI::Text("No checkpoints available.");
+            UI::PopStyleColor();
+        }
+
+        UI::TreePop();
+    }
+
+
+    UI::Separator();
+
+    // Laps
+    const auto lapsFlags = renderRow.m_Entry.m_Laps.Length <= 10 ? UI::TreeNodeFlags::DefaultOpen : 0;
+    const auto lapsOpen = UI::TreeNode("Laps", lapsFlags);
+    if (lapsOpen)
+    {
+        if (renderRow.m_Entry.m_Laps.Length > 1)
+            RenderLaps(renderRow);
+        else
+        {
+            UI::PushStyleColor(UI::Col::Text, vec4(0.66f, 0.66f, 0.66f, 1.0f));
+            UI::Text("No laps available.");
+            UI::PopStyleColor();
+        }
+
+        UI::TreePop();
     }
 
     UI::Separator();
-    UI::Text("Global Position History");
-    if (renderRow.m_Entry.GetGlobalPositionHistory().Length > 0)
-        RenderGlobalPositionHistory(renderRow);
-    else
+
+    // History
+    auto history = renderRow.m_Entry.GetGlobalPositionHistory();
+    const auto historyFlags = history.Length <= 10 ? UI::TreeNodeFlags::DefaultOpen : 0;
+    const auto historyOpen = UI::TreeNode("Global Position History", historyFlags);
+    if (historyOpen)
     {
-        UI::PushStyleColor(UI::Col::Text, vec4(0.66f, 0.66f, 0.66f, 1.0f));
-        UI::Text("No history available.");
-        UI::PopStyleColor();
+        if (history.Length > 0)
+            RenderGlobalPositionHistory(renderRow);
+        else
+        {
+            UI::PushStyleColor(UI::Col::Text, vec4(0.66f, 0.66f, 0.66f, 1.0f));
+            UI::Text("No history available.");
+            UI::PopStyleColor();
+        }
+
+        UI::TreePop();
     }
+
 }
 
 void RenderDetailsWindow()
