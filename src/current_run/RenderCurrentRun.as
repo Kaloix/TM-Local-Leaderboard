@@ -70,95 +70,24 @@ void PrepareCurrentRunHeader(CurrentRunRenderData &inout renderData)
     if (settingCurrentRunShowPosition)
         renderData.m_HeaderRow.InsertLast(Icons::Trophy);
 
-    // Time from start
-    string icon = Icons::ClockO;
-    if (settingCurrentRunShowTime)
+    for (uint col = 0; col < g_AllCurrentRunColumns.Length; ++col)
     {
-        renderData.m_HeaderRow.InsertLast(icon + "##AccValue");
-        icon = "";
-    }
-    if (settingCurrentRunShowTimeDelta)
-    {
-        renderData.m_HeaderRow.InsertLast(icon + "##AccDelta");
-        icon = "";
-    }
-    if (settingCurrentRunShowTimePosition)
-        renderData.m_HeaderRow.InsertLast(icon + "##AccPosition");
+        const auto @column = @g_AllCurrentRunColumns[col];
+        string icon = column.GetHeaderValue();
 
-    // Speed
-    icon = Icons::Tachometer;
-    if (settingCurrentRunShowSpeed)
-    {
-        renderData.m_HeaderRow.InsertLast(icon + "##SpeedValue");
-        icon = "";
+        if (column.m_ShowValue)
+        {
+            renderData.m_HeaderRow.InsertLast(icon + "##Value" + icon);
+            icon = "";
+        }
+        if (column.m_ShowDelta)
+        {
+            renderData.m_HeaderRow.InsertLast(icon + "##Delta" + icon);
+            icon = "";
+        }
+        if (column.m_ShowPos)
+            renderData.m_HeaderRow.InsertLast(icon + "##Position" + icon);
     }
-    if (settingCurrentRunShowSpeedDelta)
-    {
-        renderData.m_HeaderRow.InsertLast(icon + "##SpeedDelta");
-        icon = "";
-    }
-    if (settingCurrentRunShowSpeedPosition)
-        renderData.m_HeaderRow.InsertLast(icon + "##SpeedPosition");
-
-    // Time from previous
-    icon = Icons::FlagCheckered;
-    if (settingCurrentRunShowCpTime)
-    {
-        renderData.m_HeaderRow.InsertLast(icon + "##CpTimePosition");
-        icon = "";
-    }
-    if (settingCurrentRunShowCpTimeDelta)
-    {
-        renderData.m_HeaderRow.InsertLast(icon + "##CpTimeDelta");
-        icon = "";
-    }
-    if (settingCurrentRunShowCpTimePosition)
-        renderData.m_HeaderRow.InsertLast(icon + "##CpTimePosition");
-
-    // Time from previous no respawn
-    icon = Icons::Forward;
-    if (settingCurrentRunShowCpTimeNr)
-    {
-        renderData.m_HeaderRow.InsertLast(icon + "##CpTimeNrValue");
-        icon = "";
-    }
-    if (settingCurrentRunShowCpTimeNrDelta)
-    {
-        renderData.m_HeaderRow.InsertLast(icon + "##CpTimeNrDelta");
-        icon = "";
-    }
-    if (settingCurrentRunShowCpTimeNrPosition)
-        renderData.m_HeaderRow.InsertLast(icon + "##CpTimeNrPosition");
-    
-    // Time from start no respawn
-    icon = Icons::FastForward;
-    if (settingCurrentRunShowTimeNr)
-    {
-        renderData.m_HeaderRow.InsertLast(icon + "##AccNrValue");
-        icon = "";
-    }
-    if (settingCurrentRunShowTimeNrDelta)
-    {
-        renderData.m_HeaderRow.InsertLast(icon + "##AccNrDelta");
-        icon = "";
-    }
-    if (settingCurrentRunShowTimeNrPosition)
-        renderData.m_HeaderRow.InsertLast(icon + "##AccNrPosition");
-
-    // Number of respawns
-    icon = Icons::Refresh;
-    if (settingCurrentRunShowNumberRespawns)
-    {
-        renderData.m_HeaderRow.InsertLast(icon + "##NumberRespawnsValue");
-        icon = "";
-    }
-    if (settingCurrentRunShowNumberRespawnsDelta)
-    {
-        renderData.m_HeaderRow.InsertLast(icon + "##NumberRespawnsDelta");
-        icon = "";
-    }
-    if (settingCurrentRunShowNumberRespawnsPosition)
-        renderData.m_HeaderRow.InsertLast(icon + "##NumberRespawnsPosition");
 }
 
 void PrepareCurrentRunRows(CurrentRunRenderData &inout renderData)
@@ -190,139 +119,29 @@ void PrepareCurrentRunRows(CurrentRunRenderData &inout renderData)
             if (settingCurrentRunShowPosition)
             {
                 @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = "" + g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, settingCurrentRunCheckpointPosition) + 1;
+                cell.m_Value = "" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, settingCurrentRunCheckpointPosition) + 1);
             }
 
-            // Time from start
-            if (settingCurrentRunShowTime)
+            for (uint col = 0; col < g_AllCurrentRunColumns.Length; ++col)
             {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = Time::Format(checkpointData.m_TimeFromStart);
-            }
-            if (settingCurrentRunShowTimeDelta)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                if (comparisonCheckpointData !is null)
-                {
-                    const int delta = checkpointData.m_TimeFromStart - comparisonCheckpointData.m_TimeFromStart;
-                    cell.m_Value = GetDeltaString(delta);
-                    cell.m_FontColor = GetDeltaColor(delta);
-                }
-            }
-            if (settingCurrentRunShowTimePosition)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = "(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::TimeFromStart) + 1) + ")";
-            }
+                const auto @column = @g_AllCurrentRunColumns[col];
 
-            // Speed
-            if (settingCurrentRunShowSpeed)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = "" + checkpointData.m_Speed;
-            }
-            if (settingCurrentRunShowSpeedDelta)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                if (comparisonCheckpointData !is null)
+                if (column.m_ShowValue)
                 {
-                    const int delta = checkpointData.m_Speed - comparisonCheckpointData.m_Speed;
-                    cell.m_Value = GetDeltaSpeedString(delta);
-                    cell.m_FontColor = GetDeltaSpeedColor(delta);
+                    @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
+                    column.PrepareValue(checkpointData, cell);
                 }
-            }
-            if (settingCurrentRunShowSpeedPosition)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = "(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::Speed) + 1) + ")";
-            }
-
-            // Time from previous
-            if (settingCurrentRunShowCpTime)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = Time::Format(checkpointData.m_TimeFromPrevious);
-            }
-            if (settingCurrentRunShowCpTimeDelta)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                if (comparisonCheckpointData !is null)
+                if (column.m_ShowDelta)
                 {
-                    int delta = checkpointData.m_TimeFromPrevious - comparisonCheckpointData.m_TimeFromPrevious;
-                    cell.m_Value = GetDeltaString(delta);
-                    cell.m_FontColor = GetDeltaColor(delta);
+                    @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
+                    if (comparisonCheckpointData !is null)
+                        column.PrepareDelta(checkpointData, comparisonCheckpointData, cell);
                 }
-            }
-            if (settingCurrentRunShowCpTimePosition)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = "(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::TimeFromPrevious) + 1) + ")";
-            }
-
-            // Time from previous no respawn
-            if (settingCurrentRunShowCpTimeNr)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = Time::Format(checkpointData.m_TimeFromPreviousNoRespawn);
-            }
-            if (settingCurrentRunShowCpTimeNrDelta)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                if (comparisonCheckpointData !is null)
+                if (column.m_ShowPos)
                 {
-                    int delta = checkpointData.m_TimeFromPreviousNoRespawn - comparisonCheckpointData.m_TimeFromPreviousNoRespawn;
-                    cell.m_Value = GetDeltaString(delta);
-                    cell.m_FontColor = GetDeltaColor(delta);
+                    @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
+                    cell.m_Value = "(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, column.GetComparison()) + 1) + ")";
                 }
-            }
-            if (settingCurrentRunShowCpTimeNrPosition)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = "(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::TimeFromPreviousNoRespawn) + 1) + ")";
-            }
-
-            // Time from start no respawn
-            if (settingCurrentRunShowTimeNr)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = Time::Format(checkpointData.m_TimeFromStartNoRespawn);
-            }
-            if (settingCurrentRunShowTimeNrDelta)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                if (comparisonCheckpointData !is null)
-                {
-                    int delta = checkpointData.m_TimeFromStartNoRespawn - comparisonCheckpointData.m_TimeFromStartNoRespawn;
-                    cell.m_Value = GetDeltaString(delta);
-                    cell.m_FontColor = GetDeltaColor(delta);
-                }
-            }
-            if (settingCurrentRunShowTimeNrPosition)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = "(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::TimeFromStartNoRespawn) + 1) + ")";
-            }
-
-            // Number of respawns
-            if (settingCurrentRunShowNumberRespawns)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = "" + checkpointData.m_NumberRespawns;
-            }
-            if (settingCurrentRunShowNumberRespawnsDelta)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                if (comparisonCheckpointData !is null)
-                {
-                    int delta = checkpointData.m_NumberRespawns - comparisonCheckpointData.m_NumberRespawns;
-                    cell.m_Value = GetDeltaSpeedString(delta);
-                    cell.m_FontColor = GetDeltaColor(delta);
-                }
-            }
-            if (settingCurrentRunShowNumberRespawnsPosition)
-            {
-                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
-                cell.m_Value = "(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, checkpointData, CheckpointPositionComparison::NumberRespawns) + 1) + ")";
             }
         }
         else
@@ -360,102 +179,26 @@ void UpdateCurrentCp(CurrentRunRenderData &inout renderData)
     if (settingCurrentRunShowPosition)
         cellIndex += 1;
 
-    int timeAcc = Time::get_Now() - g_State.m_LastStartTime;
-    int time = Time::get_Now() - g_State.m_LastRespawn;
-            
-    // Time from start
-    if (settingCurrentRunShowTime)
-    {
-        @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
-        cell.m_Value = Time::Format(timeAcc);
-    }
-    if (settingCurrentRunShowTimeDelta)
-    {
-        @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
-        if (comparisonCheckpointData !is null)
-        {
-            int delta = timeAcc - comparisonCheckpointData.m_TimeFromStart;
-            cell.m_Value = GetDeltaString(delta);
-            cell.m_FontColor = GetDeltaColor(delta);
-        }
-    }
-    if (settingCurrentRunShowTimePosition)
-        cellIndex += 1;
-
-    // Speed
+    const auto now = Time::get_Now();
     const auto speed = GetPlayerSpeed();
-    if (settingCurrentRunShowSpeed)
+    for (uint col = 0; col < g_AllCurrentRunColumns.Length; ++col)
     {
-        @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
-        cell.m_Value = "" + speed;
-    }
-    if (settingCurrentRunShowSpeedDelta)
-    {
-        @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
-        if (comparisonCheckpointData !is null)
+        const auto @column = @g_AllCurrentRunColumns[col];
+
+        if (column.m_ShowValue)
         {
-            int delta = speed - comparisonCheckpointData.m_Speed;
-            cell.m_Value = GetDeltaSpeedString(delta);
-            cell.m_FontColor = GetDeltaSpeedColor(delta);
+            @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
+            column.PrepareValueCurrent(cp, now, speed, player, cell);
         }
-    }
-    if (settingCurrentRunShowSpeedPosition)
-        cellIndex += 1;
-
-    // Time from previous
-    if (settingCurrentRunShowCpTime)
-        cellIndex += 1;
-    if (settingCurrentRunShowCpTimeDelta)
-        cellIndex += 1;
-    if (settingCurrentRunShowCpTimePosition)
-        cellIndex += 1;
-
-    // Time from previous no respawn
-    if (settingCurrentRunShowCpTimeNr)
-    {
-        @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
-        cell.m_Value = Time::Format(time);
-    }
-    if (settingCurrentRunShowCpTimeNrDelta)
-    {
-        @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
-        if (comparisonCheckpointData !is null)
+        if (column.m_ShowDelta)
         {
-            int delta = time - comparisonCheckpointData.m_TimeFromPrevious;
-            cell.m_Value = GetDeltaString(delta);
-            cell.m_FontColor = GetDeltaColor(delta);
+            @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
+            if (comparisonCheckpointData !is null)
+                column.PrepareDeltaCurrent(cp, now, speed, player, comparisonCheckpointData, cell);
         }
+        if (column.m_ShowPos)
+            cellIndex += 1;
     }
-    if (settingCurrentRunShowCpTimeNrPosition)
-        cellIndex += 1;
-
-    // Time from start no respawn
-    if (settingCurrentRunShowTimeNr)
-        cellIndex += 1;
-    if (settingCurrentRunShowTimeNrDelta)
-        cellIndex += 1;
-    if (settingCurrentRunShowTimeNrPosition)
-        cellIndex += 1;
-
-    // Number of respawns
-    if (settingCurrentRunShowNumberRespawns)
-    {
-        @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
-        if (player.NbRespawnsByCp.Length > cp)
-            cell.m_Value = "" + player.NbRespawnsByCp[cp];
-    }
-    if (settingCurrentRunShowNumberRespawnsDelta)
-    {
-        @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
-        if (player.NbRespawnsByCp.Length > cp && comparisonCheckpointData !is null)
-        {
-            int delta = player.NbRespawnsByCp[cp] - comparisonCheckpointData.m_NumberRespawns;
-            cell.m_Value = GetDeltaSpeedString(delta);
-            cell.m_FontColor = GetDeltaColor(delta);
-        }
-    }
-    if (settingCurrentRunShowNumberRespawnsPosition)
-        cellIndex += 1;
 }
 
 CurrentRunRenderCell@ InitCell(array<CurrentRunRenderCell @> &inout cells, const int cellIndexIn, int &out cellIndexOut)
@@ -574,4 +317,3 @@ class CurrentRunRenderCell
 }
 
 }
-
