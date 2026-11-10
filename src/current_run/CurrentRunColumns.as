@@ -10,19 +10,33 @@ array<CurrentRunColumn@> g_AllCurrentRunColumns = {
     CurrentRunNumberRespawns(),
 };
 
+CurrentRunColumn@ GetColumnById(const string &in id)
+{
+    for (uint i = 0; i < g_AllCurrentRunColumns.Length; ++i)
+        if (g_AllCurrentRunColumns[i].GetId() == id)
+            return @g_AllCurrentRunColumns[i];
+
+    return null;
+}
+
 class CurrentRunColumn
 {
-    bool m_Show = true;
     uint m_Pos = 0;
 
     bool m_ShowValue = true;
     bool m_ShowDelta = true;
     bool m_ShowPos = true;
 
+    string GetId() const
+    {
+        LogWarning("Calling on base class!");
+        return "<ID>";
+    }
+
     string GetHeaderValue() const
     {
         LogWarning("Calling on base class!");
-        return "Missing";
+        return "<Missing>";
     }
 
     void PrepareValue(const CheckpointData &in checkpointData, CurrentRunRenderCell &inout cell) const
@@ -54,6 +68,11 @@ class CurrentRunColumn
 
 class CurrentRunTime : CurrentRunColumn
 {
+    string GetId() const override
+    {
+        return "Time";
+    }
+
     string GetHeaderValue() const override
     {
         return Icons::ClockO;
@@ -91,6 +110,11 @@ class CurrentRunTime : CurrentRunColumn
 
 class CurrentRunTimeNr : CurrentRunColumn
 {
+    string GetId() const override
+    {
+        return "TimeNoRespawn";
+    }
+
     string GetHeaderValue() const override
     {
         return Icons::FastForward;
@@ -126,6 +150,11 @@ class CurrentRunTimeNr : CurrentRunColumn
 
 class CurrentRunSpeed : CurrentRunColumn
 {
+    string GetId() const override
+    {
+        return "Speed";
+    }
+
     string GetHeaderValue() const override
     {
         return Icons::Tachometer;;
@@ -163,6 +192,11 @@ class CurrentRunSpeed : CurrentRunColumn
 
 class CurrentRunCpTime : CurrentRunColumn
 {
+    string GetId() const override
+    {
+        return "CheckpointTime";
+    }
+
     string GetHeaderValue() const override
     {
         return Icons::FlagCheckered;
@@ -198,6 +232,11 @@ class CurrentRunCpTime : CurrentRunColumn
 
 class CurrentRunCpTimeNr : CurrentRunColumn
 {
+    string GetId() const override
+    {
+        return "CheckpointTimeNoRespawn";
+    }
+
     string GetHeaderValue() const override
     {
         return Icons::Forward;
@@ -235,6 +274,11 @@ class CurrentRunCpTimeNr : CurrentRunColumn
 
 class CurrentRunNumberRespawns : CurrentRunColumn
 {
+    string GetId() const override
+    {
+        return "NumberRespawns";
+    }
+
     string GetHeaderValue() const override
     {
         return Icons::Refresh;

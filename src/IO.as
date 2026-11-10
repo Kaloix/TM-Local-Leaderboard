@@ -470,6 +470,7 @@ Json::Value serializeSettings()
 
     settingsObj[IO_KEY::CURRENT_REGION] = g_CurrentZoneIndex;
     settingsObj["tableSettings"] = serializeTableSettings();
+    settingsObj["currentRun"] = serializeCurrentRunSettings();
 
     // Custom positions
     if (g_CustomPositionEntries.Length > 0)
@@ -494,6 +495,9 @@ void deserializeSettings(const Json::Value&in settingsObj)
 
     if (settingsObj.HasKey("tableSettings"))
         deserializeTableSettings(settingsObj["tableSettings"]);
+
+    if (settingsObj.HasKey("currentRun"))
+        deserializeCurrentRunSettings(settingsObj["currentRun"]);
 
     // Custom positions
     if (settingsObj.HasKey("customPositionEntries"))
@@ -588,6 +592,51 @@ void deserializeColumnSettings(TableColumn@ column, const Json::Value&in columnS
                 customTarget.m_CustomEntryId = columnSettingsObj["targetEntryId"];
             }
         }
+    }
+}
+
+Json::Value serializeCurrentRunSettings()
+{
+    auto obj = Json::Object();
+
+    auto columns = Json::Array();
+    for (uint i = 0; i < CurrentRun::g_AllCurrentRunColumns.Length; ++i)
+    {
+        auto @column = CurrentRun::g_AllCurrentRunColumns[i];
+        auto columnObj = Json::Object();
+
+        columnObj["ID"] = column.GetId();
+        columnObj["showValue"] = column.m_ShowValue;
+        columnObj["showDelta"] = column.m_ShowDelta;
+        columnObj["showPos"] = column.m_ShowPos;
+
+        columns.Add(columnObj);
+
+    }
+    obj["columns"] = columns;
+
+    return obj;
+}
+
+void deserializeCurrentRunSettings(const Json::Value&in obj)
+{
+    if (!obj.HasKey("columns"))
+        return;
+    auto @columnSettingsObj = obj["columns"];
+
+    for (uint i = 0; i < columnSettingsObj.Length; ++i)
+    {
+        const auto @columnObj = columnSettingsObj[i];
+
+        const auto id = columnObj["ID"];
+        auto @column = CurrentRun::GetColumnById(id);
+
+        if (columnObj.HasKey("showValue"))
+            column.m_ShowValue = columnObj["showValue"];
+        if (columnObj.HasKey("showDelta"))
+            column.m_ShowDelta = columnObj["showDelta"];
+        if (columnObj.HasKey("showPos"))
+            column.m_ShowPos = columnObj["showPos"];
     }
 }
 

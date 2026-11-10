@@ -25,6 +25,12 @@ void RenderMenu()
             UI::EndMenu();
         }
 
+        if (UI::BeginMenu(Icons::Columns + " Edit Current Run Columns"))
+        {
+            LocalRecords::RenderCurrentRunColumnsMenu();
+            UI::EndMenu();
+        }
+
         UI::EndMenu();
     }
 }
@@ -348,6 +354,61 @@ void RenderTableColumnsMenu()
         }
     }
 
+
+    UI::EndTable();
+}
+
+void RenderCurrentRunColumnsMenu()
+{
+    UI::BeginTable("CustomEntriesTable", 4, UI::TableFlags::SizingFixedFit);
+
+    UI::TableSetupColumn("Name", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Val", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Δ", UI::TableColumnFlags::WidthFixed);
+    UI::TableSetupColumn("Pos", UI::TableColumnFlags::WidthFixed);
+
+    UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    UI::TableHeadersRow();
+    UI::PopStyleColor();
+
+    for (uint i = 0; i < CurrentRun::g_AllCurrentRunColumns.Length; ++i)
+    {
+        UI::TableNextRow();
+        auto @column = @CurrentRun::g_AllCurrentRunColumns[i];
+
+        // Name
+        UI::TableNextColumn();
+        UI::Text(column.GetHeaderValue());
+
+        // Activation
+        UI::TableNextColumn();
+
+        const auto newShowValue = UI::Checkbox("##ShowValue" + i, column.m_ShowValue);
+        if (column.m_ShowValue != newShowValue) {
+            column.m_ShowValue = newShowValue;
+            saveSettings();
+            CurrentRun::CurrentRunOnSettingsChanged();
+        }
+
+        UI::TableNextColumn();
+
+        const auto newShowDelta = UI::Checkbox("##ShowDelta" + i, column.m_ShowDelta);
+        if (column.m_ShowDelta != newShowDelta) {
+            column.m_ShowDelta = newShowDelta;
+            saveSettings();
+            CurrentRun::CurrentRunOnSettingsChanged();
+        }
+
+        UI::TableNextColumn();
+
+        const auto newShowPos = UI::Checkbox("##ShowPos" + i, column.m_ShowPos);
+        if (column.m_ShowPos != newShowPos) {
+            column.m_ShowPos = newShowPos;
+            saveSettings();
+            CurrentRun::CurrentRunOnSettingsChanged();
+        }
+
+    }
 
     UI::EndTable();
 }
