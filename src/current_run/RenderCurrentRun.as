@@ -77,16 +77,16 @@ void PrepareCurrentRunHeader(CurrentRunRenderData &inout renderData)
 
         if (column.m_ShowValue)
         {
-            renderData.m_HeaderRow.InsertLast(icon + "##Value" + icon);
+            renderData.m_HeaderRow.InsertLast(icon);
             icon = "";
         }
         if (column.m_ShowDelta)
         {
-            renderData.m_HeaderRow.InsertLast(icon + "##Delta" + icon);
+            renderData.m_HeaderRow.InsertLast(icon);
             icon = "";
         }
         if (column.m_ShowPos)
-            renderData.m_HeaderRow.InsertLast(icon + "##Position" + icon);
+            renderData.m_HeaderRow.InsertLast(icon);
     }
 }
 
@@ -249,14 +249,20 @@ void renderCurrentRunInfo()
     UI::BeginTable("CurrentRunInfo", g_CurrentRunRenderData.m_HeaderRow.Length, UI::TableFlags::SizingFixedFit);
 
     for (uint i = 0; i < g_CurrentRunRenderData.m_HeaderRow.Length; ++i)
+        UI::TableSetupColumn("" + i, UI::TableColumnFlags::WidthFixed);
+
+    // Table header
+    if (settingCurrentRunShowHeader)
     {
-        UI::TableSetupColumn(g_CurrentRunRenderData.m_HeaderRow[i], UI::TableColumnFlags::WidthFixed);
+        UI::TableNextRow();
+        for (uint i = 0; i < g_CurrentRunRenderData.m_HeaderRow.Length; ++i)
+        {
+            UI::TableNextColumn();
+            UI::Text(g_CurrentRunRenderData.m_HeaderRow[i]);
+        }
     }
 
-    UI::PushStyleColor(UI::Col::HeaderHovered, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    UI::TableHeadersRow();
-    UI::PopStyleColor();
-
+    // Table body
     RenderCpsForLap();
 
     UI::EndTable();

@@ -187,6 +187,9 @@ bool settingCurrentRunKeepLastUntilFirstCp = true;
 [Setting name="Position Comparison Type" description="The type of comparison to use for determining the position at each checkpoint" category="Current Run - Table"]
 LocalRecords::CheckpointPositionComparison settingCurrentRunCheckpointPosition = LocalRecords::CheckpointPositionComparison::TimeFromStart;
 
+[Setting name="Show Table Header " category="Current Run - Table"]
+bool settingCurrentRunShowHeader = true;
+
 [Setting name="Show Checkpoints" category="Current Run - Table"]
 bool settingCurrentRunShowCp = true;
 
