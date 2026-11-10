@@ -13,13 +13,13 @@ void RenderMenu()
             UI::EndMenu();
         }
 
-        if (UI::BeginMenu(Icons::ClockO + " Edit Custom Positions"))
+        if (UI::BeginMenu(Icons::Kenney::PodiumAlt + " Edit Custom Positions"))
         {
             LocalRecords::RenderCustomPositionEntries();
             UI::EndMenu();
         }
 
-        if (UI::BeginMenu(Icons::ClockO + " Edit Table Columns"))
+        if (UI::BeginMenu(Icons::Columns + " Edit Leaderboard Columns"))
         {
             LocalRecords::RenderTableColumnsMenu();
             UI::EndMenu();

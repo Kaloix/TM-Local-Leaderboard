@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Improved table headers of the leaderboard and details window (removed background, use icons of global position history)
 - Improved structure of details window
 - Moved settings for current run columns into plugin menu
+- Improved icons in the plugin menu
 
 ### Fixed
 - Fixed last run and session best not being displayed if they are too slow for the leaderboard
