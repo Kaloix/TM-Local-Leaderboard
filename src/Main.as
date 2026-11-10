@@ -33,6 +33,7 @@ namespace LocalRecords
 {
 
 const int MAX_INT = 2147483647;
+const uint DEFAULT_PLAYERS = 987654321;
 const string ZONE_WORLD = "301e1b69-7e13-11e8-8060-e284abfd2bc4";
 
 State g_State = State();
@@ -379,11 +380,27 @@ void GetNumberGlobalPositions()
 {
 #if DEPENDENCY_MAPINFO
     LogDebug("Using Map Info for determining number of players");
-    g_State.m_NumberGlobalPositions = MapInfo::GetCurrentMapInfo().NbPlayers;
+    startnew(GetNumberGlobalPositionsAsync);
 #else
     LogDebug("No plugin for determining number of players");
 #endif
 }
+
+#if DEPENDENCY_MAPINFO
+void GetNumberGlobalPositionsAsync()
+{
+    g_State.m_NumberGlobalPositions = MapInfo::GetCurrentMapInfo().NbPlayers;
+    LogDebug("Number players " + g_State.m_NumberGlobalPositions);
+    uint tries = 0;
+    while (g_State.m_NumberGlobalPositions == DEFAULT_PLAYERS && tries < 10)
+    {
+        sleep(1 + tries);
+        g_State.m_NumberGlobalPositions = MapInfo::GetCurrentMapInfo().NbPlayers;
+        LogDebug("Number players " + g_State.m_NumberGlobalPositions);
+        tries += 1;
+    }
+}
+#endif
 
 class State
 {
@@ -397,7 +414,7 @@ class State
     uint m_CurrentMapCpCount = 0;
     uint m_CurrentMapLapCount = 0;
 
-    uint m_NumberGlobalPositions = 0;
+    uint m_NumberGlobalPositions = DEFAULT_PLAYERS;
 
     array<CheckpointData @> m_CurrentCheckpoints;
     array<LapData @> m_CurrentLaps;

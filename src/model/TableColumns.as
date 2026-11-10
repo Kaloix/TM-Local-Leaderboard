@@ -276,7 +276,7 @@ class LocalPercentageColumn : TableColumn
         if (g_State.m_Leaderboard.m_TotalNumberFinishes <= 0 || renderRow.m_Entry.m_Rank <= 0)
             return "";
         else
-            return formatPercentile(float(renderRow.m_Entry.m_Rank) / float(g_State.m_Leaderboard.m_TotalNumberFinishes));
+            return formatPercentile(float(renderRow.m_Entry.m_Rank), float(g_State.m_Leaderboard.m_TotalNumberFinishes), "?");
     }
 }
 
@@ -296,10 +296,10 @@ class GlobalPercentageColumn : TableColumn
     }
     string GetBodyValue(const LeaderboardRenderRow&in renderRow) const override
     {
-        if (g_State.m_NumberGlobalPositions == 0 || renderRow.m_Entry.GetLatestGlobalPosition() <= 0)
+        if (renderRow.m_Entry.GetLatestGlobalPosition() <= 0)
             return "";
         else
-            return formatPercentile(float(renderRow.m_Entry.GetLatestGlobalPosition()) / float(g_State.m_NumberGlobalPositions));
+            return formatPercentile(float(renderRow.m_Entry.GetLatestGlobalPosition()), float(g_State.m_NumberGlobalPositions), "?");
     }
 }
 
