@@ -712,8 +712,8 @@ class LeaderboardEntry
             case LeaderboardEntryType::CustomPosition:
             case LeaderboardEntryType::CustomTime:
             {
-                auto @timeData = @GetLatestGlobalTimeData();
-                return timeData != null ? timeData.m_PlayerName : m_PlayerName;
+                const auto @timeData = @GetLatestGlobalTimeData();
+                return timeData !is null ? timeData.m_PlayerName : m_PlayerName;
             }
             case LeaderboardEntryType::Medal:
                 return m_Medal is null ? "Unknown Medal" : m_Medal.GetName();
