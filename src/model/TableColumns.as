@@ -654,8 +654,11 @@ class ReplayColumn : TableColumn
         if (!Permissions::PlayRecords())
             return;
 
+
         if (renderRow.m_IsPlayerBest)
             PbReplay();
+        else if (renderRow.m_Entry.m_Type == LeaderboardEntryType::Score)
+            SavedReplay(@renderRow.m_Entry);
         else
         {
             const auto @timeData = @renderRow.m_Entry.GetLatestGlobalTimeData();
@@ -666,17 +669,22 @@ class ReplayColumn : TableColumn
 
     void PbReplay()
     {
-        Replay(g_State.m_PlayerWebServicesId);
+        Replay(g_State.m_PlayerWebServicesId, null);
+    }
+
+    void SavedReplay(const LeaderboardEntry@ entry)
+    {
+        Replay("" + entry.m_Id, @entry);
     }
 
     void CustomPositionReplay(const GlobalTimeData@ globalTimeData)
     {
         if (globalTimeData is null || globalTimeData.m_PlayerId == "")
             return;
-        Replay(globalTimeData.m_PlayerId);
+        Replay(globalTimeData.m_PlayerId, null);
     }
 
-    void Replay(const string &in playerId)
+    void Replay(const string &in playerId, const LeaderboardEntry@ entry)
     {
         // Determine if the player ghost is enabled
         const int ghostIndex = g_State.m_ActiveGhosts.Find(playerId);
@@ -708,9 +716,19 @@ class ReplayColumn : TableColumn
             UI::Text(ghostIcon);
             if (UI::IsItemClicked())
             {
-                // The event is sent twice when using the leaderboard
-                toggleHook.m_FirstCall = true;
-                MLHook::Queue_SH_SendCustomEvent("TMGame_Record_ToggleGhost", {playerId});
+                if (entry !is null)
+                {
+                    if (ghostEnabled)
+                        UnloadGhost(entry);
+                    else
+                        LoadGhost(entry);
+                }
+                else
+                {
+                    // The event is sent twice when using the leaderboard
+                    toggleHook.m_FirstCall = true;
+                    MLHook::Queue_SH_SendCustomEvent("TMGame_Record_ToggleGhost", {playerId});
+                }
             }
         }
         else
@@ -720,7 +738,6 @@ class ReplayColumn : TableColumn
             UI::PopStyleColor();
         }
 
-
         UI::SameLine();
 
         // Replay Toggle
@@ -728,8 +745,20 @@ class ReplayColumn : TableColumn
         UI::Text(replayIcon);
         if (UI::IsItemClicked())
         {
-            MLHook::Queue_SH_SendCustomEvent("TMGame_Record_SpectateGhost", {playerId});
+            if (entry is null)
+            {
+                MLHook::Queue_SH_SendCustomEvent("TMGame_Record_SpectateGhost", {playerId});
+            }
+            else
+            {
+                // Spectate does not work currently
+                if (g_State.m_ActiveReplay == playerId)
+                    StopSpectateGhost(entry);
+                else
+                    SpectateGhost(entry);
+            }
         }
+
     }
 }
 

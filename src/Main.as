@@ -294,6 +294,8 @@ void OnPlayerFinish()
 void addNewRecord(const MLFeed::PlayerCpInfo_V4 @player)
 {
     g_State.m_Leaderboard.addNewestRun(player);
+    SaveReplay(g_State.m_Leaderboard.m_NewestRun);
+
     InitRows();
     SaveLeaderboard(g_State);
     Statistics::Update();
@@ -438,6 +440,8 @@ class State
     string m_PlayerWebServicesId = "";
 
     array<string> m_ActiveGhosts;
+    dictionary m_EntryIdToGhostId = dictionary();
+
     bool m_HidePb = false;
     string m_ActiveReplay = "";
     bool m_TogglingGhost = false;
@@ -649,6 +653,94 @@ class State
         saveSettings();
     }
 
+}
+
+void SaveReplay(const LeaderboardEntry &in entry)
+{
+    CSmArenaRulesMode @playgroundScript = GetPlaygroundScript();
+    CSmScriptPlayer @playerScript = GetPlayerScript();
+
+    CGameGhostScript @ghost = playgroundScript.Ghost_RetrieveFromPlayer(playerScript);
+    CGameDataFileManagerScript @fileManager = cast<CGameDataFileManagerScript>(playgroundScript.DataFileMgr);
+
+    string replayFilePath = GetReplayPath(entry);
+    fileManager.Replay_Save(replayFilePath, GetApp().RootMap, ghost);
+
+    UI::ShowNotification("\\$6f9" + Icons::VideoCamera + " \\$zReplay saved!", replayFilePath);
+
+    // TODO do I have todo this?
+    fileManager.Ghost_Release(ghost.Id);
+}
+
+MwId LoadGhost(const LeaderboardEntry &in entry)
+{
+    MwId ghostId;
+    if(g_State.m_EntryIdToGhostId.Get("" + entry.m_Id, ghostId))
+        return ghostId;
+
+    string replayFilePath = GetReplayPath(entry);
+
+    CSmArenaRulesMode @playgroundScript = GetPlaygroundScript();
+    CGameDataFileManagerScript @fileManager = cast<CGameDataFileManagerScript>(playgroundScript.DataFileMgr);
+
+    CWebServicesTaskResult_GhostListScript@ aha = fileManager.Replay_Load(replayFilePath);
+    ghostId = playgroundScript.Ghost_Add(aha.Ghosts[0], true);
+
+    g_State.m_ActiveGhosts.InsertLast("" + entry.m_Id);
+    g_State.m_EntryIdToGhostId["" + entry.m_Id] = ghostId;
+
+    return ghostId;
+}
+
+void UnloadGhost(const LeaderboardEntry &in entry)
+{
+    MwId ghostId;
+    if(!g_State.m_EntryIdToGhostId.Get("" + entry.m_Id, ghostId))
+        return;
+
+    CSmArenaRulesMode @playgroundScript = GetPlaygroundScript();
+    playgroundScript.Ghost_Remove(ghostId);
+
+    g_State.m_EntryIdToGhostId.Delete("" + entry.m_Id);
+    const int ghostIndex = g_State.m_ActiveGhosts.Find("" + entry.m_Id);
+    if (ghostIndex != -1)
+    {
+        g_State.m_ActiveGhosts.RemoveAt(ghostIndex);
+    }
+}
+
+void SpectateGhost(const LeaderboardEntry &in entry)
+{
+    MwId ghostId;
+    if (!g_State.m_EntryIdToGhostId.Get("" + entry.m_Id, ghostId))
+        ghostId = LoadGhost(entry);
+
+    auto @app = GetApp();
+    auto @client = app.Network.ClientManiaAppPlayground;
+    if (client is null)
+        return;
+
+    client.ClientUI.Spectator_SetForcedTarget_Ghost(ghostId);
+    app.Network.PlaygroundClientScriptAPI.SetWantedSpectatorCameraType(CGamePlaygroundClientScriptAPI::ESpectatorCameraType::FollowForced);
+    g_State.m_ActiveReplay = "" + entry.m_Id;
+}
+
+void StopSpectateGhost(const LeaderboardEntry &in entry)
+{
+    GetApp().Network.ClientManiaAppPlayground.ClientUI.Spectator_SetForcedTarget_Clear();
+    UnloadGhost(entry);
+    g_State.m_ActiveReplay = "";
+}
+
+string GetReplayPath(const LeaderboardEntry &in entry)
+{
+    string replayPath = IO::FromUserGameFolder("Replays/LocalRecords");
+    if (!IO::FolderExists(replayPath))
+        IO::CreateFolder(replayPath);
+
+    string replayName = "" + entry.m_Id + "(" + g_State.m_CurrentMapName + " - " + Time::Format(entry.m_Time) + ")";
+
+    return replayPath + "/" + replayName;
 }
 
 }

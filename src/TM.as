@@ -29,6 +29,12 @@ CSmArenaClient @GetPlayground()
     return cast<CSmArenaClient>(app.CurrentPlayground);
 }
 
+CSmArenaRulesMode @GetPlaygroundScript()
+{
+    CGameCtnApp @app = GetApp();
+    return cast<CSmArenaRulesMode>(app.PlaygroundScript);
+}
+
 CSmScriptPlayer @GetPlayerScript()
 {
     CSmPlayer @player = GetPlayer();
