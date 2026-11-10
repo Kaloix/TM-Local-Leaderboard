@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Added button to details window for setting the entry as comparison target
 - Added comparison target for best laps run and session best laps run
 - Added setting to toggle real time updates of the current CP
+- Added option to show the comparison target of unreached CPs in the current run table
 
 ### Changed
 - Changed display player name of custom entires to the actual player who drove the referenced run

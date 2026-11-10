@@ -49,7 +49,7 @@ void Shutdown()
 
 void CurrentRunOnSettingsChanged()
 {
-    if (settingShowCurrentRun && g_CurrentRunRenderData is null)
+    if (settingShowCurrentRun)
         PrepareCurrentRun();
     if (!settingShowCurrentRun && g_CurrentRunRenderData !is null)
         Shutdown();
@@ -144,6 +144,37 @@ void PrepareCurrentRunRows(CurrentRunRenderData &inout renderData)
                 }
             }
         }
+        else if (settingCurrentRunShowComparisonTarget && comparisonCheckpointData !is null)
+        {
+            if (settingCurrentRunShowPosition)
+            {
+                @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
+                cell.m_Value = "" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, comparisonCheckpointData, settingCurrentRunCheckpointPosition) + 1);
+                cell.m_FontColor = vec4(0.66f, 0.66f, 0.66f, 1.0f);
+            }
+
+            for (uint col = 0; col < g_AllCurrentRunColumns.Length; ++col)
+            {
+                const auto @column = @g_AllCurrentRunColumns[col];
+
+                if (column.m_ShowValue)
+                {
+                    @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
+                    column.PrepareValue(comparisonCheckpointData, cell);
+                    cell.m_FontColor = vec4(0.66f, 0.66f, 0.66f, 1.0f);
+                }
+                if (column.m_ShowDelta)
+                {
+                    @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
+                }
+                if (column.m_ShowPos)
+                {
+                    @cell = InitCell(row.m_Cells, cellIndex, cellIndex);
+                    cell.m_Value = "(" + (g_State.m_Leaderboard.GetSortedCheckpointRank(cp, comparisonCheckpointData, column.GetComparison()) + 1) + ")";
+                    cell.m_FontColor = vec4(0.66f, 0.66f, 0.66f, 1.0f);
+                }
+            }
+        }
         else
         {
             while(cellIndex < renderData.m_HeaderRow.Length)
@@ -177,7 +208,11 @@ void UpdateCurrentCp(CurrentRunRenderData &inout renderData)
     }
 
     if (settingCurrentRunShowPosition)
-        cellIndex += 1;
+    {
+        @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
+        cell.m_Value = "";
+        cell.m_FontColor = vec4(1, 1, 1, 1);
+    }
 
     const auto now = Time::get_Now();
     const auto speed = GetPlayerSpeed();
@@ -188,16 +223,24 @@ void UpdateCurrentCp(CurrentRunRenderData &inout renderData)
         if (column.m_ShowValue)
         {
             @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
+            cell.m_Value = "";
+            cell.m_FontColor = vec4(1, 1, 1, 1);
             column.PrepareValueCurrent(cp, now, speed, player, cell);
         }
         if (column.m_ShowDelta)
         {
             @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
+            cell.m_Value = "";
+            cell.m_FontColor = vec4(1, 1, 1, 1);
             if (comparisonCheckpointData !is null)
                 column.PrepareDeltaCurrent(cp, now, speed, player, comparisonCheckpointData, cell);
         }
         if (column.m_ShowPos)
-            cellIndex += 1;
+        {
+            @cell = @GetCell(row.m_Cells, cellIndex, cellIndex);
+            cell.m_Value = "";
+            cell.m_FontColor = vec4(1, 1, 1, 1);
+        }
     }
 }
 

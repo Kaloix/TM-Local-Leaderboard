@@ -199,6 +199,9 @@ bool settingCurrentRunShowPosition = false;
 [Setting name="Show Current CP" description="Shows and updates the data of the current CP in real time" category="Current Run - Table"]
 bool settingCurrentRunShowCurrentCp = true;
 
+[Setting name="Show Comparison target" description="Shows data of the selected comparison target for unreached CPs" category="Current Run - Table"]
+bool settingCurrentRunShowComparisonTarget = true;
+
 // Category Statistics
 [Setting name="Show" description="Show the statistics window" category="Statistics"]
 bool settingStatisticsShow = false;
