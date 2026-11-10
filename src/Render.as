@@ -1030,7 +1030,7 @@ void RenderGlobalPositionHistory(const LeaderboardRenderRow &in renderRow)
         UI::Text(formatPosition(data.m_GlobalPositionTotalPlayers));
 
         UI::TableNextColumn();
-        UI::Text(formatPercentile(float(data.m_GlobalPosition), float(g_State.m_NumberGlobalPositions), "?"));
+        UI::Text(formatPercentile(data.m_GlobalPosition, g_State.m_NumberGlobalPositions, "?"));
     }
 
     UI::EndTable();
@@ -1146,12 +1146,13 @@ string formatPosition(const uint position, const string&in defaultValue = "")
         return "" + position;
 }
 
-string formatPercentile(const float dividend, const float divisor , const string&in defaultValue = "")
+
+string formatPercentile(const uint dividend, const uint divisor, const string&in defaultValue = "")
 {
-    if (divisor == 0.0f || divisor == DEFAULT_PLAYERS)
+    if (divisor == 0 || divisor == DEFAULT_PLAYERS)
         return defaultValue;
 
-    const float percentile = dividend / divisor;
+    const float percentile = float(dividend) / float(divisor);
 
     if (percentile <= 0.0f)
         return defaultValue;
