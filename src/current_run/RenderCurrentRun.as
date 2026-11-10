@@ -159,7 +159,7 @@ void UpdateCurrentCp(CurrentRunRenderData &inout renderData)
     const uint cp = g_State.m_CurrentCheckpoints.Length;
 
     // Reached the finish
-    if (cp >= renderData.m_Rows.Length)
+    if (cp >= renderData.m_Rows.Length || !settingCurrentRunShowCurrentCp)
         return;
 
     CurrentRunRenderRow @row = @renderData.m_Rows[cp];

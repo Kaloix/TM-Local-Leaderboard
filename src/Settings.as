@@ -196,6 +196,9 @@ bool settingCurrentRunShowCp = true;
 [Setting name="Show Position" category="Current Run - Table"]
 bool settingCurrentRunShowPosition = false;
 
+[Setting name="Show Current CP" description="Shows and updates the data of the current CP in real time" category="Current Run - Table"]
+bool settingCurrentRunShowCurrentCp = true;
+
 // Category Statistics
 [Setting name="Show" description="Show the statistics window" category="Statistics"]
 bool settingStatisticsShow = false;
