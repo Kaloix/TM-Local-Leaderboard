@@ -219,6 +219,8 @@ void OnMapUnload()
     CurrentRun::Shutdown();
     Statistics::Shutdown();
     g_State = State();
+
+    g_IsDetailsOpen = false;
 }
 
 void OnStart()

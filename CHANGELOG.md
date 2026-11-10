@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - Fixed details tooltip always triggers update for render data
 - Fixed statistics window not respecting settings in initial load (e.g. always showing window header)
 - Fixed number of global records showing 987654321
+- Fixed details window not closing when leaving a map
 
 ## [v0.2.1] - 2026-10-04
 
